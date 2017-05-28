@@ -1,0 +1,31 @@
+;; -*- mode: emacs-lisp; coding: emacs-mule; -*-
+;; --------------------------------------------------------------------------
+;; Desktop File for Emacs
+;; --------------------------------------------------------------------------
+;; Created Thu May 25 01:46:04 2017
+;; Desktop file format version 208
+;; Emacs version 25.2.1
+
+;; Global section:
+(setq desktop-saved-frameset [frameset 1 (22822 6972 442306 0) (desktop . "208") "mberndtgen@Mac.local" nil nil ((((font-backend mac-ct) (fontsize . 0) (font . "-*-Menlo-normal-normal-normal-*-12-*-*-*-m-0-iso10646-1") (border-width . 0) (internal-border-width . 2) (vertical-scroll-bars) (horizontal-scroll-bars) (foreground-color . "#eaeaea") (background-color . "#181a26") (line-spacing) (left-fringe . 8) (right-fringe . 8) (menu-bar-lines . 0) (tool-bar-lines . 0) (title) (icon-type) (auto-raise) (auto-lower) (cursor-type . box) (scroll-bar-width . 0) (scroll-bar-height . 0) (alpha) (fullscreen) (display-type . color) (background-mode . dark) (cursor-color . "goldenrod") (environment) (powerline-cache) (border-color . "#14151E") (frameset--id . "3B03-748A-686F-21EB") (frameset--mini t . t) (modeline . t) (minibuffer . t) (unsplittable) (right-divider-width . 0) (bottom-divider-width . 0) (icon-name) (visibility . t) (display . "Mac.local") (explicit-name) (tool-bar-position . top) (height . 70) (width . 131) (left . 847) (top . 32)) ((min-height . 8) (min-width . 10) (min-height-ignore . 6) (min-width-ignore . 7) (min-height-safe . 2) (min-width-safe . 2) (min-pixel-height . 112) (min-pixel-width . 70) (min-pixel-height-ignore . 84) (min-pixel-width-ignore . 49) (min-pixel-height-safe . 28) (min-pixel-width-safe . 14)) vc (pixel-width . 933) (pixel-height . 966) (total-width . 133) (total-height . 69) (normal-height . 1.0) (normal-width . 1.0) (combination-limit) (leaf (pixel-width . 933) (pixel-height . 490) (total-width . 133) (total-height . 35) (normal-height . 0.5072463768115942) (normal-width . 1.0) (buffer "Main.hs" (selected . t) (hscroll . 0) (fringes 8 8 nil) (margins 2) (scroll-bars nil 0 t nil 0 nil) (vscroll . 0) (dedicated) (point . 549) (start . 1))) (leaf (last . t) (pixel-width . 933) (pixel-height . 476) (total-width . 133) (total-height . 34) (normal-height . 0.4927536231884058) (normal-width . 1.0) (buffer "Main.hs" (selected) (hscroll . 0) (fringes 8 8 nil) (margins 2) (scroll-bars nil 0 t nil 0 nil) (vscroll . 0) (dedicated) (point . 1) (start . 1)))))])
+(setq desktop-missing-file-warning nil)
+(setq tags-file-name nil)
+(setq tags-table-list nil)
+(setq search-ring '("font" "lambda" "slime" "eval" "slime" "eval-" "slime" "complete" "lisp" "markdown" "mark" "company-indent" "clojure" "cider" "cider-load-" "cider"))
+(setq regexp-search-ring nil)
+(setq register-alist nil)
+(setq file-name-history '("~/Documents/src/Haskell/intero-demo/app/Main.hs" "~/Documents/src/clojure/cheshire-cat/src/cheshire_cat/handler.clj" "~/.emacs.orig" "~/.emacs.d/etc/slime.el" "~/.emacs.d/etc/clojure.el" "~/.emacs.d/etc/misc.el" "~/.emacs.d/etc/haskell.el" "~/.zshrc" "~/.emacs.d/init.el" "~/Documents/src/Haskell/intero-demo/src/Lib.hs" "~/Documents/src/Haskell/lab2.hs" "~/.emacs.d/etc/scala.el" "~/Documents/src/clojure/wonderland/project.clj" "~/Documents/src/clojure/wonderland/src/wonderland/core.clj" "~/Documents/src/clojure/cheshire-cat/project.clj" "~/Documents/src/clojure/async-tea-party/src/async_tea_party/core.clj" "~/Documents/src/clojure/async-tea-party/project.clj" "~/Documents/src/clojure/wonderland/test/wonderland/core_test.clj" "~/Documents/src/scala/hello/src/main/scala/example/Hello.scala" "~/.emacs.d/etc/other-languages.el" "~/.emacs.d/etc/unannoy.el" "~/Doc" "~/Documents/src/it-go/terraform/tf_wordpress_server/main.tf" "~/Documents/src/it-go/terraform/tf_wordpress_server/main" "~/Docu" "~/Doc" "/Users/mberndtgen/.emacs.d/etc/unannoy.el"))
+
+;; Buffer section -- buffers listed in same order as in buffer list:
+(desktop-create-buffer 208
+  "/Users/mberndtgen/Documents/src/Haskell/intero-demo/app/Main.hs"
+  "Main.hs"
+  'haskell-mode
+  '(override-global-mode linum-mode which-key-mode rainbow-delimiters-mode window-number-mode helm-mode auto-complete-mode whitespace-cleanup-mode company-mode flycheck-mode)
+  549
+  '(549 nil)
+  nil
+  nil
+  '((tab-width . 8) (indent-tabs-mode) (buffer-file-coding-system . undecided-unix))
+  '((mark-ring nil)))
+
