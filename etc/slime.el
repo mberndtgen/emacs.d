@@ -14,6 +14,9 @@
     (load (expand-file-name "~/quicklisp/slime-helper.el"))
     (setf inferior-lisp-program "/usr/local/bin/sbcl")
 
+    (require 'slime-company)
+    (require 'slime-autoloads)
+
     (add-hook 'lisp-mode-hook (lambda () (slime-mode t)))
     (add-hook 'inferior-lisp-mode-hook (lambda () (inferior-slime-mode t)))
     (add-hook 'slime-load-hook #'(lambda ()
@@ -46,49 +49,46 @@
                                                   hippie-expand-slime))))
 
     (after-load 'slime
-                (require 'slime-company)
-                (require 'slime-autoloads)
+      (setq slime-net-coding-system 'utf-8-unix)
+      (setq slime-startup-animation t)
+      (setq slime-kill-without-query-p t)
 
-                (setq slime-net-coding-system 'utf-8-unix)
-                (setq slime-startup-animation t)
-                (setq slime-kill-without-query-p t)
-                (setq slime-repl-history-file "~/.emacs.d/.slime-history.eld")
-                (setq slime-repl-history-size 2000)
-                (setq slime-repl-only-save-lisp-buffers nil)
-                (setq slime-complete-symbol-function (quote slime-fuzzy-complete-symbol))
-                (setq slime-ros-completion-function (quote ido-completing-read))
-                (setq slime-complete-symbol*-fancy t)
-                (setq slime-complete-symbol-function 'slime-fuzzy-complete-symbol)
-                (global-set-key "\C-cs" 'slime-selector)
-                (global-set-key "\C-ch" 'common-lisp-hyperspec)
+      (setq slime-complete-symbol-function (quote slime-fuzzy-complete-symbol))
+      (setq slime-ros-completion-function (quote ido-completing-read))
+      (setq slime-complete-symbol*-fancy t)
+      (setq slime-complete-symbol-function 'slime-fuzzy-complete-symbol)
+      (global-set-key "\C-cs" 'slime-selector)
+      (global-set-key "\C-ch" 'common-lisp-hyperspec)
 
-                (define-key slime-mode-map
-                  (kbd "C-c m") 'slime-macroexpand-1)
+      (define-key slime-mode-map (kbd "C-c m") 'slime-macroexpand-1))
 
-                (slime-require :swank-listener-hooks)
+    (after-load 'slime-repl
+      ;; Stop SLIME's REPL from grabbing DEL, which is annoying when backspacing over a '('
+      (after-load 'paredit
+        (add-hook 'slime-mode-hook 'rainbow-delimiters-mode)
+        (add-hook 'slime-mode-hook 'enable-paredit-mode)
+        (add-hook 'slime-repl-mode-hook 'enable-paredit-mode)
+        (define-key slime-repl-mode-map (read-kbd-macro paredit-backward-delete-key) nil)
 
-                (add-hook 'slime-mode-hook 'rainbow-delimiters-mode)
-                (add-hook 'slime-mode-hook 'enable-paredit-mode)
-                (add-hook 'slime-repl-mode-hook 'enable-paredit-mode)
-                (add-hook 'slime-repl-mode-hook 'override-slime-repl-bindings-with-paredit)
+        ;; Bind TAB to `indent-for-tab-command', as in regular Slime buffers.
+        (define-key slime-repl-mode-map (kbd "TAB") 'indent-for-tab-command)
+        (setq slime-repl-history-file "~/.emacs.d/.slime-history.eld")
+        (setq slime-repl-history-size 2000)
+        (setq slime-repl-only-save-lisp-buffers nil))
 
-                ;; workaround for paredit on the slime REPL
-                (defun override-slime-repl-bindings-with-paredit ()
-                  (define-key slime-repl-mode-map
-                    (read-kbd-macro paredit-backward-delete-key) nil))
-
-                ;; Slime and Auto-Complete
-                (use-package ac-slime
-                  :ensure t
-                  :init
-                  (progn
-                    (add-hook 'slime-mode-hook 'set-up-slime-ac)
-                    (add-hook 'slime-repl-mode-hook 'set-up-slime-ac)
-                    (add-hook 'slime-load-hook #'(lambda ()
-                                                   (define-key slime-prefix-map (kbd "M-h") 'slime-documentation-lookup))))
-                  :config
-                  (progn
-                    (eval-after-load "auto-complete" '(add-to-list 'ac-modes 'slime-repl-mode)))))))
+      ;; ;; Slime and Auto-Complete
+      ;; (use-package ac-slime
+      ;;   :ensure t
+      ;;   :init
+      ;;   (progn
+      ;;     (add-hook 'slime-mode-hook 'set-up-slime-ac)
+      ;;     (add-hook 'slime-repl-mode-hook 'set-up-slime-ac)
+      ;;     (add-hook 'slime-load-hook #'(lambda ()
+      ;;                                    (define-key slime-prefix-map (kbd "M-h") 'slime-documentation-lookup))))
+      ;;   :config
+      ;;   (progn
+      ;;     (eval-after-load "auto-complete" '(add-to-list 'ac-modes 'slime-repl-mode))))
+      )))
 
 (provide 'slime)
 
