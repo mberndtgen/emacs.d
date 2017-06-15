@@ -36,8 +36,7 @@
   (setf compile-bind-root-regex regex))
 
 (defun compile-bind (map key target)
-  "Define a key binding for a build system target (i.e. make,
-ant, scons) in a particular keymap."
+  "Define a key binding for a build system target (i.e. make, ant, scons) in a particular keymap."
   (define-key map key
     (lambda (n)
       (interactive "p")

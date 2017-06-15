@@ -75,6 +75,12 @@
   (define-key Info-mode-map (kbd "<C-return>") 'eir-eval-in-ielm))
 
 
+;; for interactively building regular expressions
+(use-package re-builder
+  :ensure t
+  :config
+  (setf reb-re-syntax 'read))
+
 ;; prettify symbols for various modes
 (add-hook 'clojure-mode-hook 'my-add-pretty-lambda)
 (add-hook 'haskell-mode-hook 'my-add-pretty-lambda)

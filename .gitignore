@@ -1,5 +1,6 @@
 local/
 elpa/
-auto-save-list/
+saves/*
+auto-save/*
 .cask/
 *.elc

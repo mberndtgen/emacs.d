@@ -6,6 +6,7 @@
       auto-save-default nil
       auto-save-list-file-prefix (locate-user-emacs-file "local/saves")
       inhibit-startup-message t
+      inhibit-startup-screen t
       initial-scratch-message nil
       wdired-allow-to-change-permissions t
       echo-keystrokes 0.1
@@ -14,7 +15,11 @@
       custom-file (make-temp-file "emacs-custom")
       large-file-warning-threshold 536870911
       gc-cons-threshold (* 1024 1024 32)
-      ring-bell-function 'ignore)
+      ring-bell-function 'ignore
+      auto-save-default nil
+      auto-save-list-file-prefix "~/.emacs.d/auto-save/save-"
+      backup-directory-alist (quote (("." . "~/.emacs.d/saves")))
+      backup-inhibited nil)
 
 (setq auto-save-file-name-transforms `((".*" ,temporary-file-directory t))
       backup-directory-alist `((".*" . ,temporary-file-directory)))

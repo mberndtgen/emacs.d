@@ -24,6 +24,22 @@
 (add-to-list 'package-pinned-packages '(cljr-helm . "melpa-stable") t)
 (add-to-list 'package-pinned-packages '(ac-cider . "melpa-stable") t)
 
+
+(defvar init.el-errors '()
+  "A list of errors that occured during initialization. Each error is of the form (LINE ERROR &rest ARGS).")
+
+(defvar init.el-line 0
+  "Approximation to the currently executed line in this file.")
+
+
+;; (defmacro with-buckled-seatbelts (&rest body)
+;;   (let ((err (make-symbol "err")))
+;;     `(condition-case-unless-debug ,err
+;;          ,(macroexp-progn body)
+;;        (error
+;;         (push (cons init.el-line ,err)
+;;               init.el-errors)))))
+
 (setq package-enable-at-startup nil
       ;; work around package.el bug in Emacs 25
       package--init-file-ensured t)
@@ -42,6 +58,7 @@
   (global-set-key "\C-cd" 'dash-at-point))
 
 ;; Load local "packages"
+(require 'init-utils)
 (require 'unannoy)
 (require 'extras)
 
@@ -110,8 +127,6 @@
 (defun my-set-frame-fullscreen (&optional frame)
   (set-frame-parameter frame 'fullscreen 'fullheight))
 
-(my-set-preferred-font)
-
 ;;; convenience settings
 
 (global-linum-mode 1)
@@ -159,6 +174,26 @@
 
 (global-set-key  [f8] 'speedbar-get-focus) ;; bind speedbar to f8
 
+(advice-add 'display-startup-echo-area-message
+            :override #'ignore)
+
+;; (defun summarize-initialization ()
+;;   ;; (kill-buffer "*Messages*") ;; previous messages are spam
+;;   (let ((errors (length init.el-errors)))
+;;     (if (= 0 errors)
+;;         (message "Initialization successful - happy hacking.")
+;;       (message "There have been %d errors during init:\n%s"
+;;                (length init.el-errors)
+;;                (mapconcat (lambda (init.el-error)
+;;                             (pcase-let ((`(,line ,err ,rest) init.el-error))
+;;                               (format "Lines %d+: %s %s" line err rest)))
+;;                           init.el-errors
+;;                           "\n")))))
+
+;; (add-hook 'emacs-startup-hook
+;;           (lambda () (progn (run-at-time 0.1 nil #'summarize-initialization)
+;;                        (my-set-preferred-font))))
+
 
 ;;; Individual package configurations
 
@@ -168,7 +203,9 @@
   :config
   (add-hook 'after-init-hook 'global-company-mode)
   (define-key company-mode-map (kbd "C-:") 'helm-company)
-  (define-key company-active-map (kbd "C-:") 'helm-company))
+  (define-key company-active-map (kbd "C-:") 'helm-company)
+  (setf company-idle-delay 0.02)
+  (setf company-minimum-prefix-length 1))
 
 (use-package undo-tree
   :defer t
@@ -355,7 +392,22 @@
           '(("\\.pdf\\'" "evince")
             ("\\(\\.ods\\|\\.xlsx?\\|\\.docx?\\|\\.csv\\)\\'" "libreoffice")
             ("\\(\\.png\\|\\.jpe?g\\)\\'" "qiv")
-            ("\\.gif\\'" "animate")))))
+            ("\\.gif\\'" "animate"))
+          dired-dwim-target t
+          dired-recursive-copies 'top
+          dired-listing-switches "-ahl"
+          dired-auto-revert-buffer t
+          wdired-allow-to-change-permissions 'advanced)))
+
+(use-package dired+
+  :ensure t
+  :config
+  (global-dired-hide-details-mode 1))
+
+(use-package dired-narrow
+  :ensure t
+  :config
+  (define-key dired-mode-map (kbd "C-x /") 'dired-narrow))
 
 (use-package notmuch
   :ensure t
@@ -615,26 +667,27 @@
   :bind ("C-x !" . uuid-insert)
   :config (random (make-uuid)))
 
-(use-package compile-bind
-  :demand t
-  :bind (("C-h g" . compile-bind-set-command)
-         ("C-h G" . compile-bind-set-root-file))
-  :config
-  (progn
-    (setf compilation-always-kill t
-          compilation-scroll-output 'first-error
-          compile-bind-command (format "make -kj%d " (numcores)))
-    (when (executable-find "nmake.exe")
-      (compile-bind-set-command "nmake -nologo "))
-    (compile-bind* (current-global-map)
-                   ("C-x c" ""
-                    "C-x t" 'test
-                    "C-x C" 'clean))))
+;; (use-package compile-bind
+;;   :demand t
+;;   :bind (("C-h g" . compile-bind-set-command)
+;;          ("C-h G" . compile-bind-set-root-file))
+;;   :config
+;;   (progn
+;;     (setf compilation-always-kill t
+;;           compilation-scroll-output 'first-error
+;;           compile-bind-command (format "make -kj%d " (numcores)))
+;;     (when (executable-find "nmake.exe")
+;;       (compile-bind-set-command "nmake -nologo "))
+;;     (compile-bind* (current-global-map)
+;;                    ("C-x c" ""
+;;                     "C-x t" 'test
+;;                     "C-x C" 'clean))))
 
 
 ;; Compile configuration
-(byte-recompile-directory "~/.emacs.d/lisp/" 0)
-(byte-recompile-directory "~/.emacs.d/etc/" 0)
-(byte-recompile-file "~/.emacs.d/init.el" nil 0)
+;;(byte-recompile-directory "~/.emacs.d/lisp/" 0)
+;;(byte-recompile-directory "~/.emacs.d/etc/" 0)
+;;(byte-recompile-file "~/.emacs.d/init.el" nil 0)
+
 
 (provide 'init) ; make (require 'init) happy
