@@ -1,4 +1,4 @@
-;;; slime.el - enable slime
+;;; slime-cfg.el - enable slime
 
 ;;----------------------------------------------------------------------------
 ;; slime settings
@@ -9,11 +9,12 @@
   :mode "\\.lisp"
   :config
   (progn
-    (add-to-list 'load-path "~/.emacs.d/slime/")
-    (add-to-list 'load-path "~/Documents/src/git/slime/")
+    ;;(add-to-list 'load-path "~/.emacs.d/slime/")
+    ;;(add-to-list 'load-path "~/Documents/src/git/slime/")
     (load (expand-file-name "~/quicklisp/slime-helper.el"))
     (setf inferior-lisp-program "/usr/local/bin/sbcl")
 
+    (require 'slime)
     (require 'slime-company)
     (require 'slime-autoloads)
 
@@ -55,12 +56,12 @@
 
       (setq slime-complete-symbol-function (quote slime-fuzzy-complete-symbol))
       (setq slime-ros-completion-function (quote ido-completing-read))
-      (setq slime-complete-symbol*-fancy t)
-      (setq slime-complete-symbol-function 'slime-fuzzy-complete-symbol)
       (global-set-key "\C-cs" 'slime-selector)
       (global-set-key "\C-ch" 'common-lisp-hyperspec)
 
-      (define-key slime-mode-map (kbd "C-c m") 'slime-macroexpand-1))
+      (define-key slime-mode-map (kbd "C-c m") 'slime-macroexpand-1)
+      (setq slime-complete-symbol*-fancy t))
+
 
     (after-load 'slime-repl
       ;; Stop SLIME's REPL from grabbing DEL, which is annoying when backspacing over a '('
@@ -76,20 +77,19 @@
         (setq slime-repl-history-size 2000)
         (setq slime-repl-only-save-lisp-buffers nil))
 
-      ;; ;; Slime and Auto-Complete
-      ;; (use-package ac-slime
-      ;;   :ensure t
-      ;;   :init
-      ;;   (progn
-      ;;     (add-hook 'slime-mode-hook 'set-up-slime-ac)
-      ;;     (add-hook 'slime-repl-mode-hook 'set-up-slime-ac)
-      ;;     (add-hook 'slime-load-hook #'(lambda ()
-      ;;                                    (define-key slime-prefix-map (kbd "M-h") 'slime-documentation-lookup))))
-      ;;   :config
-      ;;   (progn
-      ;;     (eval-after-load "auto-complete" '(add-to-list 'ac-modes 'slime-repl-mode))))
-      )))
+      ;; Slime and Auto-Complete
+      (use-package ac-slime
+        :ensure t
+        :init
+        (progn
+          (add-hook 'slime-mode-hook 'set-up-slime-ac)
+          (add-hook 'slime-repl-mode-hook 'set-up-slime-ac)
+          (add-hook 'slime-load-hook #'(lambda ()
+                                         (define-key slime-prefix-map (kbd "M-h") 'slime-documentation-lookup))))
+        :config
+        (progn
+          (eval-after-load "auto-complete" '(add-to-list 'ac-modes 'slime-repl-mode)))))))
 
-(provide 'slime)
+(provide 'slime-cfg)
 
-;;; end of slime.el
+;;; end of slime-cfg.el

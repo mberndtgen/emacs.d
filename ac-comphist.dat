@@ -1,148 +1,156 @@
-((("init-utils" .
-   [0 0 0 0 0 0 1 0 0 0])
-  ("comment" .
-   [1 0 0 0 0 0 0])
-  ("backup-inhibited" .
-   [0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0])
-  ("auto-save-list-file-prefix" .
-   [0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0])
-  ("nil" .
-   [2 0 0])
-  ("auto-save-default" .
-   [0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0])
-  ("inhibit-startup-screen" .
-   [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0])
-  ("name" .
-   [1 0 0 0])
-  ("last" .
-   [1 0 0 0])
-  ("app" .
-   [0 0 1])
-  ("intero-global-mode" .
-   [0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0])
-  ("setq" .
-   [1 0 0 0])
-  ("haskell-interactive-mode-hook" .
-   [1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0])
-  ("haskell-interactive-mode" .
-   [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0])
-  ("haskell-interactive" .
-   [0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0])
-  ("company-mode" .
-   [2 0 0 0 0 0 0 0 0 0 0 0])
-  ("haskell-mode" .
-   [0 0 0 0 0 0 0 0 0 0 1 0])
-  ("haskell" .
-   [0 0 0 0 1 0 0])
-  ("add-hook" .
-   [0 0 0 1 1 1 0 0])
-  ("add" .
-   [1 0 0])
-  ("company-backends" .
-   [1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0])
-  ("company-backend" .
-   [0 0 0 0 0 0 0 0 0 0 1 0 0 0 0])
-  ("company-ghci" .
-   [0 0 0 0 0 0 0 0 0 1 0 0])
-  ("push" .
-   [1 0 0 0])
-  ("ring.util.response" .
-   [0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0])
-  ("ring.middleware.json" .
-   [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0])
-  (":name" .
-   [2 0 0 0 0])
-  (":body" .
-   [3 0 0 0 0])
-  (":headers" .
-   [1 0 0 0 0 0 0 0])
-  (":status" .
-   [4 0 0 0 0 0 0])
-  ("true" .
-   [1 0 0 0])
-  ("cheshire." .
-   [0 0 0 1 0 0 0 0 0])
-  (":as" .
-   [8 0 0])
-  ("camel-snake-kebab" .
-   [0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0])
-  (":require" .
-   [2 0 0 0 1 0 0 0])
-  ("require" .
-   [6 0 0 0 0 0 0])
-  ("slime.el" .
-   [1 0 0 0 0 0 0 0])
-  ("slime" .
-   [2 0 0 0 0])
-  ("provide" .
-   [1 0 0 0 0 0 0])
-  ("slim" .
-   [1 0 0 0])
-  ("after" .
-   [1 0 0 0 0])
-  ("load-theme" .
-   [1 0 0 0 0 0 0 0 0 0])
-  (":init" .
-   [2 0 0 0 0])
-  ("progn" .
-   [8 0 0 0 0])
-  ("haskell-mode-hook" .
-   [0 0 0 0 0 0 0 0 0 0 0 0 2 1 0 0 0])
-  ("use-package" .
-   [0 0 0 0 0 1 4 1 0 0 0])
-  ("setf" .
-   [2 0 0 0])
-  (":config" .
-   [6 0 0 0 1 0 0])
-  (":defer" .
-   [1 0 0 0 0 0])
-  (":ensure" .
-   [11 0 0 1 0 0 0])
-  ("user" .
-   [1 0 0 0])
-  (":mode" .
-   [1 0 0 0 0])
-  ("clojure." .
-   [0 0 0 1 1 0 0 0])
-  ("REPL" .
-   [1 0 1 0])
-  ("clojure.core" .
-   [1 0 0 0 0 0 0 0 0 0 0 0])
-  ("clojure.tools.nrepl" .
-   [0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0])
-  ("def" .
-   [1 0 0])
-  (":require-macros" .
-   [0 0 0 0 0 0 0 0 0 1 0 0 0 0 0])
-  (":refer" .
-   [2 0 0 0 0 0])
-  ("response" .
-   [0 0 0 0 0 0 1 0])
-  ("body" .
-   [2 0 0 0])
-  ("ef/at" .
-   [0 0 0 1 0])
-  ("ef/content" .
-   [0 0 0 0 0 0 1 0 0 0])
-  ("ef" .
-   [1 0])
-  ("author" .
-   [1 0 0 0 0 0])
-  ("use" .
-   [1 0 0])
-  ("eval-in-repl-slime" .
-   [0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0])
-  ("clisp" .
-   [1 0 0 0 0])
-  ("sbcl" .
-   [1 0 0 0])
-  ("define-key" .
-   [1 0 0 0 0 0 0 0 0 0])
-  ("dired-mode-map" .
-   [1 0 0 0 0 0 0 0 0 0 0 0 0 0])
-  ("kbd" .
-   [1 0 0])
+((("make" .
+   [9 0 0 0])
+  ("MAKELIST" .
+   [0 0 0 0 0 1 0 0])
+  ("slime-autodoc" .
+   [0 0 0 0 0 0 0 0 0 0 1 0 0])
   ("dired-narrow" .
    [1 0 0 0 0 0 0 0 0 0 0 0])
-  ("slime-autodoc" .
-   [0 0 0 0 0 0 0 0 0 0 1 0 0])))
+  ("kbd" .
+   [1 0 0])
+  ("dired-mode-map" .
+   [1 0 0 0 0 0 0 0 0 0 0 0 0 0])
+  ("define-key" .
+   [1 0 0 0 0 0 0 0 0 0])
+  ("sbcl" .
+   [1 0 0 0])
+  ("clisp" .
+   [1 0 0 0 0])
+  ("eval-in-repl-slime" .
+   [0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0])
+  ("use" .
+   [1 0 0])
+  ("author" .
+   [1 0 0 0 0 0])
+  ("ef" .
+   [1 0])
+  ("ef/content" .
+   [0 0 0 0 0 0 1 0 0 0])
+  ("ef/at" .
+   [0 0 0 1 0])
+  ("body" .
+   [2 0 0 0])
+  ("response" .
+   [0 0 0 0 0 0 1 0])
+  (":refer" .
+   [2 0 0 0 0 0])
+  (":require-macros" .
+   [0 0 0 0 0 0 0 0 0 1 0 0 0 0 0])
+  ("def" .
+   [1 0 0])
+  ("clojure.tools.nrepl" .
+   [0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0])
+  ("clojure.core" .
+   [1 0 0 0 0 0 0 0 0 0 0 0])
+  ("REPL" .
+   [1 0 1 0])
+  ("clojure." .
+   [0 0 0 1 1 0 0 0])
+  (":mode" .
+   [1 0 0 0 0])
+  ("user" .
+   [1 0 0 0])
+  (":ensure" .
+   [11 0 0 1 0 0 0])
+  (":defer" .
+   [1 0 0 0 0 0])
+  (":config" .
+   [6 0 0 0 1 0 0])
+  ("setf" .
+   [2 0 0 0])
+  ("use-package" .
+   [0 0 0 0 0 1 4 1 0 0 0])
+  ("haskell-mode-hook" .
+   [0 0 0 0 0 0 0 0 0 0 0 0 2 1 0 0 0])
+  ("progn" .
+   [8 0 0 0 0])
+  (":init" .
+   [2 0 0 0 0])
+  ("load-theme" .
+   [1 0 0 0 0 0 0 0 0 0])
+  ("after" .
+   [1 0 0 0 0])
+  ("slim" .
+   [1 0 0 0])
+  ("provide" .
+   [1 0 0 0 0 0 0])
+  ("slime" .
+   [3 0 0 0 0])
+  ("slime.el" .
+   [1 0 0 0 0 0 0 0])
+  ("require" .
+   [7 0 0 0 0 0 0])
+  (":require" .
+   [2 0 0 0 1 0 0 0])
+  ("camel-snake-kebab" .
+   [0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0])
+  (":as" .
+   [8 0 0])
+  ("cheshire." .
+   [0 0 0 1 0 0 0 0 0])
+  ("true" .
+   [1 0 0 0])
+  (":status" .
+   [4 0 0 0 0 0 0])
+  (":headers" .
+   [1 0 0 0 0 0 0 0])
+  (":body" .
+   [3 0 0 0 0])
+  (":name" .
+   [2 0 0 0 0])
+  ("ring.middleware.json" .
+   [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0])
+  ("ring.util.response" .
+   [0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0])
+  ("push" .
+   [1 0 0 0])
+  ("company-ghci" .
+   [0 0 0 0 0 0 0 0 0 1 0 0])
+  ("company-backend" .
+   [0 0 0 0 0 0 0 0 0 0 1 0 0 0 0])
+  ("company-backends" .
+   [1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0])
+  ("add" .
+   [1 0 0])
+  ("add-hook" .
+   [0 0 0 1 1 1 0 0])
+  ("haskell" .
+   [0 0 0 0 1 0 0])
+  ("haskell-mode" .
+   [0 0 0 0 0 0 0 0 0 0 1 0])
+  ("company-mode" .
+   [2 0 0 0 0 0 0 0 0 0 0 0])
+  ("haskell-interactive" .
+   [0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0])
+  ("haskell-interactive-mode" .
+   [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0])
+  ("haskell-interactive-mode-hook" .
+   [1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0])
+  ("setq" .
+   [1 0 0 0])
+  ("intero-global-mode" .
+   [0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0])
+  ("app" .
+   [0 0 1])
+  ("last" .
+   [1 0 0 0])
+  ("name" .
+   [1 0 0 0])
+  ("inhibit-startup-screen" .
+   [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0])
+  ("auto-save-default" .
+   [0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0])
+  ("nil" .
+   [2 0 0])
+  ("auto-save-list-file-prefix" .
+   [0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0])
+  ("backup-inhibited" .
+   [0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0])
+  ("comment" .
+   [1 0 0 0 0 0 0])
+  ("init-utils" .
+   [0 0 0 0 0 0 1 0 0 0])
+  ("slime-repl" .
+   [1 0 0 0 0 0 0 0 0 0])
+  ("slime-cfg" .
+   [2 0 0 0 0 0 0 0 0])))

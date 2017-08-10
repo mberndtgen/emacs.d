@@ -2,54 +2,54 @@
 ;; --------------------------------------------------------------------------
 ;; Desktop File for Emacs
 ;; --------------------------------------------------------------------------
-;; Created Thu Jun 15 22:28:11 2017
+;; Created Fri Aug 11 00:10:37 2017
 ;; Desktop file format version 208
 ;; Emacs version 25.2.1
 
 ;; Global section:
-(setq desktop-saved-frameset [frameset 1 (22850 60891 91722 0) (desktop . "208") "mberndtgen@Mac.local" nil nil ((((font-backend mac-ct) (fontsize . 0) (font . "-*-Menlo-normal-normal-normal-*-12-*-*-*-m-0-iso10646-1") (border-width . 0) (internal-border-width . 2) (vertical-scroll-bars) (horizontal-scroll-bars) (foreground-color . "#eaeaea") (background-color . "#181a26") (line-spacing) (left-fringe . 8) (right-fringe . 8) (menu-bar-lines . 0) (tool-bar-lines . 0) (title) (icon-type) (auto-raise) (auto-lower) (cursor-type . box) (scroll-bar-width . 0) (scroll-bar-height . 0) (alpha) (fullscreen) (display-type . color) (background-mode . dark) (cursor-color . "goldenrod") (environment) (powerline-cache) (border-color . "#14151E") (frameset--id . "FA8C-BD51-DA7E-E678") (frameset--mini t . t) (modeline . t) (minibuffer . t) (unsplittable) (right-divider-width . 0) (bottom-divider-width . 0) (icon-name) (visibility . t) (display . "Mac.local") (explicit-name) (tool-bar-position . top) (height . 73) (width . 209) (left . 426) (top . 23)) ((min-height . 4) (min-width . 20) (min-height-ignore . 3) (min-width-ignore . 13) (min-height-safe . 1) (min-width-safe . 4) (min-pixel-height . 56) (min-pixel-width . 140) (min-pixel-height-ignore . 42) (min-pixel-width-ignore . 91) (min-pixel-height-safe . 14) (min-pixel-width-safe . 28)) hc (pixel-width . 1479) (pixel-height . 1008) (total-width . 211) (total-height . 72) (normal-height . 1.0) (normal-width . 1.0) (combination-limit) (leaf (pixel-width . 737) (pixel-height . 1008) (total-width . 105) (total-height . 72) (normal-height . 1.0) (normal-width . 0.5) (buffer "*slime-repl sbcl*" (selected) (hscroll . 0) (fringes 8 8 nil) (margins 1) (scroll-bars nil 0 t nil 0 nil) (vscroll . 0) (dedicated) (point . 286) (start . 1))) (leaf (last . t) (pixel-width . 742) (pixel-height . 1008) (total-width . 106) (total-height . 72) (normal-height . 1.0) (normal-width . 0.5) (buffer "slime.el" (selected . t) (hscroll . 0) (fringes 8 8 nil) (margins 2) (scroll-bars nil 0 t nil 0 nil) (vscroll . 0) (dedicated) (point . 526) (start . 1)))))])
+(setq desktop-saved-frameset [frameset 1 (22924 55773 483731 0) (desktop . "208") "mberndtgen@Mac.local" nil nil ((((font-backend mac-ct) (fontsize . 0) (font . "-*-Menlo-normal-normal-normal-*-12-*-*-*-m-0-iso10646-1") (border-width . 0) (internal-border-width . 2) (vertical-scroll-bars) (horizontal-scroll-bars) (foreground-color . "gray80") (background-color . "#181a26") (line-spacing) (left-fringe . 8) (right-fringe . 8) (menu-bar-lines . 0) (tool-bar-lines . 0) (title) (icon-type) (auto-raise) (auto-lower) (cursor-type . box) (scroll-bar-width . 0) (scroll-bar-height . 0) (alpha) (fullscreen) (display-type . color) (background-mode . dark) (cursor-color . "green") (environment) (powerline-cache) (border-color . "#14151E") (frameset--id . "F3B5-23F9-0C47-2347") (frameset--mini t . t) (modeline . t) (minibuffer . t) (unsplittable) (right-divider-width . 0) (bottom-divider-width . 0) (icon-name) (visibility . t) (display . "Mac.local") (explicit-name) (tool-bar-position . top) (height . 68) (width . 140) (left . 809) (top . 60)) ((min-height . 8) (min-width . 10) (min-height-ignore . 6) (min-width-ignore . 8) (min-height-safe . 2) (min-width-safe . 2) (min-pixel-height . 112) (min-pixel-width . 70) (min-pixel-height-ignore . 84) (min-pixel-width-ignore . 56) (min-pixel-height-safe . 28) (min-pixel-width-safe . 14)) vc (pixel-width . 996) (pixel-height . 938) (total-width . 142) (total-height . 67) (normal-height . 1.0) (normal-width . 1.0) (combination-limit) (leaf (pixel-width . 996) (pixel-height . 476) (total-width . 142) (total-height . 34) (normal-height . 0.5074626865671641) (normal-width . 1.0) (buffer "init.el" (selected . t) (hscroll . 0) (fringes 8 8 nil) (margins 3) (scroll-bars nil 0 t nil 0 nil) (vscroll . 0) (dedicated) (point . 12003) (start . 11427))) (leaf (last . t) (pixel-width . 996) (pixel-height . 462) (total-width . 142) (total-height . 33) (normal-height . 0.4925373134328358) (normal-width . 1.0) (buffer "*slime-repl sbcl*" (selected) (hscroll . 0) (fringes 8 8 nil) (margins 1) (scroll-bars nil 0 t nil 0 nil) (vscroll . 0) (dedicated) (point . 23) (start . 1)))))])
 (setq desktop-missing-file-warning nil)
 (setq tags-file-name nil)
 (setq tags-table-list nil)
-(setq search-ring '("repl-ev" "swank" "slime-repl" "repl" "require" "workaro" "require" "emacs" "startup-hook" "hook" "error" "advice-add" "advice" "auto-sa" "sav" "white"))
+(setq search-ring '("slime" "swap" "switcher" "HOMEB" "repl-ev" "swank" "slime-repl" "repl" "require" "workaro" "require" "emacs" "startup-hook" "hook" "error" "advice-add"))
 (setq regexp-search-ring nil)
 (setq register-alist nil)
-(setq file-name-history '("~/.emacs.d/etc/slime.el" "~/Documents/src/Lisp/chapter2.lisp" "~/.emacs.d/init.el" "~/.emacs.d/etc/clojure.el" "~/.sbclrc" "~/Documents/src/Lisp/chapter10.lisp" "~/.emacs.d/.gitignore" "~/.emacs.d/etc/unannoy.el" "~/.emacs.d/etc/misc.el" "~/.emacs.orig" "~/Documents/src/Lisp/chapter8.lisp" "~/Documents/src/Lisp/norvig/chap1.lisp" "~/.emacs.d/README.md" "~/Documents/src/Haskell/intero-demo/app/Main.hs" "~/Documents/src/clojure/cheshire-cat/src/cheshire_cat/handler.clj" "~/.emacs.d/etc/haskell.el" "~/.zshrc" "~/Documents/src/Haskell/intero-demo/src/Lib.hs" "~/Documents/src/Haskell/lab2.hs" "~/.emacs.d/etc/scala.el" "~/Documents/src/clojure/wonderland/project.clj" "~/Documents/src/clojure/wonderland/src/wonderland/core.clj" "~/Documents/src/clojure/cheshire-cat/project.clj" "~/Documents/src/clojure/async-tea-party/src/async_tea_party/core.clj" "~/Documents/src/clojure/async-tea-party/project.clj" "~/Documents/src/clojure/wonderland/test/wonderland/core_test.clj" "~/Documents/src/scala/hello/src/main/scala/example/Hello.scala" "~/.emacs.d/etc/other-languages.el" "~/Doc" "~/Documents/src/it-go/terraform/tf_wordpress_server/main.tf" "~/Documents/src/it-go/terraform/tf_wordpress_server/main" "~/Docu" "~/Doc" "/Users/mberndtgen/.emacs.d/etc/unannoy.el"))
+(setq file-name-history '("~/.emacs.d/init.el" "~/Documents/src/Lisp/chapter2.lisp" "~/.emacs.d/etc/slime.el" "~/.chunkwmrc" "~/.khdrc" "~/Documents/src/git/kwm/examples/com.koekeishiya.kwm.plist" "~/.kwm/kwmrc" "~/.xinitrc" "~/.zshrc" "~/.tcshrc" "~/.emacs.d/etc/clojure.el" "~/.sbclrc" "~/Documents/src/Lisp/chapter10.lisp" "~/.emacs.d/.gitignore" "~/.emacs.d/etc/unannoy.el" "~/.emacs.d/etc/misc.el" "~/.emacs.orig" "~/Documents/src/Lisp/chapter8.lisp" "~/Documents/src/Lisp/norvig/chap1.lisp" "~/.emacs.d/README.md" "~/Documents/src/Haskell/intero-demo/app/Main.hs" "~/Documents/src/clojure/cheshire-cat/src/cheshire_cat/handler.clj" "~/.emacs.d/etc/haskell.el" "~/Documents/src/Haskell/intero-demo/src/Lib.hs" "~/Documents/src/Haskell/lab2.hs" "~/.emacs.d/etc/scala.el" "~/Documents/src/clojure/wonderland/project.clj" "~/Documents/src/clojure/wonderland/src/wonderland/core.clj" "~/Documents/src/clojure/cheshire-cat/project.clj" "~/Documents/src/clojure/async-tea-party/src/async_tea_party/core.clj" "~/Documents/src/clojure/async-tea-party/project.clj" "~/Documents/src/clojure/wonderland/test/wonderland/core_test.clj" "~/Documents/src/scala/hello/src/main/scala/example/Hello.scala" "~/.emacs.d/etc/other-languages.el" "~/Doc" "~/Documents/src/it-go/terraform/tf_wordpress_server/main.tf" "~/Documents/src/it-go/terraform/tf_wordpress_server/main" "~/Docu" "~/Doc" "/Users/mberndtgen/.emacs.d/etc/unannoy.el"))
 
 ;; Buffer section -- buffers listed in same order as in buffer list:
-(desktop-create-buffer 208
-  "/Users/mberndtgen/.emacs.d/etc/slime.el"
-  "slime.el"
-  'emacs-lisp-mode
-  '(override-global-mode linum-mode which-key-mode rainbow-delimiters-mode window-number-mode helm-mode auto-complete-mode paredit-mode whitespace-cleanup-mode)
-  526
-  '(3905 nil)
-  nil
-  nil
-  '((buffer-file-coding-system . prefer-utf-8-unix))
-  '((mark-ring (3941 498 3309 3159 4201 3735 3905 4317 3309 3159 3905 4454 3159 3728 3162 733))))
-
-(desktop-create-buffer 208
-  "/Users/mberndtgen/Documents/src/Lisp/chapter2.lisp"
-  "chapter2.lisp"
-  'lisp-mode
-  '(eldoc-mode override-global-mode linum-mode which-key-mode rainbow-delimiters-mode window-number-mode helm-mode auto-complete-mode slime-mode paredit-mode whitespace-cleanup-mode)
-  737
-  '(737 nil)
-  nil
-  nil
-  '((buffer-file-coding-system . undecided-unix))
-  '((mark-ring nil)))
-
 (desktop-create-buffer 208
   "/Users/mberndtgen/.emacs.d/init.el"
   "init.el"
   'emacs-lisp-mode
   '(override-global-mode linum-mode which-key-mode rainbow-delimiters-mode window-number-mode helm-mode auto-complete-mode paredit-mode whitespace-cleanup-mode)
-  3829
-  '(1508 nil)
+  12003
+  '(1 nil)
   nil
   nil
   '((buffer-file-coding-system . utf-8-unix))
-  '((mark-ring (1507))))
+  '((mark-ring nil)))
+
+(desktop-create-buffer 208
+  "/Users/mberndtgen/.emacs.d/etc/slime-cfg.el"
+  "slime-cfg.el"
+  'emacs-lisp-mode
+  '(eldoc-mode override-global-mode linum-mode which-key-mode rainbow-delimiters-mode window-number-mode helm-mode auto-complete-mode paredit-mode whitespace-cleanup-mode slime-mode)
+  4320
+  '(3126 nil)
+  nil
+  nil
+  '((buffer-file-coding-system . prefer-utf-8-unix))
+  '((mark-ring (2523 2523 588 1 3867))))
+
+(desktop-create-buffer 208
+  "/Users/mberndtgen/Documents/src/Lisp/chapter2.lisp"
+  "chapter2.lisp"
+  'fundamental-mode
+  '(override-global-mode linum-mode which-key-mode window-number-mode helm-mode whitespace-cleanup-mode)
+  16
+  '(nil nil)
+  nil
+  nil
+  '((buffer-file-coding-system . undecided-unix))
+  '((mark-ring nil)))
 
