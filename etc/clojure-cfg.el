@@ -1,4 +1,4 @@
-;;; clojure.el - enable clojure / cider
+;;; clojure-cfg.el - enable clojure / cider
 
 ;;----------------------------------------------------------------------------
 ;; clojure and cider settings
@@ -85,6 +85,6 @@
            (add-to-list 'ac-modes 'cider-repl-mode))))))
 
 
-(provide 'clojure)
+(provide 'clojure-cfg)
 
-;;; end of clojure.el
+;;; end of clojure-cfg.el

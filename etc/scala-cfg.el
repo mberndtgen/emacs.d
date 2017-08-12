@@ -1,4 +1,4 @@
-;;; scala.el - enable scala / sbt
+;;; scala-cfg.el - enable scala / sbt
 
 ;;----------------------------------------------------------------------------
 ;; scala settings
@@ -17,6 +17,6 @@
   :ensure t
   :mode "\\.scala$\\'")
 
-(provide 'scala)
+(provide 'scala-cfg)
 
-;;; end of scala.el
+;;; end of scala-cfg.el

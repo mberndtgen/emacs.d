@@ -325,8 +325,8 @@
   (add-to-list 'ac-dictionary-directories "~/.emacs.d/ac-dict"))
 
 (require 'slime-cfg)
-(require 'clojure)
-(require 'haskell)
+(require 'clojure-cfg)
+(require 'haskell-cfg)
 (require 'other-languages)
 (require 'misc)
 

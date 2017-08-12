@@ -58,7 +58,7 @@
       (setq slime-ros-completion-function (quote ido-completing-read))
       (global-set-key "\C-cs" 'slime-selector)
       (global-set-key "\C-ch" 'common-lisp-hyperspec)
-
+      (add-to-list 'auto-mode-alist '("\\.lisp$" . lisp-mode))
       (define-key slime-mode-map (kbd "C-c m") 'slime-macroexpand-1)
       (setq slime-complete-symbol*-fancy t))
 
@@ -70,7 +70,7 @@
         (add-hook 'slime-mode-hook 'enable-paredit-mode)
         (add-hook 'slime-repl-mode-hook 'enable-paredit-mode)
         (define-key slime-repl-mode-map (read-kbd-macro paredit-backward-delete-key) nil)
-
+        (add-to-list 'auto-mode-alist '("slime-repl" . slime-repl-mode))
         ;; Bind TAB to `indent-for-tab-command', as in regular Slime buffers.
         (define-key slime-repl-mode-map (kbd "TAB") 'indent-for-tab-command)
         (setq slime-repl-history-file "~/.emacs.d/.slime-history.eld")

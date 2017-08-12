@@ -1,4 +1,4 @@
-;;; haskell.el - enable slime
+;;; haskell-cfg.el - enable slime
 
 ;;----------------------------------------------------------------------------
 ;; haskell settings
@@ -74,6 +74,6 @@
 
 
 
-(provide 'haskell)
+(provide 'haskell-cfg)
 
-;;; end of haskell.el
+;;; end of haskell-cfg.el
