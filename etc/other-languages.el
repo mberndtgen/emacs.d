@@ -4,17 +4,6 @@
 ;; other language settings
 ;;----------------------------------------------------------------------------
 
-(use-package go-mode
-  :commands go-mode
-  :ensure t
-  :config
-  (add-hook 'go-mode-hook 'flycheck-mode)
-  (add-hook 'go-mode-hook (lambda () (progn
-                                  (setq gofmt-command "goimports")
-                                  (set (make-local-variable 'company-backends) '(company-go))
-                                  (company-mode)
-                                  (add-hook 'before-save-hook 'gofmt-before-save)))))
-
 (use-package css-mode
   :ensure t
   :config
