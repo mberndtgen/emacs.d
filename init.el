@@ -327,6 +327,8 @@
 (require 'slime-cfg)
 (require 'clojure-cfg)
 (require 'haskell-cfg)
+(require 'python-cfg)
+;;(require 'golang-cfg)
 (require 'other-languages)
 (require 'misc)
 
