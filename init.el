@@ -127,6 +127,11 @@
 (defun my-set-frame-fullscreen (&optional frame)
   (set-frame-parameter frame 'fullscreen 'fullheight))
 
+(defun insert-backs ()  
+    "insert back-slash"
+    (interactive)
+    (insert "\\"))
+
 ;;; convenience settings
 
 (global-linum-mode 1)
@@ -137,14 +142,14 @@
 ;;; C - Ctrl key
 ;;; s - Option key
 ;;(global-set-key (kbd "C-c s") 'slime-selector)
-(global-set-key (kbd "s-/") "\\")
-(global-set-key (kbd "s-<") "|")
-(global-set-key (kbd "s-2") "@")
-(global-set-key (kbd "s-ö") "[")
-(global-set-key (kbd "s-ä") "]")
-(global-set-key (kbd "s-8") "{")
-(global-set-key (kbd "s-9") "}")
-(global-set-key (kbd "s-ü") "~")
+(global-set-key (kbd "H-#") 'insert-backs)
+(global-set-key (kbd "H-ü") "|")
+(global-set-key (kbd "H-2") "@")
+(global-set-key (kbd "H-ö") "[")
+(global-set-key (kbd "H-ä") "]")
+(global-set-key (kbd "H-p") "{")
+(global-set-key (kbd "H-+") "}")
+(global-set-key (kbd "H-<") "~")
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
