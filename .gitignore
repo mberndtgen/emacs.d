@@ -4,3 +4,9 @@ saves/*
 auto-save/*
 .cask/
 *.elc
+.slime-history.eld
+ac-comphist.dat
+cider-history
+recentf
+.emacs.desktop
+network-security.data
