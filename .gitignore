@@ -8,5 +8,5 @@ auto-save/*
 ac-comphist.dat
 cider-history
 recentf
-.emacs.desktop
+.emacs.desktop*
 network-security.data

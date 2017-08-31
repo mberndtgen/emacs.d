@@ -55,6 +55,14 @@
   :config
   (define-key enriched-mode-map "\C-m" nil))
 
+(use-package org-mode
+  :ensure t
+  :config
+  ;; set maximum indentation for description lists
+  (setq org-list-description-max-indent 5)
+  ;; prevent demoting heading also shifting text inside sections
+  (setq org-adapt-indentation nil))
+
 
 ;; depends on slime, clojure-, and other modes
 (use-package eval-in-repl
