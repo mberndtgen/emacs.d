@@ -89,6 +89,16 @@
   :config
   (setf reb-re-syntax 'read))
 
+(use-package aggressive-indent
+  :ensure t
+  :config
+  ;; enable aggressive-indenting for some modes
+  ;; see https://github.com/Malabarba/aggressive-indent-mode
+  (add-hook 'emacs-lisp-mode-hook #'aggressive-indent-mode)
+  (add-hook 'css-mode-hook #'aggressive-indent-mode)
+  (add-hook 'clojure-mode #'aggressive-indent-mode)
+  (add-hook 'lisp-mode #'aggressive-indent-mode))
+
 ;; prettify symbols for various modes
 (add-hook 'clojure-mode-hook 'my-add-pretty-lambda)
 (add-hook 'haskell-mode-hook 'my-add-pretty-lambda)

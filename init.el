@@ -674,6 +674,11 @@
   :bind ("C-x !" . uuid-insert)
   :config (random (make-uuid)))
 
+(use-package yascroll
+  :ensure t
+  :config
+  (global-yascroll-bar-mode 1))
+
 ;; (use-package compile-bind
 ;;   :demand t
 ;;   :bind (("C-h g" . compile-bind-set-command)
