@@ -1,4 +1,4 @@
-;;; python-cfg.el - enable golang
+;;; python-cfg.el - enable python
 
 ;;----------------------------------------------------------------------------
 ;; python settings
@@ -26,7 +26,8 @@
     ;; For interactive shell
     (setq python-shell-interpreter "python3")
 
-    (setq elpy-use-cpython "/usr/bin/python3")
+    (setq elpy-use-cpython "/usr/local/bin/python3")
+    (setq elpy-use-ipython "/usr/local/bin/ipython3")
     (elpy-use-ipython)))
 
 
