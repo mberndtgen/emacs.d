@@ -19,6 +19,7 @@
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
 (add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/") t)
 (add-to-list 'package-archives '("melpa-stable" . "http://stable.melpa.org/packages/"))
+(add-to-list 'package-archives '("org" . "http://orgmode.org/elpa/"))
 (add-to-list 'package-pinned-packages '(cider . "melpa-stable") t)
 (add-to-list 'package-pinned-packages '(clj-refactor . "melpa-stable") t)
 (add-to-list 'package-pinned-packages '(cljr-helm . "melpa-stable") t)
@@ -329,7 +330,8 @@
   (ac-config-default)
   (add-to-list 'ac-dictionary-directories "~/.emacs.d/ac-dict"))
 
-(require 'slime-cfg)
+ ;;;(require 'slime-cfg)
+(require 'sly-cfg)
 (require 'clojure-cfg)
 (require 'haskell-cfg)
 (require 'python-cfg)
@@ -590,7 +592,8 @@
   :init
   (progn
     (add-hook 'emacs-lisp-mode-hook #'paredit-mode)
-    (add-hook 'lisp-mode-hook #'paredit-mode)
+    (add-hook 'sly-editing-mode #'paredit-mode)
+    ;;(add-hook 'lisp-mode-hook #'paredit-mode)
     (add-hook 'scheme-mode-hook #'paredit-mode)
     (add-hook 'ielm-mode-hook #'paredit-mode))
   :config (define-key paredit-mode-map (kbd "C-j") #'join-line))
