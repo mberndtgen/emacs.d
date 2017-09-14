@@ -139,15 +139,34 @@
   :config
   (setf reb-re-syntax 'read))
 
+;; enable aggressive-indenting for some modes
+;; see https://github.com/Malabarba/aggressive-indent-mode
 (use-package aggressive-indent
   :ensure t
   :config
-  ;; enable aggressive-indenting for some modes
-  ;; see https://github.com/Malabarba/aggressive-indent-mode
-  (add-hook 'emacs-lisp-mode-hook #'aggressive-indent-mode)
-  (add-hook 'css-mode-hook #'aggressive-indent-mode)
-  (add-hook 'clojure-mode #'aggressive-indent-mode)
-  (add-hook 'lisp-mode #'aggressive-indent-mode))
+  (progn
+    (add-hook 'emacs-lisp-mode-hook #'aggressive-indent-mode)
+    (add-hook 'css-mode-hook #'aggressive-indent-mode)
+    (add-hook 'clojure-mode #'aggressive-indent-mode)
+    (add-hook 'lisp-mode #'aggressive-indent-mode)))
+
+;; visually display kill ring
+;; see https://github.com/browse-kill-ring/browse-kill-ring
+(use-package browse-kill-ring
+  :ensure t
+  :config
+  (global-set-key "\C-cy" 'browse-kill-ring))
+
+;; show vertical lines to guide indentation
+;; see https://github.com/zk-phi/indent-guide
+(use-package indent-guide
+  :ensure t
+  :config
+  (progn
+    (add-hook 'emacs-lisp-mode-hook #'indent-guide-mode)
+    (add-hook 'css-mode-hook #'indent-guide-mode)
+    (add-hook 'clojure-mode #'indent-guide-mode)
+    (add-hook 'lisp-mode #'indent-guide-mode)))
 
 ;; prettify symbols for various modes
 (add-hook 'clojure-mode-hook 'my-add-pretty-lambda)

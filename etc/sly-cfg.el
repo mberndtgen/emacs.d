@@ -6,6 +6,7 @@
 
 (use-package sly
   :ensure t
+  :mode "\\.lisp"
   :init
   (progn
     (require 'sly-autoloads)
@@ -15,8 +16,21 @@
     (eval-after-load 'sly
       `(define-key sly-prefix-map (kbd "M-h") 'sly-documentation-lookup))
     (eval-after-load 'sly-mrepl
-      `(define-key sly-mrepl-mode-map (kbd "C-c C-k")
-         'sly-mrepl-clear-recent-output))
+      `(define-key sly-mrepl-mode-map (kbd "C-c C-k") 'sly-mrepl-clear-recent-output))
+    (after-load 'sly
+      (setq sly-net-coding-system 'utf-8-unix)
+      (setq sly-complete-symbol-function (quote slime-fuzzy-complete-symbol))
+      (add-to-list 'auto-mode-alist '("\\.lisp$" . lisp-mode)))
+    (after-load 'sly-mrepl
+      ;; Stop SLIME's REPL from grabbing DEL, which is annoying when backspacing over a '('
+      (after-load 'paredit
+        (add-hook 'sly-mode-hook 'rainbow-delimiters-mode)
+        (add-hook 'sly-mode-hook 'enable-paredit-mode)
+        (add-hook 'sly-repl-mode-hook 'enable-paredit-mode)
+        (define-key sly-mrepl-mode-map (read-kbd-macro paredit-backward-delete-key) nil)
+        (add-to-list 'auto-mode-alist '("sly-mrepl" . sly-mrepl-mode))
+        ;; Bind TAB to `indent-for-tab-command', as in regular Slime buffers.
+        (define-key sly-mrepl-mode-map (kbd "TAB") 'indent-for-tab-command)))
 
     (use-package sly-company
       :defer t
@@ -27,8 +41,7 @@
     (add-hook 'sly-mode-hook
               (lambda ()
                 (unless (sly-connected-p)
-                  (save-excursion (sly)))))
-    ))
+                  (save-excursion (sly)))))))
 
 (provide 'sly-cfg)
 
