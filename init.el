@@ -330,12 +330,13 @@
   (ac-config-default)
   (add-to-list 'ac-dictionary-directories "~/.emacs.d/ac-dict"))
 
- ;;;(require 'slime-cfg)
+ ;;;(require 'slime-cfg) ; --deprecated
 (require 'sly-cfg)
 (require 'clojure-cfg)
 (require 'haskell-cfg)
 (require 'python-cfg)
-;;(require 'golang-cfg)
+(require 'perl6-cfg)
+(require 'golang-cfg)
 (require 'other-languages)
 (require 'misc)
 
@@ -705,4 +706,5 @@
 ;;(byte-recompile-file "~/.emacs.d/init.el" nil 0)
 
 
-(provide 'init) ; make (require 'init) happy
+(provide 'init)
+;;; init.el ends here

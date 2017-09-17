@@ -168,6 +168,12 @@
     (add-hook 'clojure-mode #'indent-guide-mode)
     (add-hook 'lisp-mode #'indent-guide-mode)))
 
+;; open project explorer frame
+(use-package project-explorer
+  :ensure t
+  :config
+  (global-set-key (kbd "M-e") 'project-explorer-toggle))
+
 ;; prettify symbols for various modes
 (add-hook 'clojure-mode-hook 'my-add-pretty-lambda)
 (add-hook 'haskell-mode-hook 'my-add-pretty-lambda)
