@@ -330,7 +330,7 @@
   (ac-config-default)
   (add-to-list 'ac-dictionary-directories "~/.emacs.d/ac-dict"))
 
- ;;;(require 'slime-cfg) ; --deprecated
+;;;(require 'slime-cfg) ; --deprecated
 (require 'sly-cfg)
 (require 'clojure-cfg)
 (require 'haskell-cfg)
@@ -338,6 +338,7 @@
 (require 'perl6-cfg)
 (require 'golang-cfg)
 (require 'other-languages)
+(require 'org-cfg)
 (require 'misc)
 
 
@@ -346,6 +347,10 @@
   :ensure t
   :config
   (which-key-mode +1))
+
+;;; origami folding
+(use-package origami
+  :ensure t)
 
 ;; multiple cursors - https://github.com/magnars/multiple-cursors.el
 (use-package multiple-cursors
