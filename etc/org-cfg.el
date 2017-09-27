@@ -4,7 +4,9 @@
 
 (use-package org
   ;; taken from https://github.com/cocreature/dotfiles/blob/master/emacs/.emacs.d/emacs.org
-  :ensure t
+  :defer 4
+  :commands (org-babel-load-file
+             org-babel-tangle-file)
   :mode ("\\.org\\'" . org-mode)
   :bind (("C-c l" . org-store-link)
          ("C-c c" . org-capture)
@@ -112,6 +114,24 @@
   :commands (org-bullets-mode)
   :config (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))))
 
+(eval-after-load 'org
+  (use-package org-babel
+    :ensure t
+    :init
+    (org-babel-do-load-languages
+     'org-babel-load-languages
+     '((R . t)
+       (emacs-lisp . t)
+       (python . t)
+       (shell . t)
+       (haskell . t)
+       (js . t)
+       (latex . t)
+       (gnuplot . t)
+       (C . t)
+       (sql . t)
+       (ditaa . t)))
+    ))
 
 ;; reveal support
 ;; manual see https://github.com/yjwen/org-reveal
@@ -119,7 +139,11 @@
 (use-package ox-reveal
   :ensure ox-reveal)
 
-(setq org-reveal-root "http://cdn.jsdelivr.net/reveal.js/3.5.0/")
+;;(setq org-reveal-root "http://cdn.jsdelivr.net/reveal.js/3.5.0/")
+(if (eq system-type 'gnu/linux)
+    (setq org-reveal-root "file:///home/mberndtgen/Documents/src/emacs/reveal.js/"))
+(if (eq system-type 'darwin)
+    (setq org-reveal-root "file:///Users/mberndtgen/Documents/src/emacs/reveal.js/"))
 (setq org-reveal-mathjax t)
 
 (use-package htmlize

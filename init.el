@@ -73,7 +73,7 @@
 ;; Some global keybindings
 
 (if (eq system-type 'darwin)
-    (progn 
+    (progn
       ;; set keys for Apple keyboard, for emacs in OS X
       (setq mac-command-modifier 'meta) ; make cmd key do Meta
       (setq mac-option-modifier 'super) ; make opt key do Super
