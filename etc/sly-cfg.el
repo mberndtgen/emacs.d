@@ -32,6 +32,13 @@
         ;; Bind TAB to `indent-for-tab-command', as in regular Slime buffers.
         (define-key sly-mrepl-mode-map (kbd "TAB") 'indent-for-tab-command)))
 
+    (use-package sly-quicklisp
+      :defer t
+      :ensure t
+      :init
+      (progn
+        require 'sly-quicklisp-autoloads))
+
     (use-package sly-company
       :defer t
       :ensure t

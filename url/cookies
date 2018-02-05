@@ -1,0 +1,18 @@
+;; Emacs-W3 HTTP cookies file
+;; Automatically generated file!!! DO NOT EDIT!!!
+
+(setq url-cookie-storage
+ '((".amazon.de"
+  [url-cookie "session-id-time" "2082787201l" "01-Jan-2036 08:00:01.00 GMT" "/" ".amazon.de" nil]
+  [url-cookie "session-id" "258-8125353-8726165" "01-Jan-2036 08:00:01.00 GMT" "/" ".amazon.de" nil]))
+)
+(setq url-cookie-secure-storage
+ '((".github.com"
+  [url-cookie "logged_in" "no" "Mon, 21 Dec 2037 17:58:15 -0000" "/" ".github.com" t]
+  [url-cookie "HttpOnly" nil "Mon, 21 Dec 2037 17:58:15 -0000" "/" ".github.com" t]))
+)
+
+;; Local Variables:
+;; version-control: never
+;; no-byte-compile: t
+;; End:

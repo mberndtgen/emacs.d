@@ -1,1 +1,1 @@
-;; org-clock-save.el - vanguard at <2018-02-02 Fr 14:01>
+;; org-clock-save.el - Mac.local at <2018-02-06 Di 00:21>
