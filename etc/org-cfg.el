@@ -19,7 +19,8 @@
   (progn
     (add-hook 'org-mode-hook (lambda () (set-input-method "TeX")))
     (add-hook 'org-mode-hook 'turn-on-flyspell)
-    (add-hook 'org-mode-hook 'turn-on-auto-fill))
+    (add-hook 'org-mode-hook 'turn-on-auto-fill)
+    (add-hook 'org-mode-hook (lambda () (setq truncate-lines nil))))
   :config
   (progn
     ;; The GTD part of this config is heavily inspired by
@@ -113,25 +114,6 @@
   :ensure t
   :commands (org-bullets-mode)
   :config (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))))
-
-(eval-after-load 'org
-  (use-package org-babel
-    :ensure t
-    :init
-    (org-babel-do-load-languages
-     'org-babel-load-languages
-     '((R . t)
-       (emacs-lisp . t)
-       (python . t)
-       (shell . t)
-       (haskell . t)
-       (js . t)
-       (latex . t)
-       (gnuplot . t)
-       (C . t)
-       (sql . t)
-       (ditaa . t)))
-    ))
 
 ;; reveal support
 ;; manual see https://github.com/yjwen/org-reveal

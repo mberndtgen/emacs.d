@@ -27,8 +27,9 @@
     (setq python-shell-interpreter "python3")
 
     (setq elpy-use-cpython "/usr/local/bin/python3")
-    (setq elpy-use-ipython "/usr/local/bin/ipython3")
-    (elpy-use-ipython)))
+                                        ;(setq elpy-use-ipython "/usr/local/bin/ipython3")
+                                        ;(elpy-use-ipython)
+    ))
 
 
 (provide 'python-cfg)
