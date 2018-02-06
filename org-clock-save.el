@@ -1,1 +1,1 @@
-;; org-clock-save.el - Mac.local at <2018-02-06 Di 00:21>
+;; org-clock-save.el - Mac.local at <2018-02-06 Di 18:38>

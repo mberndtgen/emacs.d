@@ -37,7 +37,7 @@
       :ensure t
       :init
       (progn
-        (require 'sly-quicklisp-autoloads)))
+        require 'sly-quicklisp-autoloads))
 
     (use-package sly-company
       :defer t
@@ -52,4 +52,4 @@
 
 (provide 'sly-cfg)
 
-;;; sly-cfg.el ends here
+;;; end of sly-cfg.el

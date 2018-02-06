@@ -1,11 +1,13 @@
 ;;; extras.el --- small extra functions -*- lexical-binding: t; -*-
+;;; Commentary:
+
 
 ;;; Code:
 
 (use-package org
   ;; taken from https://github.com/cocreature/dotfiles/blob/master/emacs/.emacs.d/emacs.org
   :defer 4
-  :mode ("\\.org\\'" . org-mode)
+  :mode ("\\.org$'" . org-mode)
   :bind (("C-c l" . org-store-link)
          ("C-c c" . org-capture)
          ("C-c a" . org-agenda)
@@ -17,10 +19,10 @@
   (progn
     (add-hook 'org-mode-hook (lambda () (set-input-method "TeX")))
     (add-hook 'org-mode-hook 'turn-on-flyspell)
-    (add-hook 'org-mode-hook 'turn-on-auto-fill)
-    (add-hook 'org-mode-hook (lambda () (setq truncate-lines nil))))
-  ;; for org-eww, clone it with git clone git://orgmode.org/org-mode.git
-  (add-to-list 'load-path "~/Documents/src/emacs/org-mode/lisp/"))
+    ;;(add-hook 'org-mode-hook 'turn-on-auto-fill)
+    (add-hook 'org-mode-hook (lambda () (setq truncate-lines nil)))
+    ;; for org-eww, clone it with git clone git://orgmode.org/org-mode.git
+    (add-to-list 'load-path "~/Documents/src/emacs/org-mode/lisp/")))
 
 :config
 (progn
@@ -37,6 +39,10 @@
   (setq org-log-done 'time)
   (setq org-src-fontify-natively t)
   (setq org-use-speed-commands t)
+  (setq org-ellipsis "…")               ;;; replace the "..." with "…" for collapsed org-mode content
+  (setq org-return-follows-link t)      ;;; RET follows hyperlinks in org-mode:
+  (setq org-startup-align-all-tables t) ;;; Can be set per file basis with: #+STARTUP: noalign (or align).
+                                        ;;; Same as doing C-c C-c in a table.
   (setq org-capture-templates
         '(("t" "Todo [inbox]" entry
            (file+headline "~/org/gtd/inbox.org" "Tasks")
@@ -49,12 +55,6 @@
           ("~/org/gtd/someday.org" :level . 1)
           ("~/org/gtd/tickler.org" :maxlevel . 2)))
   (setq org-todo-keywords '((sequence "TODO(t)" "WAITING(w)" "|" "DONE(d)" "CANCELLED(c)")))
-  (setq org-agenda-custom-commands
-        '(("@" "Contexts"
-           ((tags-todo "@email"
-                       ((org-agenda-overriding-header "Emails")))
-            (tags-todo "@phone"
-                       ((org-agenda-overriding-header "Phone")))))))
   (setq org-clock-persist t)
   (org-clock-persistence-insinuate)
   (custom-set-variables
@@ -79,35 +79,31 @@
        (ditaa . t)))
    '(org-confirm-babel-evaluate nil))
 
-  (add-to-list 'org-latex-packages-alist '("" "minted"))
-  (setq org-latex-pdf-process
-        '("pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
-          "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
-          "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"))
 
-  (setq org-file-apps (append '(("\\.pdf\\'" . "evince %s")) org-file-apps ))
-
-  (global-set-key "\C-ca" 'org-agenda)
+  (setq org-file-apps (append '(("\\.pdf$" . "evince %s")) org-file-apps ))
+  
+  (setq org-src-fontify-natively t) ;;; fontlock src blocks even when outside
+  (setq org-edit-src-content-indentation 0) ;;; no extra indentation for contents in src code blocks
 
   (setq org-agenda-custom-commands
         '(("c" "Simple agenda view"
            ((agenda "")
             (alltodo "")))))
 
-  (use-package org-ac
-    :ensure t
-    :init
-    (progn
-      (require 'org-ac)
-      (org-ac/config-default)))
+  ;; (use-package org-ac
+  ;;   :ensure t
+  ;;   :init
+  ;;   (progn
+  ;;     (require 'org-ac)
+  ;;     (org-ac/config-default)))
 
-  (global-set-key (kbd "C-c c") 'org-capture)
+
   (defadvice org-capture-finalize
       (after delete-capture-frame activate)
     "Advise capture-finalize to close the frame"
     (if (equal "capture" (frame-parameter nil 'name))
         (delete-frame)))
-
+  
   (defadvice org-capture-destroy
       (after delete-capture-frame activate)
     "Advise capture-destroy to close the frame"
@@ -139,14 +135,17 @@
   :commands (org-bullets-mode)
   :config (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))))
 
-;; reveal support
-;; manual see https://github.com/yjwen/org-reveal
-;; reveal.js home: https://github.com/hakimel/reveal.js/
-(use-package ox-reveal
-  :ensure ox-reveal)
 
-(require 'ox-beamer)
-(require 'ox-latex)
+(eval-after-load "org"
+  '(progn
+     (require 'ox-md nil t)
+     ;; reveal support
+     ;; manual see https://github.com/yjwen/org-reveal
+     ;; reveal.js home: https://github.com/hakimel/reveal.js/
+     (use-package ox-reveal
+       :ensure ox-reveal)
+     (require 'ox-beamer)
+     (require 'ox-latex)))
 
 ;;(setq org-reveal-root "http://cdn.jsdelivr.net/reveal.js/3.5.0/")
 (if (eq system-type 'gnu/linux)
@@ -154,6 +153,46 @@
 (if (eq system-type 'darwin)
     (setq org-reveal-root "file:///Users/mberndtgen/Documents/src/emacs/reveal.js/"))
 (setq org-reveal-mathjax t)
+
+;;Org-export to LaTeX
+(eval-after-load "ox-latex"
+  '(progn
+     (message "Now loading org-latex export settings")
+     ;; use with: #+LATEX_CLASS: myclass
+     ;;#+LaTeX_CLASS_OPTIONS: [a4paper,twoside,twocolumn]
+     (add-to-list 'org-latex-classes
+                  '("myclass" "\\documentclass[11pt,a4paper]{article}
+                     [NO-DEFAULT-PACKAGES]
+                     [NO-PACKAGES]"
+                    ("\\usepackage[utf8]{inputenc}")
+                    ("\\usepackage[T1]{fontenc}")
+                    ("\\usepackage{graphicx}")
+                    ("\\usepackage{longtable}")
+                    ("\\usepackage{amssymb}")
+                    ("\\usepackage[colorlinks=true,urlcolor=SteelBlue4,linkcolor=Firebrick4]{hyperref}")
+                    ("\\usepackage[hyperref,x11names]{xcolor}")
+                    ("\\section{%s}" . "\\section*{%s}")
+                    ("\\subsection{%s}" . "\\subsection*{%s}")
+                    ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+                    ("\\paragraph{%s}" . "\\paragraph*{%s}")
+                    ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
+
+     ;; tell org to use listings
+     (setq org-export-latex-listings t)
+
+     (add-to-list 'org-latex-packages-alist '("" "minted"))
+     (setq org-latex-pdf-process
+           '("pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
+             "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
+             "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"))
+
+     ;; you must include the listings package
+     ;;(add-to-list 'org-export-latex-packages-alist '("" "listings")) ;; don't work in Org 8?
+
+     ;; if you want colored source code then you need to include the color package
+     ;;(add-to-list 'org-export-latex-packages-alist '("" "color"))
+     ))
+
 
 ;; Org Publish to Stat Blog to Jekyll config Added 26 Mar 2015
 ;; http://orgmode.org/worg/org-tutorials/org-jekyll.html
@@ -186,6 +225,50 @@
 
 ;; (use-package htmlize
 ;;   :ensure t)
+
+;; wrap text in org-mode block (see http://pragmaticemacs.com/emacs/wrap-text-in-an-org-mode-block/)
+
+(defun org-begin-template ()
+  "Make a template at point."
+  (interactive)
+  (if (org-at-table-p)
+      (call-interactively 'org-table-rotate-recalc-marks)
+    (let* ((choices '(("s" . "SRC")
+                      ("e" . "EXAMPLE")
+                      ("q" . "QUOTE")
+                      ("v" . "VERSE")
+                      ("c" . "CENTER")
+                      ("l" . "LaTeX")
+                      ("h" . "HTML")
+                      ("a" . "ASCII")))
+           (key
+            (key-description
+             (vector
+              (read-key
+               (concat (propertize "Template type: " 'face 'minibuffer-prompt)
+                       (mapconcat (lambda (choice)
+                                    (concat (propertize (car choice) 'face 'font-lock-type-face)
+                                            ": "
+                                            (cdr choice)))
+                                  choices
+                                  ", ")))))))
+      (let ((result (assoc key choices)))
+        (when result
+          (let ((choice (cdr result)))
+            (cond
+             ((region-active-p)
+              (let ((start (region-beginning))
+                    (end (region-end)))
+                (goto-char end)
+                (insert "#+END_" choice "\n")
+                (goto-char start)
+                (insert "#+BEGIN_" choice "\n")))
+             (t
+              (insert "#+BEGIN_" choice "\n")
+              (save-excursion (insert "#+END_" choice))))))))))
+
+;;bind to key
+(define-key org-mode-map (kbd "C-<") 'org-begin-template)
 
 (provide 'org-cfg)
 

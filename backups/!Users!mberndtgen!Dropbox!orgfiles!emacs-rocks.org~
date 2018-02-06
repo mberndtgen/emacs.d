@@ -1,0 +1,69 @@
+Mark a point,
+Select the end of the mark (be it through a search or whatever)
+C-x r t <string>
+replaces with <string> whatever is in the rectangle 
+
+
+C-x C-t: same with two Line
+M-t: transpose word with word before it
+C-t : Transpose (swap one letter with the one before it)
+
+whatever gets transposed moves foreward
+
+C-<number> : do next command <number> times
+
+#+BEGIN_SRC emacs-lisp
+ (first '(a b c))
+
+#+END_SRC
+
+#+RESULTS: 
+
+
+#+BEGIN_SRC python :results output :exports both
+  def times_two(x):
+       y = x*2
+       return y
+  
+  print times_two(5)    
+#+END_SRC
+
+#+RESULTS:
+
+
+F3: begin macro
+F4: end macro
+
+M-l: lowercase (whole word, moves to end of word)
+
+M-u: uppercase (whole word, moves to end of word)
+M-f: one word foreward
+M-b: one word backword
+
+move along parentheses:
+
+- C-M-n: next 
+= C-M-p: previous
+
+
+word1, blab 
+balb laba word2 
+
+
+"  " var abla1
+"  " var bbla2
+"  " bar Ycbla3
+
+
+acbdefg
+hijklmno
+
+
+
+
+
+
+
+
+
+

@@ -21,8 +21,13 @@
       backup-directory-alist (quote (("." . "~/.emacs.d/saves")))
       backup-inhibited nil)
 
-(setq auto-save-file-name-transforms `((".*" ,temporary-file-directory t))
-      backup-directory-alist `((".*" . ,temporary-file-directory)))
+;; Write backup files to own directory
+(setq backup-directory-alist
+      `(("." . ,(expand-file-name
+                 (concat user-emacs-directory "backups")))))
+
+;; Make backups of files, even when they're in version control
+(setq vc-make-backup-files t)
 
 ;; GUIs are for newbs
 (dolist (mode'(menu-bar-mode tool-bar-mode scroll-bar-mode))
