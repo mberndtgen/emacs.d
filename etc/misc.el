@@ -1,8 +1,12 @@
-;;; misc.el - enable miscellaneous packages
+;;; package --- summary:
+
+;;; Commentary:
 
 ;;----------------------------------------------------------------------------
-;; misc packages
+;; misc.el - enable miscellaneous packages
 ;;----------------------------------------------------------------------------
+
+;;; Code:
 
 (use-package jekyll
   :demand t
@@ -109,11 +113,6 @@
     (add-hook 'clojure-mode #'indent-guide-mode)
     (add-hook 'lisp-mode #'indent-guide-mode)))
 
-;; open project explorer frame
-(use-package project-explorer
-  :ensure t
-  :config
-  (global-set-key (kbd "M-e") 'project-explorer-toggle))
 
 ;; prettify symbols for various modes
 (add-hook 'clojure-mode-hook 'my-add-pretty-lambda)
@@ -125,7 +124,6 @@
 ;; make tab complete without losing ability to manually indent
 (global-set-key (kbd "TAB") #'company-indent-or-complete-common)
 
-
 (provide 'misc)
 
-;;; end of misc.el
+;;; misc.el ends here

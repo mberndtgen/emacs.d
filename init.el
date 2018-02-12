@@ -29,6 +29,7 @@
                                    ("melpa-stable" . 2)
                                    ("melpa" . 1)))
 
+(package-initialize)
 
 (defvar init.el-errors '()
   "A list of errors that occured during initialization. Each error is of the form (LINE ERROR &rest ARGS).")
@@ -37,18 +38,10 @@
   "Approximation to the currently executed line in this file.")
 
 
-;; (defmacro with-buckled-seatbelts (&rest body)
-;;   (let ((err (make-symbol "err")))
-;;     `(condition-case-unless-debug ,err
-;;          ,(macroexp-progn body)
-;;        (error
-;;         (push (cons init.el-line ,err)
-;;               init.el-errors)))))
-
 (setq package-enable-at-startup nil
       ;; work around package.el bug in Emacs 25
       package--init-file-ensured t)
-(package-initialize)
+
 (unless (package-installed-p 'use-package)
   (package-refresh-contents)
   (package-install 'use-package))
@@ -297,19 +290,19 @@
           helm-ff-skip-boring-files t)
     (ido-mode -1) ;; Turn off ido mode in case I enabled it accidentally
     (helm-mode))
-   :bind (("C-c h" . helm-mini)
-          ("C-h a" . helm-apropos)
-          ("C-x C-b" . helm-buffers-list)
-          ("C-x b" . helm-buffers-list)
-          ("M-y" . helm-show-kill-ring)
-          ("M-x" . helm-M-x)
-          ("C-x C-f" . helm-find-files)
-          ("C-x c o" . helm-occur)
-          ("C-x c s" . helm-swoop)
-          ("C-x c y" . helm-yas-complete)
-          ("C-x c Y" . helm-yas-create-snippet-on-region)
-          ("C-x c b" . my/helm-do-grep-book-notes)
-          ("C-x c SPC" . helm-all-mark-rings)))
+  :bind (("C-c h" . helm-mini)
+	 ("C-h a" . helm-apropos)
+	 ("C-x C-b" . helm-buffers-list)
+	 ("C-x b" . helm-buffers-list)
+	 ("M-y" . helm-show-kill-ring)
+	 ("M-x" . helm-M-x)
+	 ("C-x C-f" . helm-find-files)
+	 ("C-x c o" . helm-occur)
+	 ("C-x c s" . helm-swoop)
+	 ("C-x c y" . helm-yas-complete)
+	 ("C-x c Y" . helm-yas-create-snippet-on-region)
+	 ("C-x c b" . my/helm-do-grep-book-notes)
+	 ("C-x c SPC" . helm-all-mark-rings)))
 
 
 (use-package buffer-move
@@ -335,7 +328,7 @@
   (ac-config-default)
   (add-to-list 'ac-dictionary-directories "~/.emacs.d/ac-dict"))
 
-;;;(require 'slime-cfg) ; --deprecated
+;; (require 'slime-cfg) ; --deprecated
 (require 'sly-cfg)
 (require 'clojure-cfg)
 (require 'haskell-cfg)
@@ -417,12 +410,12 @@
           dired-recursive-copies 'top
           dired-listing-switches "-ahl"
           dired-auto-revert-buffer t
-          wdired-allow-to-change-permissions 'advanced)))
+          dired-allow-to-change-permissions 'advanced)))
 
-(use-package dired+
-  :ensure t
-  :config
-  (global-dired-hide-details-mode 1))
+;; (use-package dired+
+;;   :ensure t
+;;   :config
+;;   (global-dired-hide-details-mode 1))
 
 (use-package dired-narrow
   :ensure t

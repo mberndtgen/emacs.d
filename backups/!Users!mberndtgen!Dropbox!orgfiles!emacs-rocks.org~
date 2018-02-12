@@ -1,3 +1,18 @@
+* Emacs Rocks! exercises
+** DONE Do something
+CLOSED: [2018-02-08 Do 12:40]
+** TODO One more
+** TODO Another one
+** TODO ...and another one (M-S-RET) 
+Press C-c C-t on a TODO and then it's done, timestamp included. That's
+different when pressing C-t C-c on a 'Done': then it simply disappears.
+
+A [[http://test.invalid/][link]].
+
+#+BEGIN_SRC sh
+  ls
+#+END_SRC
+
 Mark a point,
 Select the end of the mark (be it through a search or whatever)
 C-x r t <string>
@@ -13,23 +28,26 @@ whatever gets transposed moves foreward
 C-<number> : do next command <number> times
 
 #+BEGIN_SRC emacs-lisp
- (first '(a b c))
+ (first '(z a bq c))
 
 #+END_SRC
 
 #+RESULTS: 
 
 
-#+BEGIN_SRC python :results output :exports both
-  def times_two(x):
-       y = x*2
-       return y
-  
-  print times_two(5)    
+#+BEGIN_SRC clojure :results output :show-process t
+  (dotimes [n 10]
+    (println n ".")
+    (Thread/sleep 500))
 #+END_SRC
 
 #+RESULTS:
 
+#+BEGIN_SRC emacs-lisp
+  (defun org-xor (a b)
+     "Exclusive or."
+     (if a (not b) b))
+#+END_SRC
 
 F3: begin macro
 F4: end macro
@@ -57,13 +75,4 @@ balb laba word2
 
 acbdefg
 hijklmno
-
-
-
-
-
-
-
-
-
 

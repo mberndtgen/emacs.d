@@ -6,10 +6,10 @@
 
 (use-package sly
   :ensure t
-  :mode "\\.lisp"
+  :mode "\\.lisp$"
   :init
   (progn
-    (require 'sly-autoloads)
+    ;;(require 'sly-autoloads)
     (setf inferior-lisp-program "/usr/local/bin/sbcl"))
   :config
   (progn
@@ -37,7 +37,7 @@
       :ensure t
       :init
       (progn
-        require 'sly-quicklisp-autoloads))
+        (require 'sly-quicklisp-autoloads)))
 
     (use-package sly-company
       :defer t
@@ -52,4 +52,4 @@
 
 (provide 'sly-cfg)
 
-;;; end of sly-cfg.el
+;;; sly-cfg.el ends here

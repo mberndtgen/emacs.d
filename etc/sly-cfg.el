@@ -6,10 +6,10 @@
 
 (use-package sly
   :ensure t
-  :mode "\\.lisp"
+  :mode "\\.lisp\\"
   :init
   (progn
-    (require 'sly-autoloads)
+    ;;(require 'sly-autoloads)
     (setf inferior-lisp-program "/usr/local/bin/sbcl"))
   :config
   (progn
