@@ -112,15 +112,15 @@
     "Droid Sans Mono-10"
     "Inconsolata-12"))
 
-(defun my-set-preferred-font (&optional frame)
-  "Set the first available font from `my-preferred-fonts'."
-  (catch 'done
-    (with-selected-frame (or frame (selected-frame))
-      (dolist (font my-preferred-fonts)
-        (when (ignore-errors (x-list-fonts font))
-          (set-frame-font font)
-          (throw 'done nil)))))
-  (add-text-properties (point-min) (point-max) '(line-spacing 0.15 line-height 1.2)))
+;; (defun my-set-preferred-font (&optional frame)
+;;   "Set the first available font from `my-preferred-fonts'."
+;;   (catch 'done
+;;     (with-selected-frame (or frame (selected-frame))
+;;       (dolist (font my-preferred-fonts)
+;;         (when (ignore-errors (x-list-fonts font))
+;;           (set-frame-font font)
+;;           (throw 'done nil)))))
+;;   (add-text-properties (point-min) (point-max) '(line-spacing 0.15 line-height 1.2)))
 
 (defun my-set-frame-fullscreen (&optional frame)
   (set-frame-parameter frame 'fullscreen 'fullheight))
