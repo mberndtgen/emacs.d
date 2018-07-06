@@ -6,14 +6,19 @@
 
 (use-package css-mode
   :ensure t
+  :mode ("\\.css\\'" . css-mode)
   :config
   (custom-set-variables
    '(css-indent-offset 2)))
 
+(use-package arduino-mode
+  :ensure t
+  :mode ("\\.ino\\'" . arduino-mode))
+
 (use-package yaml-mode
   :ensure t
   :defer t
-  :mode ("\\.yaml$'" "\\.yml$")
+  :mode ("\\.ya?ml$\\'" . yaml-mode)
   :config
   (add-hook 'yaml-mode-hook
             (lambda ()
@@ -22,7 +27,7 @@
 
 (use-package js2-mode
   :ensure t
-  :mode "\\.js$"
+  :mode ("\\.js$\\'" . js2-mode)
   :config
   (progn
     (add-hook 'js2-mode-hook (lambda () (setq mode-name "js2")))
@@ -35,7 +40,7 @@
 (use-package terraform-mode
   :ensure t
   :defer t
-  :mode ("\\.tf$")
+  :mode ("\\.tf\\'" . terraform-mode)
   :config (setf terraform-indent-level 4))
 
 (use-package cc-mode
@@ -57,7 +62,7 @@
 (use-package nasm-mode
   :ensure t
   :defer t
-  :mode ("\\.nasm$" "\\.asm$" "\\.s$")
+  :mode ("\\.n?asm$\\'" . nasm-mode)
   :config
   (add-hook 'nasm-mode-hook (lambda () (setf indent-tabs-mode t))))
 

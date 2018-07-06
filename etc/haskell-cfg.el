@@ -6,7 +6,7 @@
 
 (use-package intero
   :ensure t
-  :mode ("\\.l?hsc?$" "\\.hs$")
+  :mode ("\\.l?hsc?$'" . haskell-mode)
   :config
   (progn
     (add-hook 'haskell-mode-hook 'intero-mode)
@@ -14,7 +14,7 @@
     (setq intero-global-mode 1)))
 
 ;; (use-package haskell-mode
-;;    :mode ("\\.l?hsc?$" "\\.hs$")
+;;    :mode ("\\.l?hsc?$'" . haskell-mode)
 ;;    :ensure t
 ;;    :commands haskell-mode
 ;;    :bind ("C-c C-s" . fix-imports)

@@ -102,6 +102,8 @@
 (add-to-list 'auto-mode-alist '("\\.mak$" . makefile-gmake-mode))
 (add-to-list 'auto-mode-alist '("\\.make$" . makefile-gmake-mode))
 (add-to-list 'auto-mode-alist '("\\.el$" . emacs-lisp-mode))
+(add-to-list 'auto-mode-alist '("\\.ino$" . arduino-mode))
+
 
 (setq network-security-level 'high)
 

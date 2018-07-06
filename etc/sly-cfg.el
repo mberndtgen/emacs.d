@@ -6,7 +6,7 @@
 
 (use-package sly
   :ensure t
-  :mode "\\.lisp\\"
+  :mode "\\.lisp\\'"
   :init
   (progn
     ;;(require 'sly-autoloads)
@@ -49,6 +49,36 @@
               (lambda ()
                 (unless (sly-connected-p)
                   (save-excursion (sly)))))))
+
+(use-package lisp-mode
+  ;; stolen from https://github.com/jcf/emacs.d/blob/master/init-languages.org
+  :mode (("\\.lisp\\'" . lisp-mode))
+  :config
+  (defun lispdoc ()
+    "Searches lispdoc.com for SYMBOL, which is by default the symbol currently under the cursor."
+    (interactive)
+    (let* ((word-at-point (word-at-point))
+           (symbol-at-point (symbol-at-point))
+           (default (symbol-name symbol-at-point))
+           (inp (read-from-minibuffer
+                 (if (or word-at-point symbol-at-point)
+                     (concat "Symbol (default " default "): ")
+                   "Symbol (no default): "))))
+      (if (and (string= inp "") (not word-at-point) (not
+                                                     symbol-at-point))
+          (message "you didn't enter a symbol!")
+        (let ((search-type (read-from-minibuffer
+                            "full-text (f) or basic (b) search (default b)? ")))
+          (browse-url (concat "http://lispdoc.com?q="
+                              (if (string= inp "")
+                                  default
+                                inp)
+                              "&search="
+                              (if (string-equal search-type "f")
+                                  "full+text+search"
+                                "basic+search")))))))
+
+  (define-key lisp-mode-map (kbd "C-c l") 'lispdoc))
 
 (provide 'sly-cfg)
 

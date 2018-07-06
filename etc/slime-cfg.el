@@ -6,7 +6,7 @@
 
 (use-package slime
   :ensure t
-  :mode "\\.lisp"
+  :mode "\\.lisp\\'"
   :config
   (progn
     ;;(add-to-list 'load-path "~/.emacs.d/slime/")

@@ -34,7 +34,7 @@
 (use-package go-mode
   :commands go-mode
   :ensure t
-  :mode "\\.go$\\'"
+  :mode ("\\.go$\\'" . go-mode)
   :init
   (progn
     (setq compile-command "go generate && go build -v && go test -v && go vet")

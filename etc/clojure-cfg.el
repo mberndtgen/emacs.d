@@ -6,7 +6,7 @@
 
 (use-package clojure-mode
   :ensure t
-  :mode "\\.clj$"
+  :mode ("\\.clj\\'" . clojure-mode)
   :config
   (progn
     (add-hook 'clojure-mode-hook 'enable-paredit-mode) ; Enable paredit for Clojure
