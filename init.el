@@ -31,6 +31,7 @@
 
 (package-initialize)
 
+
 (defvar init.el-errors '()
   "A list of errors that occured during initialization. Each error is of the form (LINE ERROR &rest ARGS).")
 

@@ -113,8 +113,19 @@
     (add-hook 'clojure-mode #'indent-guide-mode)
     (add-hook 'lisp-mode #'indent-guide-mode)))
 
-;; activate FiraCode font
+;; Jenkins support
+;; see https://github.com/rmuslimov/jenkins.el
+(use-package jenkins
+             :ensure t
+             :config
+             (progn
+               (setq jenkins-api-token "dd4a3ef280c33ff38a5b3612fb6785f1")
+               (setq jenkins-url "http://localhost:8080/")
+               (setq jenkins-username "jenkins-admin")
+               ;;(setq jenkins-viewname "myview") ;; if you're not using views skip this line
+               (setq jenkins-colwidth-name 35)))
 
+;; activate FiraCode font
 (when (window-system)
   (set-frame-font "Fira Code"))
 (let ((alist '((33 . ".\\(?:\\(?:==\\|!!\\)\\|[!=]\\)")
