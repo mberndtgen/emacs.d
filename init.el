@@ -548,7 +548,8 @@
   (setf vc-display-status nil
         magit-push-always-verify nil)
   (remove-hook 'git-commit-finish-query-functions
-               'git-commit-check-style-conventions))
+               'git-commit-check-style-conventions)
+  (global-set-key (kbd "C-x M-g") 'magit-dispatch-popup))
 
 (use-package gitconfig-mode
   :ensure t
