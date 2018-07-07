@@ -540,6 +540,7 @@
             (lambda ()
               (define-key eshell-mode-map (kbd "<f1>") #'quit-window))))
 
+;; magit support, see https://magit.vc/
 (use-package magit
   :ensure t
   :bind ("C-x g" . magit-status)
