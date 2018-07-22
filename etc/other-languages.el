@@ -25,18 +25,6 @@
               (setq-local paragraph-separate ".*>-$\\|[   ]*$")
               (setq-local paragraph-start paragraph-separate))))
 
-(use-package js2-mode
-  :ensure t
-  :mode ("\\.js$\\'" . js2-mode)
-  :config
-  (progn
-    (add-hook 'js2-mode-hook (lambda () (setq mode-name "js2")))
-    (setf js2-skip-preprocessor-directives t)
-    (setq-default js2-additional-externs
-                  '("$" "unsafeWindow" "localStorage" "jQuery"
-                    "setTimeout" "setInterval" "location" "skewer"
-                    "console" "phantom"))))
-
 (use-package terraform-mode
   :ensure t
   :defer t

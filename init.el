@@ -338,6 +338,7 @@
 (require 'python-cfg)
 (require 'perl6-cfg)
 (require 'golang-cfg)
+;(require 'javascript-cfg)
 (require 'other-languages)
 (require 'org-cfg)
 (require 'misc)
@@ -502,11 +503,11 @@
   :defer t
   :config (add-hook 'diff-mode-hook #'read-only-mode))
 
-(use-package afternoon-theme
+(use-package leuven-theme
   :ensure t
   :init
   (progn
-    (load-theme 'afternoon t)
+    (load-theme 'leuven t)
     (global-hl-line-mode 1)))
 
 (use-package simple
