@@ -10,6 +10,7 @@ cider-history
 recentf
 .emacs.desktop*
 network-security.data
-url/cookies
+url/*
 org-clock-save.el
-backups/
+backups/*
+*~
