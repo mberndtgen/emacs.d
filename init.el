@@ -179,8 +179,6 @@
   (find-file-other-window user-init-file))
 (global-set-key (kbd "C-c I") 'find-user-init-file)
 
-(global-set-key  [f8] 'speedbar-get-focus) ;; bind speedbar to f8
-
 (advice-add 'display-startup-echo-area-message
             :override #'ignore)
 

@@ -12,4 +12,4 @@ recentf
 network-security.data
 url/cookies
 org-clock-save.el
-backups/*
+backups/

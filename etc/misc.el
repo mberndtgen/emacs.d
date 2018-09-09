@@ -315,6 +315,19 @@
 ;; make tab complete without losing ability to manually indent
 (global-set-key (kbd "TAB") #'company-indent-or-complete-common)
 
+;; all-the-icons
+;; see https://github.com/domtronn/all-the-icons.el
+(use-package all-the-icons
+  :ensure t)
+
+;; neotree
+;; see
+
+(use-package neotree
+  :ensure t
+  :config
+  (global-set-key [f8] 'neotree-toggle))
+
 (provide 'misc)
 
 ;;; misc.el ends here
