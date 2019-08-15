@@ -279,15 +279,15 @@ $ emacsclient -c
   :init
   (progn
     (autoload 'window-number-mode "window-number"
-  "A global minor mode that enables selection of windows according to
+      "A global minor mode that enables selection of windows according to
  numbers with the C-x C-j prefix.  Another mode,
  `window-number-meta-mode' enables the use of the M- prefix."
-  t)
+      t)
     (autoload 'window-number-meta-mode "window-number"
-  "A global minor mode that enables use of the M- prefix to select
+      "A global minor mode that enables use of the M- prefix to select
  windows, use `window-number-mode' to display the window numbers in
  the mode-line."
-  t)
+      t)
     (window-number-mode 1)
     (window-number-meta-mode 1)))
 
@@ -409,13 +409,12 @@ $ emacsclient -c
 
 ;; multiple cursors - https://github.com/magnars/multiple-cursors.el
 (use-package multiple-cursors
-  :bind
-  (("C-x M-c" mc/edit-lines)
-   ("M<-" mc/mark-previous-like-this)
-   ("M->" mc/mark-next-like-this)
-   ("C->" . mc/mark-next-like-this)
-   ("C<-" . mc/mark-previous-like-this)
-   ("C-c C-<" . mc/mark-all-like-this)))
+  :config
+  (progn
+    (global-set-key (kbd "C-S-c C-S-c") 'mc/edit-lines)
+    (global-set-key (kbd "C->") 'mc/mark-next-like-this)
+    (global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
+    (global-set-key (kbd "C-c C-<") 'mc/mark-all-like-this)))
 
 (use-package recentf
   :ensure t
