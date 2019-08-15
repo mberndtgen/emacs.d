@@ -43,14 +43,25 @@
       ;; work around package.el bug in Emacs 25
       package--init-file-ensured t)
 
+;; prevent opening a new frame when loading a file
+(setq ns-pop-up-frames nil)
+
 (unless (package-installed-p 'use-package)
   (package-refresh-contents)
   (package-install 'use-package))
-(require 'use-package)
+
+(eval-and-compile
+  (defvar use-package-verbose t)
+  (require 'cl)
+  (require 'use-package)
+  (require 'bind-key)
+  (require 'diminish)
+  ;;(setq use-package-always-ensure t)
+  )
 
 (when (eq system-type 'darwin)
   (when (not (package-installed-p 'dash-at-point))
-      (package-install 'dash-at-point))
+    (package-install 'dash-at-point))
   ;; dash-at-point
   (autoload 'dash-at-point "dash-at-point" "Search the word at point with Dash." t nil)
   (global-set-key "\C-cd" 'dash-at-point))
@@ -104,34 +115,20 @@
 (add-to-list 'auto-mode-alist '("\\.el$" . emacs-lisp-mode))
 (add-to-list 'auto-mode-alist '("\\.ino$" . arduino-mode))
 
-
 (setq network-security-level 'high)
 
 ;; Frames and fonts
 
-(defvar my-preferred-fonts
-  '("-*-AlixFB-normal-normal-normal-*-*-13-*-*-m-0-iso10646-1"
-    "InputMonoCondensed Medium-11"
-    "Droid Sans Mono-10"
-    "Inconsolata-12"))
-
-;; (defun my-set-preferred-font (&optional frame)
-;;   "Set the first available font from `my-preferred-fonts'."
-;;   (catch 'done
-;;     (with-selected-frame (or frame (selected-frame))
-;;       (dolist (font my-preferred-fonts)
-;;         (when (ignore-errors (x-list-fonts font))
-;;           (set-frame-font font)
-;;           (throw 'done nil)))))
-;;   (add-text-properties (point-min) (point-max) '(line-spacing 0.15 line-height 1.2)))
+(add-to-list 'default-frame-alist
+             '(font . "Fira Code-12"))
 
 (defun my-set-frame-fullscreen (&optional frame)
   (set-frame-parameter frame 'fullscreen 'fullheight))
 
-(defun insert-backs ()  
-    "insert back-slash"
-    (interactive)
-    (insert "\\"))
+(defun insert-backs ()
+  "insert back-slash"
+  (interactive)
+  (insert "\\"))
 
 ;;; convenience settings
 
@@ -172,7 +169,6 @@
 (setq browse-url-browser-function 'eww-browse-url)
 
 
-
 (defun find-user-init-file () ;; instant access to init file
   "Edit the `user-init-file', in another window."
   (interactive)
@@ -182,35 +178,56 @@
 (advice-add 'display-startup-echo-area-message
             :override #'ignore)
 
-;; (defun summarize-initialization ()
-;;   ;; (kill-buffer "*Messages*") ;; previous messages are spam
-;;   (let ((errors (length init.el-errors)))
-;;     (if (= 0 errors)
-;;         (message "Initialization successful - happy hacking.")
-;;       (message "There have been %d errors during init:\n%s"
-;;                (length init.el-errors)
-;;                (mapconcat (lambda (init.el-error)
-;;                             (pcase-let ((`(,line ,err ,rest) init.el-error))
-;;                               (format "Lines %d+: %s %s" line err rest)))
-;;                           init.el-errors
-;;                           "\n")))))
+;; starting and terminating
+;; confirm termination unless running in daemon mode
+(if (daemonp)
+    nil
+  (setq confirm-kill-emacs 'yes-or-no-p))
 
-;; (add-hook 'emacs-startup-hook
-;;           (lambda () (progn (run-at-time 0.1 nil #'summarize-initialization)
-;;                        (my-set-preferred-font))))
+;; define function to shutdown emacs server instance
+(defun server-shutdown ()
+  "Save buffers, Quit, and Shutdown (kill) server"
+  (interactive)
+  (save-some-buffers)
+  (kill-emacs))
+
+(defun signal-restart-server ()
+  "Handler for SIGUSR1 signal, to (re)start an emacs server.
+
+Can be tested from within emacs with:
+  (signal-process (emacs-pid) 'sigusr1)
+
+or from the command line with:
+$ kill -USR1 <emacs-pid>
+$ emacsclient -c
+"
+  (interactive)
+  (server-force-delete)
+  (server-start))
+
+(define-key special-event-map [sigusr1] 'signal-restart-server)
 
 
 ;;; Individual package configurations
 
+;; emacs::pde
+(add-to-list 'load-path "~/Documents/src/git/elisp/emacs-pde/lisp/")
+(load "pde-load")
+
 (use-package company
-  :ensure t
-  :defer t
-  :config
-  (add-hook 'after-init-hook 'global-company-mode)
-  (define-key company-mode-map (kbd "C-:") 'helm-company)
-  (define-key company-active-map (kbd "C-:") 'helm-company)
-  (setf company-idle-delay 0.02)
-  (setf company-minimum-prefix-length 1))
+  :defer 5
+  :diminish company-mode
+  :init
+  (progn
+    (add-hook 'after-init-hook 'global-company-mode)
+    (setq company-dabbrev-ignore-case nil
+          company-dabbrev-code-ignore-case nil
+          company-dabbrev-downcase nil
+          company-idle-delay 0
+          company-begin-commands '(self-insert-command)
+          company-transformers '(company-sort-by-occurrence))
+    (use-package company-quickhelp
+      :config (company-quickhelp-mode 1))))
 
 (use-package undo-tree
   :defer t
@@ -280,17 +297,27 @@
   :init
   (progn
     (require 'helm-config)
-    (setq helm-candidate-number-limit 100)
     ;; From https://gist.github.com/antifuchs/9238468
-    (setq helm-idle-delay 0.0 ; update fast sources immediately (doesn't).
-          helm-input-idle-delay 0.01  ; this actually updates things
-                                        ; reeeelatively quickly.
+    ;;(define-key helm-map (kbd "<left>") 'helm-previous-source)
+    ;;(define-key helm-map (kbd "<right>") 'helm-next-source)
+    ;;helm-ff-lynx-style-map t
+    ;;helm-imenu-lynx-style-map t
+
+    (setq helm-idle-delay 0.0 ; update fast sources immediately (doesn't)
+          helm-candidate-number-limit 100
+          helm-input-idle-delay 0.01    ; this actually updates things reeeelatively quickly.
           helm-yas-display-key-on-candidate t
           helm-quick-update t
           helm-M-x-requires-pattern nil
+          helm-autoresize-mode t
+          helm-M-x-fuzzy-match t
           helm-ff-skip-boring-files t)
     (ido-mode -1) ;; Turn off ido mode in case I enabled it accidentally
-    (helm-mode))
+    (helm-mode 1)
+    (when (executable-find "ack-grep")
+      (setq helm-grep-default-command "ack-grep -Hn --no-group --no-color %e %p %f"
+            helm-grep-default-recurse-command "ack-grep -H --no-group --no-color %e %p %f"))
+    (add-to-list 'helm-sources-using-default-as-input 'helm-source-man-pages))
   :bind (("C-c h" . helm-mini)
 	 ("C-h a" . helm-apropos)
 	 ("C-x C-b" . helm-buffers-list)
@@ -305,6 +332,34 @@
 	 ("C-x c b" . my/helm-do-grep-book-notes)
 	 ("C-x c SPC" . helm-all-mark-rings)))
 
+
+(use-package counsel)
+
+(use-package swiper
+  :bind*
+  (("C-s" . swiper))
+  :config
+  (progn
+    (ivy-mode 1)
+    (setq ivy-use-virtual-buffers t)
+    (define-key read-expression-map (kbd "C-r") #'counsel-expression-history)
+    (ivy-set-actions
+     'counsel-find-file
+     '(("d" (lambda (x) (delete-file (expand-file-name x)))
+        "delete")))
+    (ivy-set-actions
+     'ivy-switch-buffer
+     '(("k"
+        (Lambda (x)
+                (kill-buffer x)
+                (ivy--reset-state ivy-last))
+        "kill")
+       ("j"
+        ivy--switch-buffer-other-window-action
+        "other window")))))
+
+;; (use-package expand-region
+;;   :bind (("C-=" . er/expand-region)))
 
 (use-package buffer-move
   :ensure t
@@ -321,22 +376,22 @@
 
 
 ;;; auto-complete - https://github.com/auto-complete/auto-complete
-(use-package auto-complete
-  :ensure t
-  :init
-  (require 'auto-complete-config)
-  :config
-  (ac-config-default)
-  (add-to-list 'ac-dictionary-directories "~/.emacs.d/ac-dict"))
+;; (use-package auto-complete
+;;   :ensure t
+;;   :init
+;;   (require 'auto-complete-config)
+;;   :config
+;;   (ac-config-default)
+;;   (add-to-list 'ac-dictionary-directories "~/.emacs.d/ac-dict"))
 
 ;; (require 'slime-cfg) ; --deprecated
 (require 'sly-cfg)
 (require 'clojure-cfg)
 (require 'haskell-cfg)
 (require 'python-cfg)
-(require 'perl6-cfg)
+;;(require 'perl6-cfg)
 (require 'golang-cfg)
-;(require 'javascript-cfg)
+;;(require 'javascript-cfg)
 (require 'other-languages)
 (require 'org-cfg)
 (require 'misc)
@@ -354,12 +409,13 @@
 
 ;; multiple cursors - https://github.com/magnars/multiple-cursors.el
 (use-package multiple-cursors
-  :ensure t
-  :config
-  (global-set-key (kbd "C-x c") 'mc/edit-lines)
-  (global-set-key (kbd "C-x x") 'mc/mark-all-like-this)
-  (global-set-key (kbd "M-p") 'mc/mark-previous-like-this)
-  (global-set-key (kbd "M-n") 'mc/mark-next-like-this))
+  :bind
+  (("C-x M-c" mc/edit-lines)
+   ("M<-" mc/mark-previous-like-this)
+   ("M->" mc/mark-next-like-this)
+   ("C->" . mc/mark-next-like-this)
+   ("C<-" . mc/mark-previous-like-this)
+   ("C-c C-<" . mc/mark-all-like-this)))
 
 (use-package recentf
   :ensure t
@@ -507,6 +563,11 @@
   (progn
     (load-theme 'leuven t)
     (global-hl-line-mode 1)))
+
+;; jump anywhere in buffer, see https://github.com/abo-abo/avy
+(use-package avy
+  :bind* (("C-'" . avy-goto-char)
+          ("C-," . avy-goto-char-2)))
 
 (use-package simple
   :defer t

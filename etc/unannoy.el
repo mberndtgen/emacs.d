@@ -7,6 +7,7 @@
       auto-save-list-file-prefix (locate-user-emacs-file "local/saves")
       inhibit-startup-message t
       inhibit-startup-screen t
+      inhibit-splash-screen t
       initial-scratch-message nil
       wdired-allow-to-change-permissions t
       echo-keystrokes 0.1
@@ -30,11 +31,14 @@
 (setq vc-make-backup-files t)
 
 ;; GUIs are for newbs
-(dolist (mode'(menu-bar-mode tool-bar-mode scroll-bar-mode))
+(dolist (mode'(menu-bar-mode tool-bar-mode tooltip-mode scroll-bar-mode))
   (when (fboundp mode) (funcall mode -1)))
 
 ;; Too distracting
 (blink-cursor-mode -1)
+
+;; overwrite text when highlighted
+(delete-selection-mode +1)
 
 ;; I never want to use this
 (when (fboundp 'set-horizontal-scroll-bar-mode)
