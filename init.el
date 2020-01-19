@@ -26,8 +26,8 @@
 (add-to-list 'package-pinned-packages '(ac-cider . "melpa-stable") t)
 (setq package-archive-priorities '(("marmalade" . 4)
                                    ("org" . 3)
-                                   ("melpa-stable" . 2)
-                                   ("melpa" . 1)))
+                                   ("melpa" . 2)
+                                   ("melpa-stable" . 1)))
 
 (package-initialize)
 
@@ -120,7 +120,7 @@
 ;; Frames and fonts
 
 (add-to-list 'default-frame-alist
-             '(font . "Fira Code-12"))
+             '(font . "Fira Code-16"))
 
 (defun my-set-frame-fullscreen (&optional frame)
   (set-frame-parameter frame 'fullscreen 'fullheight))
@@ -214,6 +214,23 @@ $ emacsclient -c
 (add-to-list 'load-path "~/Documents/src/git/elisp/emacs-pde/lisp/")
 (load "pde-load")
 
+(use-package lsp-mode
+  :ensure t
+  :commands (lsp lsp-deferred)
+  :hook (go-mode . lsp-deferred))
+
+;; Set up before-save hooks to format buffer and add/delete imports.
+;; Make sure you don't have other gofmt/goimports hooks enabled.
+(defun lsp-go-install-save-hooks ()
+  (add-hook 'before-save-hook #'lsp-format-buffer t t)
+  (add-hook 'before-save-hook #'lsp-organize-imports t t))
+(add-hook 'go-mode-hook #'lsp-go-install-save-hooks)
+
+;; provides fancier overlays.
+(use-package lsp-ui
+  :ensure t
+  :commands lsp-ui-mode)
+
 (use-package company
   :defer 5
   :diminish company-mode
@@ -224,10 +241,23 @@ $ emacsclient -c
           company-dabbrev-code-ignore-case nil
           company-dabbrev-downcase nil
           company-idle-delay 0
+          company-minimum-prefix-length 1
           company-begin-commands '(self-insert-command)
           company-transformers '(company-sort-by-occurrence))
     (use-package company-quickhelp
       :config (company-quickhelp-mode 1))))
+
+;; company-lsp integrates company mode completion with lsp-mode.
+;; completion-at-point also works out of the box but doesn't support snippets.
+(use-package company-lsp
+  :ensure t
+  :commands company-lsp)
+
+;; Optional - provides snippet support.
+(use-package yasnippet
+  :ensure t
+  :commands yas-minor-mode
+  :hook (go-mode . yas-minor-mode))
 
 (use-package undo-tree
   :defer t
@@ -374,15 +404,23 @@ $ emacsclient -c
   :init (setq-default save-place t)
   :config (setq save-place-file (expand-file-name ".places" user-emacs-directory)))
 
+(use-package flycheck
+  :diminish
+  :defer 2
+  :init (global-flycheck-mode)
+  :custom
+  (flycheck-display-errors-delay .3))
 
-;;; auto-complete - https://github.com/auto-complete/auto-complete
-;; (use-package auto-complete
-;;   :ensure t
-;;   :init
-;;   (require 'auto-complete-config)
-;;   :config
-;;   (ac-config-default)
-;;   (add-to-list 'ac-dictionary-directories "~/.emacs.d/ac-dict"))
+
+(use-package auto-complete-config
+  :ensure auto-complete
+  :bind ("M-<tab>" . my--auto-complete)
+  :init
+  (defun my--auto-complete ()
+    (interactive)
+    (unless (boundp 'auto-complete-mode)
+      (global-auto-complete-mode 1))
+    (auto-complete)))
 
 ;; (require 'slime-cfg) ; --deprecated
 (require 'sly-cfg)
@@ -706,7 +744,7 @@ $ emacsclient -c
                  (let ((new-tail (list file)))
                    (setf (cdr tail) new-tail
                          tail new-tail)))
-                ((string-match "\\.[ch]$" file)
+                (or (string-match "\\.[ch]$" file) (string-match "\\.go$" file)
                  (push file results))))
         (pop head))
       (let ((default-directory directory))

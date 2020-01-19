@@ -1,4 +1,4 @@
-;;; package --- summary:
+;;; misc.el --- summary:
 
 ;;; Commentary:
 
@@ -27,6 +27,34 @@
   :defer t
   :config
   (define-key help-mode-map (kbd "f") #'push-first-button))
+
+(use-package origami
+  :custom
+  (origami-show-fold-header t)
+
+  :custom-face
+  (origami-fold-replacement-face ((t (:inherit magit-diff-context-highlight))))
+  (origami-fold-fringe-face ((t (:inherit magit-diff-context-highlight))))
+
+  :init
+  (defhydra origami-hydra (:color blue :hint none)
+    "
+      _:_: recursively toggle node       _a_: toggle all nodes    _t_: toggle node
+      _o_: show only current node        _u_: undo                _r_: redo
+      _R_: reset
+      "
+    (":" origami-recursively-toggle-node)
+    ("a" origami-toggle-all-nodes)
+    ("t" origami-toggle-node)
+    ("o" origami-show-only-node)
+    ("u" origami-undo)
+    ("r" origami-redo)
+    ("R" origami-reset))
+
+  :bind (:map origami-mode-map
+              ("C-:" . origami-hydra/body))
+  :config
+  (face-spec-reset-face 'origami-fold-header-face))
 
 (use-package gamegrid
   :defer t

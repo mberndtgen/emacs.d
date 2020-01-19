@@ -1,4 +1,4 @@
-;;; extras.el --- small extra functions -*- lexical-binding: t; -*-
+;;; org-cfg.el --- small extra functions -*- lexical-binding: t; -*-
 ;;; Commentary:
 
 
@@ -6,6 +6,7 @@
 
 (use-package org
   ;; taken from https://github.com/cocreature/dotfiles/blob/master/emacs/.emacs.d/emacs.org
+  :after flyspell
   :mode ("\\.org\\'" . org-mode)
   :bind (("C-c l" . org-store-link)
          ("C-c c" . org-capture)
@@ -13,160 +14,62 @@
          ("C-c b" . org-iswitchb)
          ("C-c C-w" . org-refile)
          ("C-c j" . org-clock-goto)
-         ("C-c C-x C-o" . org-clock-out))
-  :init
-  (progn
-    ;;(add-hook 'org-mode-hook (lambda () (set-input-method "TeX")))
-    ;;(add-hook 'org-mode-hook 'turn-on-flyspell)
-    ;;;(add-hook 'org-mode-hook 'turn-on-auto-fill)
-    ;;(add-hook 'org-mode-hook (lambda () (setq truncate-lines nil)))
-    ;;; for org-eww, clone it with git clone git://orgmode.org/org-mode.git
-    ;;; (add-to-list 'load-path "~/Documents/src/emacs/org-mode/lisp/")
-    )
-
+         ("C-c C-x C-o" . org-clock-out)
+         ("M-C-g" . org-plot/gnuplot)
+         ("M-q" . toggle-truncate-lines))
   :config
-  (progn
-    ;;   ;; The GTD part of this config is heavily inspired by
-    ;;   ;; https://emacs.cafe/emacs/orgmode/gtd/2017/06/30/orgmode-gtd.html
-    ;;   (require 'ob)
-    (setq org-directory "~/Dropbox/orgfiles")
-    (setq org-agenda-files
-          (mapcar (lambda (path) (concat org-directory path))
-                  '("/work.org"
-                    "/home.org")))
-    (setq org-log-done t)
-    ;;   (setq org-src-fontify-natively t)
-    ;;   (setq org-use-speed-commands t)
-    ;;   (setq org-ellipsis "…")               ;;; replace the "..." with "…" for collapsed org-mode content
-    ;;   (setq org-return-follows-link t)      ;;; RET follows hyperlinks in org-mode:
-    ;;   (setq org-startup-align-all-tables t) ;;; Can be set per file basis with: #+STARTUP: noalign (or align).
-    ;;                                       ;;; Same as doing C-c C-c in a table.
-    ;;   (setq org-capture-templates
-    ;;         '(("t" "Todo [inbox]" entry
-    ;;            (file+headline "~/org/gtd/inbox.org" "Tasks")
-    ;;            "* TODO %i%?")
-    ;;           ("T" "Tickler" entry
-    ;;            (file+headline "~/org/gtd/tickler.org" "Tickler")
-    ;;            "* %i%? \n %^t")))
-    ;;   (setq org-refile-targets
-    ;;         '(("~/org/gtd/gtd.org" :maxlevel . 3)
-    ;;           ("~/org/gtd/someday.org" :level . 1)
-    ;;           ("~/org/gtd/tickler.org" :maxlevel . 2)))
-    ;;   (setq org-todo-keywords '((sequence "TODO(t)" "WAITING(w)" "|" "DONE(d)" "CANCELLED(c)")))
-    ;;   ;; (setq org-clock-persist t)
-    ;;   (org-clock-persistence-insinuate)
-    (custom-set-variables
-        '(org-directory "~/Dropbox/orgfiles")
-    ;;    '(org-default-notes-file (concat org-directory "/notes.org"))
-    ;;    '(org-export-html-postamble nil)
-    ;;    '(org-export-allow-bind-keywords t)
-    ;;    '(org-latex-listings 'minted)
-    ;;    '(org-hide-leading-stars t)
-    ;;    '(org-startup-folded (quote overview))
-    ;;    '(org-startup-indented t)
-        '(org-babel-load-languages
-          '((emacs-lisp . t)
-            (python . t)
-            (shell . t)
-            (haskell . t)
-            (js . t)
-            (latex . t)
-            (gnuplot . t)
-            (C . t)
-            (sql . t)
-            (ditaa . t)))
-        '(org-confirm-babel-evaluate nil))
+  ;; Global
+  (setq org-agenda-files (mapcar (lambda (path) (concat org-directory path))
+                                 '("/work.org"
+                                   "/home.org"))
+        org-blank-before-new-entry '((heading) (plain-list-item . auto))
+        org-clone-delete-id t
+        org-cycle-include-plain-lists t
+        org-cycle-separator-lines 2
+        org-deadline-warning-days 30
+        org-directory "~/Dropbox/orgfiles"
+        org-ellipsis "…" ;;; replace the "..." with "…" for collapsed org-mode content
+        org-enforce-todo-dependencies t
+        org-hide-emphasis-markers t
+        org-id-method 'uuidgen
+        org-image-actual-width nil ;;; See https://lists.gnu.org/archive/html/emacs-orgmode/2012-08/msg01388.html
+        org-insert-heading-respect-content nil
+        org-log-done t
+        org-todo-keywords '((sequence "TODO(t)" "WAITING(w)" "|" "DONE(d)" "CANCELLED(c)"))
+        org-return-follows-link t ;;; RET follows hyperlinks in org-mode:
+        org-reverse-note-order nil
+        org-src-fontify-natively t
+        org-src-window-setup 'other-window
+        org-show-following-heading t
+        org-show-hierarchy-above t
+        org-show-siblings '((default))
+        org-startup-align-all-tables t ;;; Can be set per file basis with: #+STARTUP: noalign (or align). Same as doing C-c C-c in a table.
+        org-startup-indented t
+        org-table-export-default-format "orgtbl-to-csv"
+        org-use-speed-commands t
+        )
+  )
 
-
-    ;;   (setq org-file-apps (append '(("\\.pdf$" . "evince %s")) org-file-apps ))
-    
-    ;;   (setq org-src-fontify-natively t) ;;; fontlock src blocks even when outside
-    ;;   (setq org-edit-src-content-indentation 0) ;;; no extra indentation for contents in src code blocks
-
-    ;;   ;; (setq org-agenda-custom-commands
-    ;;   ;;       '(("c" "Simple agenda view"
-    ;;   ;;          ((agenda "")
-    ;;   ;;           (alltodo "")))))
-
-    ;;   ;; (use-package org-ac
-    ;;   ;;   :ensure t
-    ;;   ;;   :init
-    ;;   ;;   (progn
-    ;;   ;;     (require 'org-ac)
-    ;;   ;;     (org-ac/config-default)))
-
-
-    ;;   (defadvice org-capture-finalize
-    ;;       (after delete-capture-frame activate)
-    ;;     "Advise capture-finalize to close the frame"
-    ;;     (if (equal "capture" (frame-parameter nil 'name))
-    ;;         (delete-frame)))
-    
-    ;;   (defadvice org-capture-destroy
-    ;;       (after delete-capture-frame activate)
-    ;;     "Advise capture-destroy to close the frame"
-    ;;     (if (equal "capture" (frame-parameter nil 'name))
-    ;;         (delete-frame)))
-
-    ;;   ;; (use-package noflet
-    ;;   ;;   :ensure t)
-    
-    ;;   (defun make-capture-frame ()
-    ;;     "Create a new frame and run org-capture."
-    ;;     (interactive)
-    ;;     (make-frame '((name . "capture")))
-    ;;     (select-frame-by-name "capture")
-    ;;     (delete-other-windows)
-    ;;     (noflet ((switch-to-buffer-other-window (buf) (switch-to-buffer buf)))
-    ;;             (org-capture)))
-
-    
-    ;;   ;; wrap text in org-mode block (see http://pragmaticemacs.com/emacs/wrap-text-in-an-org-mode-block/)
-
-    ;;   (defun org-begin-template ()
-    ;;     "Make a template at point."
-    ;;     (interactive)
-    ;;     (if (org-at-table-p)
-    ;;         (call-interactively 'org-table-rotate-recalc-marks)
-    ;;       (let* ((choices '(("s" . "SRC")
-    ;;                         ("e" . "EXAMPLE")
-    ;;                         ("q" . "QUOTE")
-    ;;                         ("v" . "VERSE")
-    ;;                         ("c" . "CENTER")
-    ;;                         ("l" . "LaTeX")
-    ;;                         ("h" . "HTML")
-    ;;                         ("a" . "ASCII")))
-    ;;              (key
-    ;;               (key-description
-    ;;                (vector
-    ;;                 (read-key
-    ;;                  (concat (propertize "Template type: " 'face 'minibuffer-prompt)
-    ;;                          (mapconcat (lambda (choice)
-    ;;                                       (concat (propertize (car choice) 'face 'font-lock-type-face)
-    ;;                                               ": "
-    ;;                                               (cdr choice)))
-    ;;                                     choices
-    ;;                                     ", ")))))))
-    ;;         (let ((result (assoc key choices)))
-    ;;           (when result
-    ;;             (let ((choice (cdr result)))
-    ;;               (cond
-    ;;                ((region-active-p)
-    ;;                 (let ((start (region-beginning))
-    ;;                       (end (region-end)))
-    ;;                   (goto-char end)
-    ;;                   (insert "#+END_" choice "\n")
-    ;;                   (goto-char start)
-    ;;                   (insert "#+BEGIN_" choice "\n")))
-    ;;                (t
-    ;;                 (insert "#+BEGIN_" choice "\n")
-    ;;                 (save-excursion (insert "#+END_" choice))))))))))
-
-    ;;   ;;bind to key
-    ;;   (define-key org-mode-map (kbd "C-<") 'org-begin-template)
-    
-    ;;   ;;(require 'org-eww)
-    ))
+;; Add languages
+(use-package ob-ipython :ensure t)
+(org-babel-do-load-languages 'org-babel-load-languages
+                             '((emacs-lisp . t)
+                               (ditaa . t)
+                               (R . t)
+                               (ipython . t)
+                               (ruby . t)
+                               (gnuplot . t)
+                               (clojure . t)
+                               (shell . t)
+                               (ledger . t)
+                               (org . t)
+                               (plantuml . t)
+                               (shell . t)
+                               (haskell . t)
+                               (js . t)
+                               (C . t)
+                               (sql . t)
+                               (latex . t)))
 
 (use-package org-inlinetask
   :bind (:map org-mode-map
@@ -193,81 +96,28 @@
 (setq org-reveal-mathjax t)
 
 ;;Org-export to LaTeX
-;; (eval-after-load "ox-latex"
-;;   '(progn
-;;      (message "Now loading org-latex export settings")
-;;      ;; use with: #+LATEX_CLASS: myclass
-;;      ;;#+LaTeX_CLASS_OPTIONS: [a4paper,twoside,twocolumn]
-;;      ;; (add-to-list 'org-latex-classes
-;;      ;;              '("myclass" "\\documentclass[11pt,a4paper]{article}
-;;      ;;                 [NO-DEFAULT-PACKAGES]
-;;      ;;                 [NO-PACKAGES]"
-;;      ;;                ("\\usepackage[utf8]{inputenc}")
-;;      ;;                ("\\usepackage[T1]{fontenc}")
-;;      ;;                ("\\usepackage{graphicx}")
-;;      ;;                ("\\usepackage{longtable}")
-;;      ;;                ("\\usepackage{amssymb}")
-;;      ;;                ("\\usepackage[colorlinks=true,urlcolor=SteelBlue4,linkcolor=Firebrick4]{hyperref}")
-;;      ;;                ("\\usepackage[hyperref,x11names]{xcolor}")
-;;      ;;                ("\\section{%s}" . "\\section*{%s}")
-;;      ;;                ("\\subsection{%s}" . "\\subsection*{%s}")
-;;      ;;                ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
-;;      ;;                ("\\paragraph{%s}" . "\\paragraph*{%s}")
-;;      ;;                ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
-
-
-;;      (unless (boundp 'org-latex-classes)
-;;        (setq org-latex-classes nil))
-
-;;      (setq org-latex-classes t)
-
-;;      (setq org-latex-pdf-process
-;;            '("pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
-;;              "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
-;;              "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"))
-
-;;      (add-to-list 'org-latex-packages-alist '("" "minted"))
-
-;;      ;; you must include the listings package
-;;      ;;(add-to-list 'org-export-latex-packages-alist '("" "listings")) ;; don't work in Org 8?
-
-;;      ;; if you want colored source code then you need to include the color package
-;;      ;;(add-to-list 'org-export-latex-packages-alist '("" "color"))
-;;      ))
-
-
-;; Org Publish to Stat Blog to Jekyll config Added 26 Mar 2015
-;; http://orgmode.org/worg/org-tutorials/org-jekyll.html
-;; Thanks to Ian Barton
-;; (setq org-publish-project-alist
-;;       '(
-;;         ("org-mberndtgen"
-;;          ;; Path to your org files.
-;;          :base-directory "~/Dropbox/orgfiles/GitHubPages/org/"
-;;          :base-extension "org"
-
-;;          ;; Path to your Jekyll project.
-;;          :publishing-directory "~/Dropbox/orgfiles/GitHubPages/jekyll/"
-;;          :recursive t
-;;          :publishing-function org-publish-org-to-html
-;;          :headline-levels 4
-;;          :html-extension "html"
-;;          :body-only t ;; Only export section between <body> </body>
-;;          )
-
-;;         ("org-static-mberndtgen"
-;;          :base-directory "~/Dropbox/orgfiles/GitHubPages/org/"
-;;          :base-extension "css\\|js\\|png\\|jpg\\|gif\\|pdf\\|mp3\\|ogg\\|swf\\|php"
-;;          :publishing-directory "~/Dropbox/GitHubPages/"
-;;          :recursive t
-;;          :publishing-function org-publish-attachment)
-
-;;         ("mberndtgen" :components ("org-mberndtgen" "org-static-mberndtgen"))
-;;         ))
-
-;; (use-package htmlize
-;;   :ensure t)
-
+(eval-after-load "ox-latex"
+  '(progn
+     (message "Now loading org-latex export settings")
+     ;; use with: #+LATEX_CLASS: myclass
+     ;;#+LaTeX_CLASS_OPTIONS: [a4paper,twoside,twocolumn]
+     (add-to-list 'org-latex-classes
+                  '("myclass" "\\documentclass[11pt,a4paper]{article}
+                     [NO-DEFAULT-PACKAGES]
+                     [NO-PACKAGES]"
+                    ("\\usepackage[utf8]{inputenc}")
+                    ("\\usepackage[T1]{fontenc}")
+                    ("\\usepackage{graphicx}")
+                    ("\\usepackage{longtable}")
+                    ("\\usepackage{amssymb}")
+                    ("\\usepackage[colorlinks=true,urlcolor=SteelBlue4,linkcolor=Firebrick4]{hyperref}")
+                    ("\\usepackage[hyperref,x11names]{xcolor}")
+                    ("\\section{%s}" . "\\section*{%s}")
+                    ("\\subsection{%s}" . "\\subsection*{%s}")
+                    ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+                    ("\\paragraph{%s}" . "\\paragraph*{%s}")
+                    ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))))
+  )
 
 (provide 'org-cfg)
 
