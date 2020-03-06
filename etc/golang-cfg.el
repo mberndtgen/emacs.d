@@ -20,6 +20,11 @@
 ;; go get -u github.com/rogpeppe/godef
 ;; go get -u github.com/nsf/gocode
 ;; go get -u golang.org/x/tools/cmd/goimports
+;; GO111MODULE=on go get golang.org/x/tools/gopls@latest
+;; go get -u github.com/mdempsky/gocode
+;; go get   golang.org/x/tools/cmd/guru
+;; go get golang.org/x/tools/gopls@latest
+;; go get -u github.com/go-delve/delve/cmd/dlv
 ;;
 ;; using guru - see https://www.mirrorservice.org/sites/stable.melpa.org/packages/go-guru-readme.txt
 ;;                  and http://golang.org/s/using-guru
@@ -70,7 +75,7 @@ inserted between the braces between the braces."
   (:map go-mode-map
         ("C-c e g" . godoc)
         ("C-c P" . my-godoc-package)
-        ("C-c C-c" . bcompile))
+        ("C-c C-c" . compile))
   :mode ("\\.go$\\'" . go-mode)
   :hook (go-mode . lsp)
   :init
@@ -80,7 +85,7 @@ inserted between the braces between the braces."
   :config
   (progn
     (add-to-list 'load-path (concat (getenv "HOME") "/go/bin"))
-    (go-eldoc-setup)
+    ;; (go-eldoc-setup)
     ;; Use goimports instead of go-fmt
     (setq gofmt-command "goimports")
     ;; Godef jump key binding
@@ -90,18 +95,32 @@ inserted between the braces between the braces."
                                     (setq gofmt-command "goimports")
                                         ; Call Gofmt before saving
                                     (add-hook 'before-save-hook 'gofmt-before-save)
-                                    (auto-complete-mode 1))))))
+                                    (auto-complete-mode 1))))
+    (setq-default indent-tabs-mode nil)
+    (setq-default tab-width 4)
+    (setq indent-line-function 'insert-tab)
+    (helm-mode 1)
+    (indent-guide-mode 1)
+    ))
 
 (use-package go-guru
   :after go-mode)
 
+(with-eval-after-load 'dap-mode
+  (require 'dap-go)
+  (add-hook 'dap-stopped-hook (lambda (arg) (call-interactively #'dap-hydra))))
+
 (with-eval-after-load 'go-guru
   (add-hook 'go-mode-hook #'go-guru-hl-identifier-mode))
 
-;; (with-eval-after-load 'go-mode
-;;   (require 'go-autocomplete)
-;;   (require 'auto-complete-config)
-;;   (ac-config-default))
+;; (defun my-show-doc-in-frame (buffer options)
+;;   ;; Get the frame named 'compilation' or create one if such a frame does not exist
+;;   (let ((help-frame (select-frame (or (cdr (assoc-string "compilation" (make-frame-names-alist)))
+;;                                       (make-frame '((name . "compilation")))))))
+;;     ;; This assumes you want to display just one window in the dedicated frame
+;;     (set-window-buffer (car (window-list help-frame))  buffer nil)))
+
+;; (add-to-list 'display-buffer-alist (cons "compilation" (cons #'my-show-doc-in-frame nil)))
 
 (provide 'golang-cfg)
 

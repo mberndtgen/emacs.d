@@ -20,11 +20,13 @@
 (add-to-list 'package-archives '("marmalade" . "https://marmalade-repo.org/packages/") t)
 (add-to-list 'package-archives '("melpa-stable" . "https://stable.melpa.org/packages/"))
 (add-to-list 'package-archives '("org" . "https://orgmode.org/elpa/"))
+(add-to-list 'package-archives '("gnu" . "https://elpa.gnu.org/packages/"))
 (add-to-list 'package-pinned-packages '(cider . "melpa-stable") t)
 (add-to-list 'package-pinned-packages '(clj-refactor . "melpa-stable") t)
 (add-to-list 'package-pinned-packages '(cljr-helm . "melpa-stable") t)
 (add-to-list 'package-pinned-packages '(ac-cider . "melpa-stable") t)
-(setq package-archive-priorities '(("marmalade" . 4)
+(setq package-archive-priorities '(("gnu" . 5)
+                                   ("marmalade" . 4)
                                    ("org" . 3)
                                    ("melpa" . 2)
                                    ("melpa-stable" . 1)))
@@ -52,12 +54,10 @@
 
 (eval-and-compile
   (defvar use-package-verbose t)
-  (require 'cl)
+  ;;(require 'cl)
   (require 'use-package)
   (require 'bind-key)
-  (require 'diminish)
-  ;;(setq use-package-always-ensure t)
-  )
+  (require 'diminish))
 
 (when (eq system-type 'darwin)
   (when (not (package-installed-p 'dash-at-point))
@@ -120,7 +120,7 @@
 ;; Frames and fonts
 
 (add-to-list 'default-frame-alist
-             '(font . "Fira Code-16"))
+             '(font . "Fira Code-12"))
 
 (defun my-set-frame-fullscreen (&optional frame)
   (set-frame-parameter frame 'fullscreen 'fullheight))
@@ -211,13 +211,50 @@ $ emacsclient -c
 ;;; Individual package configurations
 
 ;; emacs::pde
-(add-to-list 'load-path "~/Documents/src/git/elisp/emacs-pde/lisp/")
-(load "pde-load")
+;; (add-to-list 'load-path "~/Documents/src/git/elisp/emacs-pde/lisp/")
+;; (load "pde-load")
+
+;; see https://github.com/bbatsov/crux
+(use-package crux
+  :ensure t
+  :bind (("C-c o" . crux-open-with)
+         ("M-o" . crux-smart-open-line)
+         ("C-c n" . crux-cleanup-buffer-or-region)
+         ("C-c f" . crux-recentf-find-file)
+         ("C-M-z" . crux-indent-defun)
+         ("C-c u" . crux-view-url)
+         ("C-c e" . crux-eval-and-replace)
+         ("C-c w" . crux-swap-windows)
+         ("C-c D" . crux-delete-file-and-buffer)
+         ("C-c r" . crux-rename-buffer-and-file)
+         ("C-c t" . crux-visit-term-buffer)
+         ("C-c k" . crux-kill-other-buffers)
+         ("C-c TAB" . crux-indent-rigidly-and-copy-to-clipboard)
+         ("C-c I" . crux-find-user-init-file)
+         ("C-c S" . crux-find-shell-init-file)
+         ("s-r" . crux-recentf-find-file)
+         ("s-j" . crux-top-join-line)
+         ("C-^" . crux-top-join-line)
+         ("s-k" . crux-kill-whole-line)
+         ("C-<backspace>" . crux-kill-line-backwards)
+         ("s-o" . crux-smart-open-line-above)
+         ([remap move-beginning-of-line] . crux-move-beginning-of-line)
+         ([(shift return)] . crux-smart-open-line)
+         ([(control shift return)] . crux-smart-open-line-above)
+         ([remap kill-whole-line] . crux-kill-whole-line)
+         ("C-c s" . crux-ispell-word-then-abbrev)))
 
 (use-package lsp-mode
   :ensure t
   :commands (lsp lsp-deferred)
-  :hook (go-mode . lsp-deferred))
+  :hook (go-mode . lsp-deferred)
+  :config
+  (progn
+    ;; use flycheck, not flymake
+    ;; (setq lsp-prefer-flymake nil)
+    ;; (setq lsp-print-performance nil)
+    ;;(setq lsp-log-io nil)
+    ))
 
 ;; Set up before-save hooks to format buffer and add/delete imports.
 ;; Make sure you don't have other gofmt/goimports hooks enabled.
@@ -229,11 +266,89 @@ $ emacsclient -c
 ;; provides fancier overlays.
 (use-package lsp-ui
   :ensure t
-  :commands lsp-ui-mode)
+  :after lsp-mode
+  :commands lsp-ui-mode
+  :config (progn
+            ;; disable inline documentation
+            ;; (setq lsp-ui-sideline-enable nil)
+            ;; disable showing docs on hover at the top of the window
+            ;; (setq lsp-ui-doc-enable nil)
+	        (setq lsp-ui-imenu-enable t)
+	        (setq lsp-ui-imenu-kind-position 'top))
+  :init
+  (add-hook 'lsp-mode-hook #'lsp-ui-mode))
+
+(use-package use-package-hydra
+  :ensure t)
+
+;; go hydra
+(use-package hydra
+  :ensure t
+  :config
+  (require 'hydra)
+  (require 'dap-mode)
+  (require 'dap-ui)
+  ;;:commands (ace-flyspell-setup)
+  :bind
+  ;;("M-s" . hydra-go/body)
+  :init
+  (add-hook 'dap-stopped-hook
+          (lambda (arg) (call-interactively #'hydra-go/body)))
+  :hydra (hydra-go (:color pink :hint nil :foreign-keys run)
+  "
+   _n_: Next       _c_: Continue _g_: goroutines      _i_: break log
+   _s_: Step in    _o_: Step out _k_: break condition _h_: break hit condition
+   _Q_: Disconnect _q_: quit     _l_: locals
+   "
+	     ("n" dap-next)
+	     ("c" dap-continue)
+	     ("s" dap-step-in)
+	     ("o" dap-step-out)
+	     ("g" dap-ui-sessions)
+	     ("l" dap-ui-locals)
+	     ("e" dap-eval-thing-at-point)
+	     ("h" dap-breakpoint-hit-condition)
+	     ("k" dap-breakpoint-condition)
+	     ("i" dap-breakpoint-log-message)
+	     ("q" nil "quit" :color blue)
+	     ("Q" dap-disconnect :color red)))
+
+;; DAP
+(use-package dap-mode
+  :diminish
+  :functions dap-hydra/nil
+  :bind (:map lsp-mode-map
+              ("<f5>" . dap-debug)
+              ("M-<f5>" . dap-hydra))
+  :hook ((after-init . dap-mode)
+         (dap-mode . dap-ui-mode)
+         (dap-session-created . (lambda (&_rest) (dap-hydra)))
+         (dap-stopped . (lambda (&_rest) (call-interactively #'dap-hydra)))
+         (dap-terminated . (lambda (&_rest) (dap-hydra/nil)))
+         (go-mode . (lambda() (require 'dap-go))))
+  :config
+  ;;(dap-mode t)
+  (setq dap-print-io t)
+  (setq dap-go-delve-path (expand-file-name "dlv" (expand-file-name "bin" (getenv "GOPATH"))))
+  ;; (require 'dap-hydra)
+  ;;(require 'dap-go)
+  ;;(dap-go-setup)
+  (use-package dap-ui
+    :ensure nil
+    :config
+    (dap-ui-mode 1)))
+
+;;(add-hook 'dap-stopped-hook
+;;          (lambda (arg) (call-interactively #'dap-hydra)))
+
+(use-package lsp-treemacs
+  :config
+  ;;(lsp-metals-treeview-enable t) ; scala metals support
+  ;;(setq lsp-metals-treeview-show-when-views-received t)
+  )
 
 (use-package company
-  :defer 5
-  :diminish company-mode
+  :ensure t
   :init
   (progn
     (add-hook 'after-init-hook 'global-company-mode)
@@ -241,16 +356,24 @@ $ emacsclient -c
           company-dabbrev-code-ignore-case nil
           company-dabbrev-downcase nil
           company-idle-delay 0
-          company-minimum-prefix-length 1
+          company-minimum-prefix-length 2
           company-begin-commands '(self-insert-command)
-          company-transformers '(company-sort-by-occurrence))
-    (use-package company-quickhelp
-      :config (company-quickhelp-mode 1))))
+          company-transformers '(company-sort-by-occurrence)
+          company-tooltip-align-annotations t)))
+
+(use-package company-quickhelp
+  :after company
+  :config (company-quickhelp-mode 1))
 
 ;; company-lsp integrates company mode completion with lsp-mode.
 ;; completion-at-point also works out of the box but doesn't support snippets.
 (use-package company-lsp
   :ensure t
+  ;; :custom
+  ;; (company-lsp-cache-candidates t) ;; auto, t(always using a cache), or nil
+  ;; (company-lsp-async t)
+  ;; (company-lsp-enable-snippet t)
+  ;; (company-lsp-enable-recompletion t)
   :commands company-lsp)
 
 ;; Optional - provides snippet support.
@@ -270,29 +393,30 @@ $ emacsclient -c
   :config
   (add-hook 'prog-mode-hook #'rainbow-delimiters-mode))  ; set rainbow-delimiters mode for most programming modes
 
-(use-package powerline
-  :ensure t
-  :init (progn
-          (powerline-default-theme)
-          (setq powerline-height 23))
-  :config (progn
-            (require 'powerline)
-            (add-hook 'desktop-after-read-hook 'powerline-reset)
-            (defface modes-ml-face '((t (:background "#002b36" :inherit mode-line)))
-              "Powerline face for modes section of the mode-line"
-              :group 'powerline)
-            (defface file-ml-face '((t (:background "#586e75" :inherit mode-line)))
-              "Powerline face for file and branch section of the mode-line"
-              :group 'powerline)
-            (defface line-ml-face '((t (:background "#93a1a1" :inherit mode-line)))
-              "Powerline face for line number section of the mode-line"
-              :group 'powerline)
-            (defface pos-ml-face '((t (:background "#586e75" :inherit mode-line)))
-              "Powerline face for file position section of the mode-line"
-              :group 'powerline)
-            (defface ml-fill-face '((t (:background "#93a1a1" :inherit mode-line)))
-              "Powerline face used to fill the unused portion of the mode-line"
-              :group 'powerline)))
+;; (use-package powerline
+;;   :ensure t
+;;   :init (progn
+;;           (powerline-default-theme)
+;;           (setq powerline-height 23))
+;;   :config (progn
+;;             (require 'powerline)
+;;             (add-hook 'desktop-after-read-hook 'powerline-reset)
+;;             (defface modes-ml-face '((t (:background "#002b36" :inherit mode-line)))
+;;               "Powerline face for modes section of the mode-line"
+;;               :group 'powerline)
+;;             (defface file-ml-face '((t (:background "#586e75" :inherit mode-line)))
+;;               "Powerline face for file and branch section of the mode-line"
+;;               :group 'powerline)
+;;             (defface line-ml-face '((t (:background "#93a1a1" :inherit mode-line)))
+;;               "Powerline face for line number section of the mode-line"
+;;               :group 'powerline)
+;;             (defface pos-ml-face '((t (:background "#586e75" :inherit mode-line)))
+;;               "Powerline face for file position section of the mode-line"
+;;               :group 'powerline)
+;;             (defface ml-fill-face '((t (:background "#93a1a1" :inherit mode-line)))
+;;               "Powerline face used to fill the unused portion of the mode-line"
+;;               :group 'powerline)))
+
 
 (use-package highlight-symbol
   :ensure t
@@ -320,6 +444,52 @@ $ emacsclient -c
       t)
     (window-number-mode 1)
     (window-number-meta-mode 1)))
+
+(use-package projectile
+  :ensure t
+  :bind-keymap
+  ("C-c p" . projectile-command-map)
+  :config
+  (define-key projectile-mode-map (kbd "s-d") 'projectile-find-dir)
+  (define-key projectile-mode-map (kbd "s-e") 'er/expand-region)
+  (define-key projectile-mode-map (kbd "s-f") 'projectile-find-file)
+  (define-key projectile-mode-map (kbd "s-g") 'projectile-grep)
+  (define-key projectile-mode-map (kbd "s-j") 'prelude-top-join-line)
+  (define-key projectile-mode-map (kbd "s-k") 'prelude-kill-whole-line)
+  (define-key projectile-mode-map (kbd "s-l") 'goto-line)
+  (define-key projectile-mode-map (kbd "s-m") 'magit-status)
+  (define-key projectile-mode-map (kbd "s-o") 'prelude-open-line-above)
+  (define-key projectile-mode-map (kbd "s-w") 'delete-frame)
+  (define-key projectile-mode-map (kbd "s-x") 'exchange-point-and-mark)
+  (projectile-mode +1))
+
+(use-package centaur-tabs
+  :demand
+  ;;:hook
+  ;;(dired-mode . centaur-tabs-local-mode)
+  ;;(dashboard-mode . centaur-tabs-local-mode)
+  ;;(term-mode . centaur-tabs-local-mode)
+  ;;(calendar-mode . centaur-tabs-local-mode)
+  ;;(org-agenda-mode . centaur-tabs-local-mode)
+  ;;(helpful-mode . centaur-tabs-local-mode)
+  :config
+  (setq centaur-tabs-style "box"
+        centaur-tabs-height 32
+        centaur-tabs-set-icons nil
+        centaur-tabs-gray-out-icons 'buffer
+        centaur-tabs-set-bar 'over
+        centaur-tabs-set-modified-marker t
+        centaur-tabs-modified-marker "*")
+  (centaur-tabs-headline-match)
+  (centaur-tabs-change-fonts "arial" 120)
+  (centaur-tabs-mode t)
+  :bind
+  ;;("C-<prior>" . centaur-tabs-backward)
+  ;;("C-<next>" . centaur-tabs-forward)
+  ;;("C-c t s" . centaur-tabs-counsel-switch-group)
+  ;; ("C-c t p" . centaur-tabs-group-by-projectile-project)
+  ;; ("C-c t g" . centaur-tabs-group-buffer-groups)
+  )  
 
 (use-package helm
   :ensure t
@@ -440,10 +610,6 @@ $ emacsclient -c
   :ensure t
   :config
   (which-key-mode +1))
-
-;;; origami folding
-(use-package origami
-  :ensure t)
 
 ;; multiple cursors - https://github.com/magnars/multiple-cursors.el
 (use-package multiple-cursors
@@ -594,12 +760,75 @@ $ emacsclient -c
   :defer t
   :config (add-hook 'diff-mode-hook #'read-only-mode))
 
-(use-package leuven-theme
+;; (use-package leuven-theme
+;;   :ensure t
+;;   :init
+;;   (progn
+;;     (load-theme 'leuven t)
+;;     (global-hl-line-mode 1)))
+
+(use-package doom-themes
+  :config
+  ;; Global settings (defaults)
+  (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
+        doom-themes-enable-italic t) ; if nil, italics is universally disabled
+  (load-theme 'doom-one t)
+
+  ;; Enable flashing mode-line on errors
+  (doom-themes-visual-bell-config)
+
+  ;; Enable custom neotree theme (all-the-icons must be installed!)
+  (doom-themes-neotree-config)
+  ;; or for treemacs users
+  (setq doom-themes-treemacs-theme "doom-colors") ; use the colorful treemacs theme
+  (doom-themes-treemacs-config)
+
+  ;; Corrects (and improves) org-mode's native fontification.
+  (doom-themes-org-config))
+
+(use-package ghub)
+
+;; remember to run 'M-x all-the-icons-install-fonts'
+(use-package doom-modeline
   :ensure t
-  :init
-  (progn
-    (load-theme 'leuven t)
-    (global-hl-line-mode 1)))
+  :defer t
+  :hook (after-init . doom-modeline-mode)
+  :config
+  (setq doom-modeline-height 25
+        doom-modeline-bar-width 3
+        doom-modeline-project-detection 'project
+        doom-modeline-icon (display-graphic-p)
+        doom-modeline-major-mode-icon t
+        doom-modeline-major-mode-color-icon t
+        doom-modeline-buffer-state-icon t
+        doom-modeline-buffer-modification-icon t
+        doom-modeline-unicode-fallback nil
+        doom-modeline-minor-modes nil
+        doom-modeline-enable-word-count nil
+        doom-modeline-continuous-word-count-modes '(markdown-mode gfm-mode org-mode)
+        doom-modeline-buffer-encoding t
+        doom-modeline-indent-info nil
+        doom-modeline-checker-simple-format t
+        doom-modeline-number-limit 99
+        doom-modeline-vcs-max-length 12
+        doom-modeline-persp-name t
+        doom-modeline-display-default-persp-name nil
+        doom-modeline-lsp t
+        doom-modeline-github t
+        doom-modeline-github-interval (* 30 60)
+        doom-modeline-modal-icon t
+        doom-modeline-mu4e nil
+        doom-modeline-gnus t
+        doom-modeline-gnus-timer 2
+        doom-modeline-irc t
+        doom-modeline-irc-stylize 'identity
+        doom-modeline-env-version t
+        doom-modeline-env-go-executable "go"
+        doom-modeline-env-perl-executable "perl"
+        doom-modeline-env-load-string "Check-check"
+        doom-modeline-before-update-env-hook nil
+        doom-modeline-after-update-env-hook nil)
+  (global-hl-line-mode 1))
 
 ;; jump anywhere in buffer, see https://github.com/abo-abo/avy
 (use-package avy
@@ -761,15 +990,6 @@ $ emacsclient -c
 (use-package gnuplot-mode
   :ensure t
   :defer t)
-
-(use-package browse-url
-  :defer t
-  :init (setf url-cache-directory (locate-user-emacs-file "local/url"))
-  :config
-  (when (executable-find "firefox")
-    (setf browse-url-browser-function #'browse-url-firefox
-          browse-url-generic-program "xombrero"
-          browse-url-generic-args '("-n"))))
 
 (use-package graphviz-dot-mode
   :ensure t

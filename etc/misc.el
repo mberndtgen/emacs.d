@@ -31,30 +31,32 @@
 (use-package origami
   :custom
   (origami-show-fold-header t)
-
+  :commands origami-mode
   :custom-face
   (origami-fold-replacement-face ((t (:inherit magit-diff-context-highlight))))
   (origami-fold-fringe-face ((t (:inherit magit-diff-context-highlight))))
-
-  :init
-  (defhydra origami-hydra (:color blue :hint none)
-    "
-      _:_: recursively toggle node       _a_: toggle all nodes    _t_: toggle node
-      _o_: show only current node        _u_: undo                _r_: redo
-      _R_: reset
-      "
-    (":" origami-recursively-toggle-node)
-    ("a" origami-toggle-all-nodes)
-    ("t" origami-toggle-node)
-    ("o" origami-show-only-node)
-    ("u" origami-undo)
-    ("r" origami-redo)
-    ("R" origami-reset))
-
   :bind (:map origami-mode-map
               ("C-:" . origami-hydra/body))
   :config
-  (face-spec-reset-face 'origami-fold-header-face))
+  (progn
+    (face-spec-reset-face 'origami-fold-header-face)
+    (add-hook 'prog-mode-hook 'origami-mode)
+    (with-eval-after-load 'hydra
+      (define-key origami-mode-map (kbd "C-x f")
+        (defhydra hydra-folding (:color red :hint nil)
+          "
+_o_pen node    _n_ext fold       toggle _f_orward    _F_ill column: %`fill-column
+_c_lose node   _p_revious fold   toggle _a_ll        e_x_it
+"
+          ("o" origami-open-node)
+          ("c" origami-close-node)
+          ("n" origami-next-fold)
+          ("p" origami-previous-fold)
+          ("f" origami-forward-toggle-node)
+          ("a" origami-toggle-all-nodes)
+          ("F" fill-column)
+          ("x" nil :color blue)))))
+  )
 
 (use-package gamegrid
   :defer t
@@ -139,19 +141,8 @@
     (add-hook 'emacs-lisp-mode-hook #'indent-guide-mode)
     (add-hook 'css-mode-hook #'indent-guide-mode)
     (add-hook 'clojure-mode #'indent-guide-mode)
-    (add-hook 'lisp-mode #'indent-guide-mode)))
-
-;; Jenkins support
-;; see https://github.com/rmuslimov/jenkins.el
-(use-package jenkins
-             :ensure t
-             :config
-             (progn
-               (setq jenkins-api-token "dd4a3ef280c33ff38a5b3612fb6785f1")
-               (setq jenkins-url "http://localhost:8080/")
-               (setq jenkins-username "jenkins-admin")
-               ;;(setq jenkins-viewname "myview") ;; if you're not using views skip this line
-               (setq jenkins-colwidth-name 35)))
+    (add-hook 'lisp-mode #'indent-guide-mode)
+    (add-hook 'go-mode #'indent-guide-mode)))
 
 ;; activate FiraCode font
 (when (window-system)
