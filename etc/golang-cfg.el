@@ -50,9 +50,6 @@ inserted between the braces between the braces."
       (insert "}")
       (indent-according-to-mode))))
 
-(use-package go-eldoc
-  :defer)
-
 ;; (use-package golint
 ;;   :ensure t
 ;;   :config

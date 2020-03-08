@@ -30,12 +30,14 @@
   :config
   (progn
     ;;(add-hook 'cider-mode-hook 'cider-turn-on-eldoc-mode) ; provides minibuffer documentation for the code you're typing into the repl
-    (add-hook 'cider-mode-hook 'subword-mode)
-    (add-hook 'cider-mode-hook 'paredit-mode)
+    (add-hook 'cider-mode-hook #'subword-mode)
+    (add-hook 'cider-mode-hook #'paredit-mode)
     (add-hook 'cider-repl-mode-hook #'paredit-mode)
-    (add-hook 'cider-mode-hook 'rainbow-delimiters-mode)
+    (add-hook 'cider-mode-hook #'rainbow-delimiters-mode)
     (add-hook 'cider-mode-hook #'eldoc-mode)
     (add-hook 'cider-repl-mode-hook #'eldoc-mode)
+    (add-hook 'cider-mode-hook #'cider-company-enable-fuzzy-completion)
+    (add-hook 'cider-repl-mode-hook #'cider-company-enable-fuzzy-completion)
     (setq cider-known-endpoints '("localhost" "127.0.0.1" "58289"))
     (setq nrepl-log-messages nil)
     (setq cider-repl-pop-to-buffer-on-connect t) ; go right to the REPL buffer when it's finished connecting

@@ -284,6 +284,7 @@ $ emacsclient -c
 ;; go hydra
 (use-package hydra
   :ensure t
+  :after dap-mode
   :config
   (require 'hydra)
   (require 'dap-mode)
@@ -351,7 +352,9 @@ $ emacsclient -c
   :ensure t
   :init
   (progn
-    (add-hook 'after-init-hook 'global-company-mode)
+    (add-hook 'after-init-hook #'global-company-mode)
+    (add-hook 'cider-repl-mode-hook #'company-mode)
+    (add-hook 'cider-more-hook #'company-mode)
     (setq company-dabbrev-ignore-case nil
           company-dabbrev-code-ignore-case nil
           company-dabbrev-downcase nil
