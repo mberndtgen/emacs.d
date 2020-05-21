@@ -14,3 +14,12 @@ url/*
 org-clock-save.el
 backups/*
 *~
+.DS_Store
+.dap-breakpoints
+.lsp-session-v1
+.mc-lists.el
+ido.last
+projectile-bookmarks.eld
+srecode-map.el
+transient
+.extension
