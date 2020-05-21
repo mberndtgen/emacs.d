@@ -1,6 +1,8 @@
 ;;; javascript-cfg.el - enable javascript mode(s)
 ;;; mostly taken from https://github.com/CSRaghunandan/.emacs.d/blob/master/setup-files/setup-js.el
 
+;;; Code:
+
 ;;----------------------------------------------------------------------------
 ;; javascript settings
 ;;----------------------------------------------------------------------------
@@ -52,6 +54,7 @@
         (define-key js2-mode-map (kbd "C-k") #'js2r-kill)
         (add-hook 'js2-mode-hook (lambda ()
                                    (add-hook 'xref-backend-functions #'xref-js2-xref-backend nil t)))))
+    
     (use-package company-tern
       ;;; tern setup, see https://emacs.cafe/emacs/javascript/setup/2017/05/09/emacs-setup-javascript-2.html
       :ensure t
@@ -139,7 +142,7 @@
   :config
   (progn
     ((add-hook 'js2-mode #'prettier-js-mode)
-     (add-hook 'js2-jsx-mode #'prettier-js-mode)))
+     (add-hook 'js2-jsx-mode #'prettier-js-mode))))
 
 ;; json-snatcher: get the path of any JSON element easily
 ;; https://github.com/Sterlingg/json-snatcher

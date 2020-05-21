@@ -602,7 +602,7 @@ $ emacsclient -c
 (require 'python-cfg)
 ;;(require 'perl6-cfg)
 (require 'golang-cfg)
-;;(require 'javascript-cfg)
+(require 'javascript-cfg)
 (require 'other-languages)
 (require 'org-cfg)
 (require 'misc)

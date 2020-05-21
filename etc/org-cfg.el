@@ -92,8 +92,8 @@
 (if (eq system-type 'gnu/linux)
     (setq org-reveal-root "file:///home/mberndtgen/Documents/src/emacs/reveal.js/"))
 (if (eq system-type 'darwin)
-    (setq org-reveal-root "file:///Users/v236177/Dropbox/dev/reveal.js/"))
-(setq org-reveal-mathjax t)
+    (setq org-reveal-root "file:///Users/v236177/Dropbox/dev/reveal-js-local"))
+;;(setq org-reveal-mathjax t)
 
 ;;Org-export to LaTeX
 (eval-after-load "ox-latex"
