@@ -1,4 +1,6 @@
-;;; clojure-cfg.el - enable clojure / cider
+;;; clojure-cfg.el --- enable clojure / cider
+
+;;; Code:
 
 ;;----------------------------------------------------------------------------
 ;; clojure and cider settings
@@ -87,6 +89,18 @@
            (add-to-list 'ac-modes 'cider-repl-mode))))))
 
 
+(use-package anakondo
+  :ensure t
+  :commands anakondo-minor-mode)
+
+(with-eval-after-load 'cider-mode
+  ;; Enable anakondo-minor-mode in all Clojure buffers
+  (add-hook 'clojure-mode-hook #'anakondo-minor-mode)
+  ;; Enable anakondo-minor-mode in all ClojureScript buffers
+  (add-hook 'clojurescript-mode-hook #'anakondo-minor-mode)
+  ;; Enable anakondo-minor-mode in all cljc buffers
+  (add-hook 'clojurec-mode-hook #'anakondo-minor-mode))
+
 (provide 'clojure-cfg)
 
-;;; end of clojure-cfg.el
+;;; clojure-cfg.el ends here

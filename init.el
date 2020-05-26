@@ -247,14 +247,22 @@ $ emacsclient -c
 (use-package lsp-mode
   :ensure t
   :commands (lsp lsp-deferred)
-  :hook (go-mode . lsp-deferred)
+  :hook ((go-mode . lsp-deferred)
+         (clojure-mode . lsp)
+         (clojurec-mode . lsp)
+         (clojurescript-mode . lsp))
   :config
-  (progn
-    ;; use flycheck, not flymake
-    ;; (setq lsp-prefer-flymake nil)
-    ;; (setq lsp-print-performance nil)
-    ;;(setq lsp-log-io nil)
-    ))
+  ;; add paths to your local installation of project mgmt tools, like lein
+  (setenv "PATH" (concat
+                  "/usr/local/bin" path-separator
+                  (getenv "PATH")))
+  (dolist (m '(clojure-mode
+               clojurec-mode
+               clojurescript-mode
+               clojurex-mode))
+    (add-to-list 'lsp-language-id-configuration `(,m . "clojure")))
+  (setq lsp-enable-indentation nil
+        lsp-clojure-server-command '("bash" "-c" "clojure-lsp")))
 
 ;; Set up before-save hooks to format buffer and add/delete imports.
 ;; Make sure you don't have other gofmt/goimports hooks enabled.
@@ -462,6 +470,7 @@ $ emacsclient -c
   (define-key projectile-mode-map (kbd "s-l") 'goto-line)
   (define-key projectile-mode-map (kbd "s-m") 'magit-status)
   (define-key projectile-mode-map (kbd "s-o") 'prelude-open-line-above)
+  (define-key projectile-mode-map (kbd "s-p") 'projectile-command-map)
   (define-key projectile-mode-map (kbd "s-w") 'delete-frame)
   (define-key projectile-mode-map (kbd "s-x") 'exchange-point-and-mark)
   (projectile-mode +1))
@@ -911,9 +920,9 @@ $ emacsclient -c
         (when httpd-process
           (set-process-query-on-exit-flag httpd-process nil))))))
 
-(use-package ps-print
-  :defer t
-  :config (setf ps-print-header nil))
+;; (use-package ps-print
+;;   :defer t
+;;   :config (setf ps-print-header nil))
 
 (use-package ielm
   :defer t
