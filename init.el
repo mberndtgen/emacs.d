@@ -52,12 +52,12 @@
   (package-refresh-contents)
   (package-install 'use-package))
 
-(eval-and-compile
-  (defvar use-package-verbose t)
-  ;;(require 'cl)
-  (require 'use-package)
-  (require 'bind-key)
-  (require 'diminish))
+;; (eval-and-compile)
+
+(defvar use-package-verbose t)
+(require 'use-package)
+(require 'bind-key)
+(require 'diminish)
 
 (when (eq system-type 'darwin)
   (when (not (package-installed-p 'dash-at-point))
@@ -120,7 +120,7 @@
 ;; Frames and fonts
 
 (add-to-list 'default-frame-alist
-             '(font . "Fira Code-12"))
+             '(font . "Fira Code-16"))
 
 (defun my-set-frame-fullscreen (&optional frame)
   (set-frame-parameter frame 'fullscreen 'fullheight))
@@ -135,6 +135,7 @@
 (global-linum-mode 1)
 (column-number-mode 1)
 (setq-default comment-column 70) ; Set the default comment column to 70
+(setq-default line-spacing 0.3)
 ;;; S - shift key
 ;;; M - Cmd key
 ;;; C - Ctrl key

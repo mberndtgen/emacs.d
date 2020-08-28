@@ -7,7 +7,7 @@
 (use-package org
   ;; taken from https://github.com/cocreature/dotfiles/blob/master/emacs/.emacs.d/emacs.org
   :after flyspell
-  :mode ("\\.org\\'" . org-mode)
+  :mode ("\\.org$'" . org-mode)
   :bind (("C-c l" . org-store-link)
          ("C-c c" . org-capture)
          ("C-c a" . org-agenda)
@@ -22,6 +22,8 @@
   (setq org-agenda-files (mapcar (lambda (path) (concat org-directory path))
                                  '("/work.org"
                                    "/home.org"))
+        org-ascii-links-to-notes nil
+        org-ascii-headline-spacing (quote (1 . 1))
         org-blank-before-new-entry '((heading) (plain-list-item . auto))
         org-clone-delete-id t
         org-cycle-include-plain-lists t
@@ -29,8 +31,10 @@
         org-deadline-warning-days 30
         org-directory "~/Dropbox/orgfiles"
         org-ellipsis "…" ;;; replace the "..." with "…" for collapsed org-mode content
+        org-export-with-smart-quotes t
         org-enforce-todo-dependencies t
         org-hide-emphasis-markers t
+        org-html-table-default-attributes '(:border "0" :cellspacing "0" :cellpadding "6" :rules "none" :frame "none")
         org-id-method 'uuidgen
         org-image-actual-width nil ;;; See https://lists.gnu.org/archive/html/emacs-orgmode/2012-08/msg01388.html
         org-insert-heading-respect-content nil
@@ -39,19 +43,22 @@
         org-return-follows-link t ;;; RET follows hyperlinks in org-mode:
         org-reverse-note-order nil
         org-src-fontify-natively t
+        org-src-tab-acts-natively t
         org-src-window-setup 'other-window
         org-show-following-heading t
         org-show-hierarchy-above t
         org-show-siblings '((default))
         org-startup-align-all-tables t ;;; Can be set per file basis with: #+STARTUP: noalign (or align). Same as doing C-c C-c in a table.
         org-startup-indented t
+        org-startup-truncated t
         org-table-export-default-format "orgtbl-to-csv"
         org-use-speed-commands t
         )
   )
 
 ;; Add languages
-(use-package ob-ipython :ensure t)
+(use-package ob-ipython
+  :ensure t)
 (org-babel-do-load-languages 'org-babel-load-languages
                              '((emacs-lisp . t)
                                (ditaa . t)
@@ -69,7 +76,9 @@
                                (js . t)
                                (C . t)
                                (sql . t)
+                               (go . t)
                                (latex . t)))
+(setq org-babel-default-header-args '((:eval . "never-export")))
 
 (use-package org-inlinetask
   :bind (:map org-mode-map
@@ -99,6 +108,8 @@
 (eval-after-load "ox-latex"
   '(progn
      (message "Now loading org-latex export settings")
+     ;; page break after toc
+     (setq org-latex-toc-command "\\tableofcontents \\clearpage")
      ;; use with: #+LATEX_CLASS: myclass
      ;;#+LaTeX_CLASS_OPTIONS: [a4paper,twoside,twocolumn]
      (add-to-list 'org-latex-classes
