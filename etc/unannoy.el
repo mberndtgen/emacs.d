@@ -1,5 +1,5 @@
 ;;; unannoy.el --- disable Emacs' annoying bits
-
+;;; Commentary:
 ;;; Code:
 
 (setf backup-inhibited t

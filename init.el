@@ -2,11 +2,6 @@
 
 ;;; Commentary:
 
-;; Use this at the top of your .emacs file for local overrides:
-;;     (let ((init "~/.emacs.d/init.elc"))
-;;       (if (file-exists-p init)
-;;           (load-file init)
-;;         (load-file (substring init 0 -1))))
 
 ;;; Code:
 
@@ -48,9 +43,11 @@
 ;; prevent opening a new frame when loading a file
 (setq ns-pop-up-frames nil)
 
-(unless (package-installed-p 'use-package)
-  (package-refresh-contents)
-  (package-install 'use-package))
+(eval-when-compile
+  (require 'use-package))
+
+(use-package use-package-ensure-system-package
+  :ensure t)
 
 ;; (eval-and-compile)
 
@@ -67,9 +64,9 @@
   (global-set-key "\C-cd" 'dash-at-point))
 
 ;; Load local "packages"
-(require 'init-utils)
+;;(require 'init-utils)
 (require 'unannoy)
-(require 'extras)
+;;(require 'extras)
 
 ;; Define `expose' since it's used everywhere.
 (defun expose (function &rest args)
@@ -125,23 +122,17 @@
 (defun my-set-frame-fullscreen (&optional frame)
   (set-frame-parameter frame 'fullscreen 'fullheight))
 
-(defun insert-backs ()
-  "insert back-slash"
-  (interactive)
-  (insert "\\"))
-
 ;;; convenience settings
 
 (global-linum-mode 1)
 (column-number-mode 1)
 (setq-default comment-column 70) ; Set the default comment column to 70
-(setq-default line-spacing 0.3)
+(setq-default line-spacing 0.2)
 ;;; S - shift key
 ;;; M - Cmd key
 ;;; C - Ctrl key
 ;;; s - Option key
 ;;(global-set-key (kbd "C-c s") 'slime-selector)
-(global-set-key (kbd "H-#") 'insert-backs)
 (global-set-key (kbd "H-ü") "|")
 (global-set-key (kbd "H-2") "@")
 (global-set-key (kbd "H-ö") "[")
@@ -210,10 +201,6 @@ $ emacsclient -c
 
 
 ;;; Individual package configurations
-
-;; emacs::pde
-;; (add-to-list 'load-path "~/Documents/src/git/elisp/emacs-pde/lisp/")
-;; (load "pde-load")
 
 ;; see https://github.com/bbatsov/crux
 (use-package crux
@@ -326,6 +313,7 @@ $ emacsclient -c
 ;; DAP
 (use-package dap-mode
   :diminish
+  :ensure t
   :functions dap-hydra/nil
   :bind (:map lsp-mode-map
               ("<f5>" . dap-debug)
@@ -337,12 +325,18 @@ $ emacsclient -c
          (dap-terminated . (lambda (&_rest) (dap-hydra/nil)))
          (go-mode . (lambda() (require 'dap-go))))
   :config
-  ;;(dap-mode t)
+  (dap-mode t)
+  ;; Enabling only some features
+  (setq dap-auto-configure-features '(sessions locals controls tooltip))
   (setq dap-print-io t)
   (setq dap-go-delve-path (expand-file-name "dlv" (expand-file-name "bin" (getenv "GOPATH"))))
   ;; (require 'dap-hydra)
-  ;;(require 'dap-go)
-  ;;(dap-go-setup)
+  (require 'dap-go)
+  (dap-go-setup)
+  (require 'dap-chrome)
+  (dap-chrome-setup)
+  (require 'dap-node)
+  (dap-node-setup)
   (use-package dap-ui
     :ensure nil
     :config
@@ -352,6 +346,7 @@ $ emacsclient -c
 ;;          (lambda (arg) (call-interactively #'dap-hydra)))
 
 (use-package lsp-treemacs
+  :ensure t
   :config
   ;;(lsp-metals-treeview-enable t) ; scala metals support
   ;;(setq lsp-metals-treeview-show-when-views-received t)
@@ -374,6 +369,7 @@ $ emacsclient -c
           company-tooltip-align-annotations t)))
 
 (use-package company-quickhelp
+  :ensure t
   :after company
   :config (company-quickhelp-mode 1))
 
@@ -404,31 +400,6 @@ $ emacsclient -c
 (use-package rainbow-delimiters
   :config
   (add-hook 'prog-mode-hook #'rainbow-delimiters-mode))  ; set rainbow-delimiters mode for most programming modes
-
-;; (use-package powerline
-;;   :ensure t
-;;   :init (progn
-;;           (powerline-default-theme)
-;;           (setq powerline-height 23))
-;;   :config (progn
-;;             (require 'powerline)
-;;             (add-hook 'desktop-after-read-hook 'powerline-reset)
-;;             (defface modes-ml-face '((t (:background "#002b36" :inherit mode-line)))
-;;               "Powerline face for modes section of the mode-line"
-;;               :group 'powerline)
-;;             (defface file-ml-face '((t (:background "#586e75" :inherit mode-line)))
-;;               "Powerline face for file and branch section of the mode-line"
-;;               :group 'powerline)
-;;             (defface line-ml-face '((t (:background "#93a1a1" :inherit mode-line)))
-;;               "Powerline face for line number section of the mode-line"
-;;               :group 'powerline)
-;;             (defface pos-ml-face '((t (:background "#586e75" :inherit mode-line)))
-;;               "Powerline face for file position section of the mode-line"
-;;               :group 'powerline)
-;;             (defface ml-fill-face '((t (:background "#93a1a1" :inherit mode-line)))
-;;               "Powerline face used to fill the unused portion of the mode-line"
-;;               :group 'powerline)))
-
 
 (use-package highlight-symbol
   :ensure t
@@ -477,6 +448,7 @@ $ emacsclient -c
   (projectile-mode +1))
 
 (use-package centaur-tabs
+  :ensure t
   :demand
   ;;:hook
   ;;(dired-mode . centaur-tabs-local-mode)
@@ -502,7 +474,7 @@ $ emacsclient -c
   ;;("C-c t s" . centaur-tabs-counsel-switch-group)
   ;; ("C-c t p" . centaur-tabs-group-by-projectile-project)
   ;; ("C-c t g" . centaur-tabs-group-buffer-groups)
-  )  
+  )
 
 (use-package helm
   :ensure t
@@ -510,7 +482,7 @@ $ emacsclient -c
   :init
   (progn
     (require 'helm-config)
-    ;; From https://gist.github.com/antifuchs/9238468
+    ;; Froma https://gist.github.com/antifuchs/9238468
     ;;(define-key helm-map (kbd "<left>") 'helm-previous-source)
     ;;(define-key helm-map (kbd "<right>") 'helm-next-source)
     ;;helm-ff-lynx-style-map t
@@ -546,9 +518,11 @@ $ emacsclient -c
 	 ("C-x c SPC" . helm-all-mark-rings)))
 
 
-(use-package counsel)
+(use-package counsel
+  :ensure t)
 
 (use-package swiper
+  :ensure t
   :bind*
   (("C-s" . swiper))
   :config
@@ -594,6 +568,11 @@ $ emacsclient -c
   :custom
   (flycheck-display-errors-delay .3))
 
+(use-package exec-path-from-shell
+  :ensure t
+  :config
+  (exec-path-from-shell-initialize)
+  (exec-path-from-shell-copy-env "PATH"))
 
 (use-package auto-complete-config
   :ensure auto-complete
@@ -608,8 +587,8 @@ $ emacsclient -c
 ;; (require 'slime-cfg) ; --deprecated
 (require 'sly-cfg)
 (require 'clojure-cfg)
-(require 'haskell-cfg)
-(require 'python-cfg)
+;;(require 'haskell-cfg)
+;;(require 'python-cfg)
 ;;(require 'perl6-cfg)
 (require 'golang-cfg)
 (require 'javascript-cfg)
@@ -733,9 +712,6 @@ $ emacsclient -c
   (require 'feed-setup)
   (setf bookmark-default-file (locate-user-emacs-file "local/bookmarks")))
 
-(use-package youtube-dl
-  :bind ("C-x y" . youtube-dl-list))
-
 (use-package time
   :config
   (progn
@@ -773,14 +749,9 @@ $ emacsclient -c
   :defer t
   :config (add-hook 'diff-mode-hook #'read-only-mode))
 
-;; (use-package leuven-theme
-;;   :ensure t
-;;   :init
-;;   (progn
-;;     (load-theme 'leuven t)
-;;     (global-hl-line-mode 1)))
 
 (use-package doom-themes
+  :ensure t
   :config
   ;; Global settings (defaults)
   (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
@@ -799,7 +770,8 @@ $ emacsclient -c
   ;; Corrects (and improves) org-mode's native fontification.
   (doom-themes-org-config))
 
-(use-package ghub)
+(use-package ghub
+  :ensure t)
 
 ;; remember to run 'M-x all-the-icons-install-fonts'
 (use-package doom-modeline
@@ -920,10 +892,6 @@ $ emacsclient -c
       (let ((httpd-process (get-process "httpd")))
         (when httpd-process
           (set-process-query-on-exit-flag httpd-process nil))))))
-
-;; (use-package ps-print
-;;   :defer t
-;;   :config (setf ps-print-header nil))
 
 (use-package ielm
   :defer t

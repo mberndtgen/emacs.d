@@ -6,11 +6,6 @@
 (use-package ein
   :ensure t)
 
-(use-package exec-path-from-shell
-  :ensure t
-  :config
-  (exec-path-from-shell-initialize)
-  (exec-path-from-shell-copy-env "PATH"))
 
 (use-package elpy
   :ensure t
