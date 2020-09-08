@@ -53,41 +53,41 @@
     ;; turn off all warnings in js2-mode
     (setq js2-mode-show-parse-errors t)
     (setq js2-mode-show-strict-warnings nil)
-    (setq js2-strict-missing-semi-warning nil)
+    (setq js2-strict-missing-semi-warning nil))
 
-    (use-package ac-js2
-      :ensure t
-      :hook
-      (js2-mode 'ac-js2-mode))
-
-    (use-package xref-js2
-      :ensure t
-      :hook
-      (js2-mode (lambda ()
-                  (add-hook 'xref-backend-functions #'xref-js2-xref-backend nil t)))
-      :config
-      (progn
-        (js2r-add-keybindings-with-prefix "C-c C-r")
-        (define-key js2-mode-map (kbd "C-k") #'js2r-kill)))
-    
-    (use-package company-tern
+  (use-package ac-js2
+    :ensure t
+    :hook
+    (js2-mode 'ac-js2-mode))
+  
+  (use-package xref-js2
+    :ensure t
+    :hook
+    (js2-mode (lambda ()
+                (add-hook 'xref-backend-functions #'xref-js2-xref-backend nil t)))
+    :config
+    (progn
+      (js2r-add-keybindings-with-prefix "C-c C-r")
+      (define-key js2-mode-map (kbd "C-k") #'js2r-kill)))
+  
+  (use-package company-tern
       ;;; tern setup, see https://emacs.cafe/emacs/javascript/setup/2017/05/09/emacs-setup-javascript-2.html
-      :ensure t
-      :hook
-      (js2-mode (lambda ()
-                  (tern-mode)
-                  (company-mode)))
-      :config
-      (progn
-        ((add-to-list 'company-backends 'company-tern))))
-
-    ;; js-mode (which js2 is based on) binds "M-." which conflicts with xref, so
-    ;; unbind it.
-    (define-key js-mode-map (kbd "M-.") nil)
-    (setq-default js2-additional-externs
-                  '("$" "unsafeWindow" "localStorage" "jQuery"
-                    "setTimeout" "setInterval" "location" "skewer"
-                    "console" "phantom")))
+    :ensure t
+    :hook
+    (js2-mode (lambda ()
+                (tern-mode)
+                (company-mode)))
+    :config
+    (progn
+      (add-to-list 'company-backends 'company-tern)))
+  
+  ;; js-mode (which js2 is based on) binds "M-." which conflicts with xref, so
+  ;; unbind it.
+  (define-key js-mode-map (kbd "M-.") nil)
+  (setq-default js2-additional-externs
+                '("$" "unsafeWindow" "localStorage" "jQuery"
+                  "setTimeout" "setInterval" "location" "skewer"
+                  "console" "phantom"))
 
   (use-package js2-refactor
     :after js2-mode
@@ -147,16 +147,16 @@
     :config
     (setq json-reformat:indent-width 2)
     (setq json-reformat:pretty-string? t)
-    (setq js-indent-level 2)))
+    (setq js-indent-level 2))
 
 (use-package pug-mode
-  :ensure t)
+  :ensure t
+  :mode ("\\.pug$'" . pug-mode))
 
 ;; eslintd-fix: Emacs minor-mode to automatically fix javascript with eslint_d.
 ;; https://github.com/aaronjensen/eslintd-fix/tree/master
 (use-package eslintd-fix
-  :ensure t
-  :mode (("\\.pug$'" . pug-mode)))
+  :ensure t)
 
 (provide 'javascript-cfg)
 

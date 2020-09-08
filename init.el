@@ -562,6 +562,7 @@ $ emacsclient -c
   :config (setq save-place-file (expand-file-name ".places" user-emacs-directory)))
 
 (use-package flycheck
+  :ensure t
   :diminish
   :defer 2
   :init (global-flycheck-mode)
