@@ -1,8 +1,11 @@
-;;; other-languages.el - enable other languages
+;;; other-languages.el --- enable other languages
 
+;;; Commentary:
 ;;----------------------------------------------------------------------------
 ;; other language settings
 ;;----------------------------------------------------------------------------
+
+;;; Code:
 
 (use-package css-mode
   :ensure t
@@ -31,22 +34,6 @@
   :mode ("\\.tf\\'" . terraform-mode)
   :config (setf terraform-indent-level 4))
 
-(use-package cc-mode
-  :defer t
-  :init
-  (defun skeeto/c-hook ()
-    (setf c-basic-offset 4)
-    (c-set-offset 'case-label '+)
-    (c-set-offset 'access-label '/)
-    (c-set-offset 'label '/))
-  :config
-  (progn
-    (define-key java-mode-map (kbd "C-x I") 'add-java-import)
-    (add-hook 'c-mode-hook #'skeeto/c-hook)
-    (add-hook 'c++-mode-hook #'skeeto/c-hook)
-    (add-to-list 'c-default-style '(c-mode . "k&r"))
-    (add-to-list 'c-default-style '(c++-mode . "k&r"))))
-
 (use-package nasm-mode
   :ensure t
   :defer t
@@ -57,19 +44,7 @@
 (use-package asm-mode
   :config
   (add-hook 'asm-mode-hook (lambda () (setf indent-tabs-mode t
-                                            tab-always-indent t))))
-
-(use-package x86-lookup
-  :ensure t
-  :defer t
-  :bind ("C-h x" . x86-lookup)
-  :functions x86-lookup-browse-pdf-evince
-  :config
-  (let ((pdf-regexp "^64-ia-32-.*-instruction-set-.*\\.pdf$")
-        (pdf-dir "~/doc/"))
-    (setf x86-lookup-browse-pdf-function #'x86-lookup-browse-pdf-evince
-          x86-lookup-pdf (ignore-errors
-                           (car (directory-files pdf-dir t pdf-regexp))))))
+                                       tab-always-indent t))))
 
 (use-package batch-mode
   :defer t)
@@ -98,5 +73,4 @@
 
 
 (provide 'other-languages)
-
-;;; end of other-languages.el
+;;; other-languages.el ends here

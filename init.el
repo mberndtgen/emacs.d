@@ -1,7 +1,6 @@
-;;; init.el --- -*- lexical-binding: t; -*-
+;;; init.el --- mberndtgen config -*- eval: (read-only-mode 1) -*-
 
 ;;; Commentary:
-
 
 ;;; Code:
 
@@ -11,8 +10,11 @@
 
 ;; Set up package manager
 (require 'package)
+(setq package-enable-at-startup nil)
+(package-initialize)
+
+;; package archives
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
-(add-to-list 'package-archives '("marmalade" . "https://marmalade-repo.org/packages/") t)
 (add-to-list 'package-archives '("melpa-stable" . "https://stable.melpa.org/packages/"))
 (add-to-list 'package-archives '("org" . "https://orgmode.org/elpa/"))
 (add-to-list 'package-archives '("gnu" . "https://elpa.gnu.org/packages/"))
@@ -20,14 +22,10 @@
 (add-to-list 'package-pinned-packages '(clj-refactor . "melpa-stable") t)
 (add-to-list 'package-pinned-packages '(cljr-helm . "melpa-stable") t)
 (add-to-list 'package-pinned-packages '(ac-cider . "melpa-stable") t)
-(setq package-archive-priorities '(("gnu" . 5)
-                                   ("marmalade" . 4)
+(setq package-archive-priorities '(("gnu" . 4)
                                    ("org" . 3)
                                    ("melpa" . 2)
                                    ("melpa-stable" . 1)))
-
-(package-initialize)
-
 
 (defvar init.el-errors '()
   "A list of errors that occured during initialization. Each error is of the form (LINE ERROR &rest ARGS).")
@@ -35,38 +33,74 @@
 (defvar init.el-line 0
   "Approximation to the currently executed line in this file.")
 
-
-(setq package-enable-at-startup nil
-      ;; work around package.el bug in Emacs 25
-      package--init-file-ensured t)
-
 ;; prevent opening a new frame when loading a file
 (setq ns-pop-up-frames nil)
 
-(eval-when-compile
-  (require 'use-package))
+;; personal information
+(setq user-full-name "Manfred Berndtgen")
 
-(use-package use-package-ensure-system-package
-  :ensure t)
+;; performance and statistics
+;; output see *Messages* buffer
+(setq use-package-verbose t
+      use-package-compute-statistics t
+      use-package-minimum-reported-time 0)
 
-;; (eval-and-compile)
-
-(defvar use-package-verbose t)
+(unless (package-installed-p 'use-package)
+  (package-refresh-contents)
+  (package-install 'use-package))
+(setq use-package-always-ensure nil)
 (require 'use-package)
-(require 'bind-key)
-(require 'diminish)
 
-(when (eq system-type 'darwin)
-  (when (not (package-installed-p 'dash-at-point))
-    (package-install 'dash-at-point))
-  ;; dash-at-point
-  (autoload 'dash-at-point "dash-at-point" "Search the word at point with Dash." t nil)
-  (global-set-key "\C-cd" 'dash-at-point))
+;; Quelpa grabs and builds packages from source (e.h. github)
+(use-package quelpa)
+(use-package quelpa-use-package :ensure t)
 
-;; Load local "packages"
-;;(require 'init-utils)
-(require 'unannoy)
-;;(require 'extras)
+;; Handle the `use-package-always-ensure' setting
+(quelpa-use-package-activate-advice)
+
+;; always pick latest version of the library to load
+(setq load-prefer-newer t)
+
+;; add github stars in package listing, autoremove packs, install packs parallel
+(use-package paradox
+  :ensure t
+  :delight " ፨"
+  :commands (paradox-list-packages))
+
+;; (use-package use-package-ensure-system-package
+;;   :ensure t)
+
+;; (require 'use-package)
+;; (require 'diminish)
+
+;; binding keys
+(use-package bind-key
+  :bind ("C-h B" . describe-personal-keybindings))
+
+;; path
+(use-package exec-path-from-shell
+  :ensure t
+  :config
+  (exec-path-from-shell-initialize)
+  (exec-path-from-shell-copy-env "PATH"))
+
+;; backup settings
+(setq backup-by-copying t
+      create-lockfiles nil
+      backup-directory-alist '((".*" . "~/.saves"))
+      ;; auto-save-file-name-transforms `((".*" "~/.saves" t))
+      delete-old-versions t
+      kept-new-versions 6
+      kept-old-versions 2
+      version-control t)
+
+;; dash at point
+;; (when (eq system-type 'darwin)
+;;   (when (not (package-installed-p 'dash-at-point))
+;;     (package-install 'dash-at-point))
+;;   ;; dash-at-point
+;;   (autoload 'dash-at-point "dash-at-point" "Search the word at point with Dash." t nil)
+;;   (global-set-key "\C-cd" 'dash-at-point))
 
 ;; Define `expose' since it's used everywhere.
 (defun expose (function &rest args)
@@ -76,14 +110,17 @@
     (apply function args)))
 
 ;; Some global keybindings
-
+;;
 (if (eq system-type 'darwin)
-    (progn
-      ;; set keys for Apple keyboard, for emacs in OS X
-      (setq mac-command-modifier 'meta) ; make cmd key do Meta
-      (setq mac-option-modifier 'super) ; make opt key do Super
-      (setq mac-control-modifier 'control) ; make Control key do Control
-      (setq ns-function-modifier 'hyper)))  ; make Fn key do Hyper
+    (setq mac-function-modifier 'hyper
+          mac-right-option-modifier 'super
+          mac-right-command-modifier 'super
+          mac-right-control-modifier 'ctrl
+          mac-pass-command-to-system nil
+          mac-command-modifier 'meta ; make opt key do Super
+          mac-control-modifier 'ctrl ; make Control key do Control
+          mac-option-modifier 'none
+          ns-function-modifier 'hyper))
 (if (eq system-type 'gnu/linux)
     nil)
 (if (eq system-type 'windows-nt)
@@ -133,13 +170,13 @@
 ;;; C - Ctrl key
 ;;; s - Option key
 ;;(global-set-key (kbd "C-c s") 'slime-selector)
-(global-set-key (kbd "H-ü") "|")
-(global-set-key (kbd "H-2") "@")
-(global-set-key (kbd "H-ö") "[")
-(global-set-key (kbd "H-ä") "]")
-(global-set-key (kbd "H-p") "{")
-(global-set-key (kbd "H-+") "}")
-(global-set-key (kbd "H-<") "~")
+;; (global-set-key (kbd "H-ü") "|")
+;; (global-set-key (kbd "H-2") "@")
+;; (global-set-key (kbd "H-ö") "[")
+;; (global-set-key (kbd "H-ä") "]")
+;; (global-set-key (kbd "H-p") "{")
+;; (global-set-key (kbd "H-+") "}")
+;; (global-set-key (kbd "H-<") "~")
 
 (custom-set-variables
  '(ansi-color-faces-vector [default bold shadow italic underline bold bold-italic bold])
@@ -199,8 +236,240 @@ $ emacsclient -c
 
 (define-key special-event-map [sigusr1] 'signal-restart-server)
 
+;; hydra
+(use-package hydra
+  :ensure t)
 
-;;; Individual package configurations
+;; relaxed handling of mode line
+(use-package delight
+  :ensure t)
+
+;; toggle map: show toggleable settings until pressing 'q'
+
+(defmacro toggle-setting-string (setting)
+  `(if (and (boundp ',setting) ,setting) '[x] '[_]))
+
+(bind-key
+ "C-x t"
+ (defhydra hydra-toggle (:color amaranth)
+   "
+    _c_ column-number : %(toggle-setting-string column-number-mode)  _b_ orgtbl-mode    : %(toggle-setting-string orgtbl-mode)  _x_/_X_ trans          : %(identity bnb/transparency)
+    _e_ debug-on-error: %(toggle-setting-string debug-on-error)  _s_ orgstruct-mode : %(toggle-setting-string orgstruct-mode)  _m_   hide mode-line : %(toggle-setting-string bnb/hide-mode-line-mode)
+    _u_ debug-on-quit : %(toggle-setting-string debug-on-quit)  _h_ diff-hl-mode   : %(toggle-setting-string diff-hl-mode)
+    _f_ auto-fill     : %(toggle-setting-string auto-fill-function)  _B_ battery-mode   : %(toggle-setting-string display-battery-mode)
+    _t_ truncate-lines: %(toggle-setting-string truncate-lines)  _l_ highlight-line : %(toggle-setting-string hl-line-mode)
+    _r_ read-only     : %(toggle-setting-string buffer-read-only)  _n_ line-numbers   : %(toggle-setting-string linum-mode)
+    _w_ whitespace    : %(toggle-setting-string whitespace-mode)  _N_ relative lines : %(if (eq linum-format 'linum-relative) '[x] '[_])
+    "
+   ("c" column-number-mode nil)
+   ("e" toggle-debug-on-error nil)
+   ("u" toggle-debug-on-quit nil)
+   ("f" auto-fill-mode nil)
+   ("t" toggle-truncate-lines nil)
+   ("r" dired-toggle-read-only nil)
+   ("w" whitespace-mode nil)
+   ("b" orgtbl-mode nil)
+   ("s" orgstruct-mode nil)
+   ("x" bnb/transparency-next nil)
+   ("B" display-battery-mode nil)
+   ("X" bnb/transparency-previous nil)
+   ("h" diff-hl-mode nil)
+   ("l" hl-line-mode nil)
+   ("n" linum-mode nil)
+   ("N" linum-relative-toggle nil)
+   ("m" bnb/hide-mode-line-mode nil)
+   ("q" nil)))
+
+;; features for elisp mode
+(bind-key
+ "C-c e"
+ (defhydra hydra-elisp-cmds (:color blue)
+   ("b" eval-buffer "eval buffer")
+   ("e" toggle-debug-on-error "debug-on-error")
+   ("f" emacs-lisp-byte-compile-and-load "byte-compile-and-load")
+   ("r" eval-region "eval-region")
+   ("q" nil))
+ emacs-lisp-mode-map)
+
+(bind-key
+ "C-h e"
+ (defhydra hydra-elisp-help (:color blue)
+   ("e" view-echo-area-messages "view-echod-area-messages")
+   ("f" find-function "find-function")
+   ("k" find-function-on-key "find-function-on-key")
+   ("l" find-library "find-library")
+   ("v" find-variable "find-variable")
+   ("V" apropos-value "apropos-value")
+   ("i" info-display-manual "info-display-manual")
+   ("q" nil))
+ emacs-lisp-mode-map)
+
+;;handle emptiness
+(use-package whitespace
+  :ensure nil
+  :config
+  (setq whitespace-line-column nil)
+  (add-hook 'before-save-hook 'whitespace-cleanup)
+  :delight whitespace-mode)
+
+(bind-key "M-k" 'fixup-whitespace)
+
+;; scroll screen without moving the cursor
+(defun bnb/scroll-up-1 ()
+  "Scroll up by one line."
+  (interactive)
+  (cua-scroll-up 1))
+
+(defun bnb/scroll-down-1 ()
+  "Scroll down by one line."
+  (interactive)
+  (cua-scroll-down 1))
+
+(bind-keys
+ ("M-n" . bnb/scroll-up-1)
+ ("M-p" . bnb/scroll-down-1))
+
+;; align text by regexp
+(bind-key "C-c TAB" 'align-regexp)
+
+;; kill current buffer (instead of asking which one)
+(defun bnb/kill-this-buffer ()
+  "Kill the current buffer"
+  (interactive)
+  (kill-buffer (current-buffer)))
+
+(bind-keys
+ ("C-x C-k" . bnb/kill-this-buffer))
+
+;; no duplicates in minibuffer history
+(setq history-delete-duplicates t)
+(setq savehist-additional-variables '(search-ring regexp-search-ring)
+      savehist-file "~/.emacs.d/savehist")
+(savehist-mode t)
+
+;; abbrev
+(bind-key "C-x C-i" 'bnb/ispell-word-then-abbrev)
+
+(defun bnb/ispell-word-then-abbrev (p)
+  "Call `ispell-word'. Then create an abbrev for the correction
+    made. With prefix P, create local abbrev. Otherwise, it will be
+    global."
+  (interactive "P")
+  (let ((bef (downcase (or (thing-at-point 'word) ""))) aft)
+    (call-interactively 'ispell-word)
+    (setq aft (downcase (or (thing-at-point 'word) "")))
+    (unless (string= aft bef)
+      (message "\"%s\" now expands to \"%s\" %sally"
+               bef aft (if p "loc" "glob"))
+      (define-abbrev
+        (if p global-abbrev-table local-abbrev-table)
+        bef aft))))
+
+(use-package abbrev
+  :delight " ⚆"
+  :config
+  (setq save-abbrevs t)
+  (setq-default abbrev-mode t))
+
+;; try to expand text before point in an intelligent way
+(bind-key "M-/" 'hippie-expand)
+
+;; save bookmarks
+;; C-x r m   set a bookmark
+;; C-x r b   jump to a bookmark
+;; C-x r l   list bookmarks
+;; M-x bookmark-delete delete bookmark by name
+;; auto-save bookmarks:
+(setq bookmark-save-flag t)
+
+;; writegood
+(use-package writegood-mode
+  :ensure t
+  :bind
+  ("C-c g"     . writegood-mode)
+  ("C-c C-g g" . writegood-grade-level)
+  ("C-c C-g e" . writegood-reading-ease))
+
+;; spell checking
+(cond
+ ((executable-find "aspell")
+  (setq ispell-program-name (executable-find "aspell")
+        ispell-extra-args '("--sug-mode=ultra" "--lang=en_US")))
+ (t (setq ispell-program-name nil)
+    (message "No aspell found!")))
+
+(bind-key "H-$" 'ispell-word)
+
+;; proselint
+(with-eval-after-load "flycheck-mode"
+  (flycheck-define-checker proselint
+    "A linter for prose"
+    :command ("proselint" source-inplace)
+    :error-patterns
+    ((warning line-start (file-name) ":" line ":" column ": "
+              (id (one-or-more (not (any " "))))
+              (message (one-or-more not-newline)
+                       (zero-or-more "\n" (any " ") (one-or-more not-newline)))
+              line-end))
+    :modes (text-mode markdown-mode gfm-mode org-mode))
+  (add-to-list 'flycheck-checkers 'proselint))
+
+;; development
+(show-paren-mode t)
+(add-hook 'cperl-mode-hook 'turn-on-eldoc-mode)
+(add-hook 'eshell-mode-hook 'turn-on-eldoc-mode)
+
+;; read-only mode
+(use-package view
+  :delight " 👁"
+  :init (setq view-read-only t)
+  :bind (:map view-mode-map
+              ("n" . next-line    )
+              ("p" . previous-line)
+              ("j" . next-line    )
+              ("k" . previous-line)
+              ("l" . forward-char)
+              ("h" . bnb/view/h)
+              ("q" . bnb/view/q))
+  :config
+  (defun bnb/view/h ()
+    "Setup a function to go backwards a character"
+    (interactive)
+    (forward-char -1))
+  (defun bnb/view/q ()
+    "Setup a function to quit `view-mode`"
+    (interactive)
+    (view-mode -1)))
+
+;; default file encoding
+(prefer-coding-system       'utf-8)
+(set-default-coding-systems 'utf-8)
+(set-terminal-coding-system 'utf-8)
+(set-keyboard-coding-system 'utf-8)
+(set-language-environment 'utf-8)
+(setq buffer-file-coding-system 'utf-8
+      x-select-request-type '(UTF8_STRING COMPOUND_TEXT TEXT STRING))
+;; MS Windows clipboard is UTF-16LE
+(when (eq system-type 'windows-nt)
+  (set-clipboard-coding-system 'utf-16le-dos))
+
+;; vimrc generic mode
+(define-generic-mode 'vimrc-generic-mode
+  '()
+  '()
+  '(("^[\t ]*:?\\(!\\|ab\\|map\\|unmap\\)[^\r\n\"]*\"[^\r\n\"]*\\(\"[^\r\n\"]*\"[^\r\n\"]*\\)*$"
+     (0 font-lock-warning-face))
+    ("\\(^\\|[\t ]\\)\\(\".*\\)$"
+     (2 font-lock-comment-face))
+    ("\"\\([^\n\r\"\\]\\|\\.\\)*\""
+     (0 font-lock-string-face)))
+  '("/vimrc\\'" "\\.vim\\(rc\\)?\\'")
+  '((lambda ()
+      (modify-syntax-entry ?\" ".")))
+  "Generic mode for Vim configuration files.")
+
+;; ediff single frame
+(setq ediff-window-setup-function 'ediff-setup-windows-plain)
 
 ;; see https://github.com/bbatsov/crux
 (use-package crux
@@ -269,13 +538,14 @@ $ emacsclient -c
             ;; (setq lsp-ui-sideline-enable nil)
             ;; disable showing docs on hover at the top of the window
             ;; (setq lsp-ui-doc-enable nil)
-	        (setq lsp-ui-imenu-enable t)
-	        (setq lsp-ui-imenu-kind-position 'top))
+                (setq lsp-ui-imenu-enable t)
+                (setq lsp-ui-imenu-kind-position 'top))
   :init
   (add-hook 'lsp-mode-hook #'lsp-ui-mode))
 
 (use-package use-package-hydra
   :ensure t)
+
 
 ;; go hydra
 (use-package hydra
@@ -290,25 +560,26 @@ $ emacsclient -c
   ;;("M-s" . hydra-go/body)
   :init
   (add-hook 'dap-stopped-hook
-          (lambda (arg) (call-interactively #'hydra-go/body)))
+            (lambda (arg) (call-interactively #'hydra-go/body)))
   :hydra (hydra-go (:color pink :hint nil :foreign-keys run)
-  "
+                   "
    _n_: Next       _c_: Continue _g_: goroutines      _i_: break log
    _s_: Step in    _o_: Step out _k_: break condition _h_: break hit condition
    _Q_: Disconnect _q_: quit     _l_: locals
    "
-	     ("n" dap-next)
-	     ("c" dap-continue)
-	     ("s" dap-step-in)
-	     ("o" dap-step-out)
-	     ("g" dap-ui-sessions)
-	     ("l" dap-ui-locals)
-	     ("e" dap-eval-thing-at-point)
-	     ("h" dap-breakpoint-hit-condition)
-	     ("k" dap-breakpoint-condition)
-	     ("i" dap-breakpoint-log-message)
-	     ("q" nil "quit" :color blue)
-	     ("Q" dap-disconnect :color red)))
+                   ("n" dap-next)
+                   ("c" dap-continue)
+                   ("s" dap-step-in)
+                   ("o" dap-step-out)
+                   ("g" dap-ui-sessions)
+                   ("l" dap-ui-locals)
+                   ("e" dap-eval-thing-at-point)
+                   ("h" dap-breakpoint-hit-condition)
+                   ("k" dap-breakpoint-condition)
+                   ("i" dap-breakpoint-log-message)
+                   ("q" nil "quit" :color blue)
+                   ("Q" dap-disconnect :color red)))
+
 
 ;; DAP
 (use-package dap-mode
@@ -504,18 +775,18 @@ $ emacsclient -c
             helm-grep-default-recurse-command "ack-grep -H --no-group --no-color %e %p %f"))
     (add-to-list 'helm-sources-using-default-as-input 'helm-source-man-pages))
   :bind (("C-c h" . helm-mini)
-	 ("C-h a" . helm-apropos)
-	 ("C-x C-b" . helm-buffers-list)
-	 ("C-x b" . helm-buffers-list)
-	 ("M-y" . helm-show-kill-ring)
-	 ("M-x" . helm-M-x)
-	 ("C-x C-f" . helm-find-files)
-	 ("C-x c o" . helm-occur)
-	 ("C-x c s" . helm-swoop)
-	 ("C-x c y" . helm-yas-complete)
-	 ("C-x c Y" . helm-yas-create-snippet-on-region)
-	 ("C-x c b" . my/helm-do-grep-book-notes)
-	 ("C-x c SPC" . helm-all-mark-rings)))
+         ("C-h a" . helm-apropos)
+         ("C-x C-b" . helm-buffers-list)
+         ("C-x b" . helm-buffers-list)
+         ("M-y" . helm-show-kill-ring)
+         ("M-x" . helm-M-x)
+         ("C-x C-f" . helm-find-files)
+         ("C-x c o" . helm-occur)
+         ("C-x c s" . helm-swoop)
+         ("C-x c y" . helm-yas-complete)
+         ("C-x c Y" . helm-yas-create-snippet-on-region)
+         ("C-x c b" . my/helm-do-grep-book-notes)
+         ("C-x c SPC" . helm-all-mark-rings)))
 
 
 (use-package counsel
@@ -569,12 +840,6 @@ $ emacsclient -c
   :custom
   (flycheck-display-errors-delay .3))
 
-(use-package exec-path-from-shell
-  :ensure t
-  :config
-  (exec-path-from-shell-initialize)
-  (exec-path-from-shell-copy-env "PATH"))
-
 (use-package auto-complete-config
   :ensure auto-complete
   :bind ("M-<tab>" . my--auto-complete)
@@ -585,11 +850,17 @@ $ emacsclient -c
       (global-auto-complete-mode 1))
     (auto-complete)))
 
+;; Load local "packages"
+;;(require 'init-utils)
+(require 'unannoy)
+;;(require 'extras)
+
 ;; (require 'slime-cfg) ; --deprecated
 (require 'sly-cfg)
 (require 'clojure-cfg)
 ;;(require 'haskell-cfg)
 ;;(require 'python-cfg)
+;;(require 'perl5-cfg)
 ;;(require 'perl6-cfg)
 (require 'golang-cfg)
 (require 'javascript-cfg)
@@ -601,17 +872,20 @@ $ emacsclient -c
 ;;; which-key for help with key bindings - https://github.com/justbur/emacs-which-key
 (use-package which-key
   :ensure t
-  :config
-  (which-key-mode +1))
+  :delight which-key-mode
+  :init
+  (which-key-mode)
+  (which-key-setup-side-window-right-bottom)
+  (setq which-key-max-description-length 60))
 
 ;; multiple cursors - https://github.com/magnars/multiple-cursors.el
 (use-package multiple-cursors
   :config
   (progn
-    (global-set-key (kbd "C-S-c C-S-c") 'mc/edit-lines)
-    (global-set-key (kbd "C->") 'mc/mark-next-like-this)
-    (global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
-    (global-set-key (kbd "C-c C-<") 'mc/mark-all-like-this)))
+    (global-set-key (kbd "C-M-S-c C-M-S-c") 'mc/edit-lines)
+    (global-set-key (kbd "C-M->") 'mc/mark-next-like-this)
+    (global-set-key (kbd "C-M-<") 'mc/mark-previous-like-this)
+    (global-set-key (kbd "C-M-c C-M-<") 'mc/mark-all-like-this)))
 
 (use-package recentf
   :ensure t
@@ -863,6 +1137,50 @@ $ emacsclient -c
   (remove-hook 'git-commit-finish-query-functions
                'git-commit-check-style-conventions)
   (global-set-key (kbd "C-x M-g") 'magit-dispatch-popup))
+
+(use-package forge
+  :ensure t
+  :commands (forge-pull))
+
+(use-package magit-todos
+  :ensure t
+  :after magit
+  :hook (magit-mode-hook . magit-todos-mode))
+
+;; git timemachine
+(use-package git-timemachine
+  :disabled
+  :ensure t
+  :bind ("C-x C-g" . git-timemachine-toggle)
+  :config
+  (bind-keys
+   :map git-timemachine-mode-map
+   ("<M-up>" . git-timemachine-show-previous-revision)
+   ("<M-down>" . git-timemachine-show-next-revision)
+   ("<S-wheel-up>" . git-timemachine-show-previous-revision)
+   ("<S-wheel-down>" . git-timemachine-show-next-revision)))
+
+;; smerge
+(add-hook
+ 'smerge-mode-hook
+ (lambda ()
+   (bind-key
+    "C-c ^ h"
+    (defhydra hydra-smerge (:color amaranth)
+      ("a" smerge-keep-all "Keep all")
+      ("b" smerge-keep-base "Keep base")
+      ("m" smerge-keep-mine "Keep mine")
+      ("o" smerge-keep-other "Keep other")
+      ("n" smerge-next "Next conflict")
+      ("p" smerge-previous "Previous conflict")
+      ("r" smerge-resolve "Keep mine")
+      ("q" nil "quit"))
+    smerge-mode-map)))
+
+;; kill inactive buffers after 3 days
+(use-package midnight
+  :ensure t
+  :defer 10)
 
 (use-package gitconfig-mode
   :ensure t

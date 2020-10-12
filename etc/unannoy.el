@@ -9,7 +9,7 @@
       inhibit-startup-screen t
       inhibit-splash-screen t
       initial-scratch-message nil
-      wdired-allow-to-change-permissions t
+      dired-allow-to-change-permissions t
       echo-keystrokes 0.1
       delete-active-region nil
       disabled-command-function nil
