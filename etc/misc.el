@@ -337,15 +337,63 @@ _c_lose node   _p_revious fold   toggle _a_ll        e_x_it
 ;; all-the-icons
 ;; see https://github.com/domtronn/all-the-icons.el
 (use-package all-the-icons
+  :defer 10
   :ensure t)
 
-;; neotree
-;; see
+;; nice icons for dired
+(use-package all-the-icons-dired
+  :ensure t
+  :commands (all-the-icons-dired-mode)
+  :config (add-hook 'dired-mode-hook 'all-the-icons-dired-mode))
 
+;; file management: dired
+(use-package dired-hacks-utils
+  :defer
+  :ensure t)
+
+(use-package dired-filter
+  :defer
+  :ensure t)
+
+(use-package dired-rainbow
+  :defer
+  :ensure t)
+
+(use-package dired-narrow
+  :defer
+  :ensure t)
+
+(use-package dired-collapse
+  :defer
+  :ensure t)
+
+;; for moving files around
+(use-package sunrise-commander
+  :defer 10
+  :quelpa
+  (sunrise-commander :fetcher github :repo "escherdragon/sunrise-commander")
+  :bind ("<f7>" . sunrise))
+
+;; neotree (file sidebar for navigation)
 (use-package neotree
   :ensure t
+  :commands (neotree)
+  :bind ("<f8>" . neotree-toggle)
   :config
-  (global-set-key [f8] 'neotree-toggle))
+  (setq neo-theme (if (display-graphic-p) 'icons 'arrow)))
+
+;; reveal current file in osx finder
+(use-package reveal-in-osx-finder
+  :ensure t
+  :bind ("C-c z" . reveal-in-osx-finder))
+
+(use-package smart-tabs-mode
+  :defer 10
+  :ensure t
+  :init
+  (setq-default indent-tabs-mode nil)
+  (smart-tabs-insinuate 'c 'cperl 'c++)
+  (setq-default tab-width 2))
 
 (provide 'misc)
 

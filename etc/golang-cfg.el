@@ -17,11 +17,7 @@
 ;; go get -u github.com/dougm/goflymake
 ;; go get -u golang.org/x/tools/cmd/godoc
 ;; go get -u github.com/golang/lint/golint
-;; go get -u github.com/rogpeppe/godef
-;; go get -u github.com/nsf/gocode
-;; go get -u golang.org/x/tools/cmd/goimports
 ;; GO111MODULE=on go get golang.org/x/tools/gopls@latest
-;; go get -u github.com/mdempsky/gocode
 ;; go get   golang.org/x/tools/cmd/guru
 ;; go get golang.org/x/tools/gopls@latest
 ;; go get -u github.com/go-delve/delve/cmd/dlv
@@ -72,36 +68,39 @@ inserted between the braces between the braces."
   (:map go-mode-map
         ("C-c e g" . godoc)
         ("C-c P" . my-godoc-package)
-        ("C-c C-c" . compile))
+        ("C-c C-c" . compile)
+        ("M-." . godef-jump))
   :mode ("\\.go$\\'" . go-mode)
   :hook (go-mode . lsp)
   :init
-  (progn
-    (setq compile-command "go generate && go build -v && go test -v && go vet")
-    )
+  (setq compile-command "go generate && go build -v && go test -v && go vet")
+  (setq compilation-read-command nil)
   :config
-  (progn
-    (add-to-list 'load-path (concat (getenv "HOME") "/go/bin"))
-    ;; (go-eldoc-setup)
-    ;; Use goimports instead of go-fmt
-    (setq gofmt-command "goimports")
-    ;; Godef jump key binding
-    (local-set-key (kbd "M-.") 'godef-jump)
-    (local-set-key (kbd "M-*") 'pop-tag-mark)
-    (add-hook 'go-mode-hook (lambda () (progn
-                                    (setq gofmt-command "goimports")
-                                        ; Call Gofmt before saving
-                                    (add-hook 'before-save-hook 'gofmt-before-save)
-                                    (auto-complete-mode 1))))
-    (setq-default indent-tabs-mode nil)
-    (setq-default tab-width 4)
-    (setq indent-line-function 'insert-tab)
-    (helm-mode 1)
-    (indent-guide-mode 1)
-    ))
+  (add-to-list 'load-path (concat (getenv "HOME") "/go/bin"))
+  ;; (local-set-key (kbd "M-*") 'pop-tag-mark)
+  (add-hook 'go-mode-hook (lambda () (progn
+                                  (add-hook 'before-save-hook #'lsp-format-buffer t t)
+                                  (add-hook 'before-save-hook #'lsp-organize-imports t t)
+                                  (auto-complete-mode 1))))
+  (setq-default indent-tabs-mode nil)
+  (setq-default tab-width 4)
+  (setq indent-line-function 'insert-tab)
+  (setq compilation-window-height 14)
+  (setq compilation-scroll-output t)
+  (setq lsp-gopls-staticcheck t)
+  (setq lsp-eldoc-render-all t)
+  (setq lsp-gopls-complete-unimported t)
+  (helm-mode 1)
+  (indent-guide-mode 1))
+
 
 (use-package go-guru
+  :ensure t
   :after go-mode)
+
+(use-package protobuf-mode
+  :after go-mode
+  :mode ("\\.proto$\\'" . protobuf-mode))
 
 (with-eval-after-load 'dap-mode
   (require 'dap-go)
@@ -109,6 +108,18 @@ inserted between the braces between the braces."
 
 (with-eval-after-load 'go-guru
   (add-hook 'go-mode-hook #'go-guru-hl-identifier-mode))
+
+(defun my-compilation-hook ()
+  (when (not (get-buffer-window "*compilation*"))
+    (save-selected-window
+      (save-excursion
+        (let* ((w (split-window-vertically))
+               (h (window-height w)))
+          (select-window w)
+          (switch-to-buffer "*compilation*")
+          (shrink-window (- h compilation-window-height)))))))
+
+(add-hook 'compilation-mode-hook 'my-compilation-hook)
 
 ;; (defun my-show-doc-in-frame (buffer options)
 ;;   ;; Get the frame named 'compilation' or create one if such a frame does not exist
