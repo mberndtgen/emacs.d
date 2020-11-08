@@ -51,6 +51,10 @@
 (setq use-package-always-ensure nil)
 (require 'use-package)
 
+;; https://github.com/waymondo/use-package-ensure-system-package
+(use-package use-package-ensure-system-package
+  :ensure t)
+
 ;; Quelpa grabs and builds packages from source (e.h. github)
 (use-package quelpa)
 (use-package quelpa-use-package :ensure t)
@@ -569,6 +573,28 @@ $ emacsclient -c
   (add-hook 'before-save-hook 'whitespace-cleanup)
   :delight whitespace-mode)
 
+;; beacon: highlight cursor
+;; https://github.com/Malabarba/beacon
+(use-package beacon
+  :ensure t)
+
+(with-eval-after-load "beacon"
+  (beacon-mode 1))
+
+;; goto-line-preview
+;; https://github.com/jcs-elpa/goto-line-preview
+(use-package goto-line-preview
+  :ensure t)
+
+(with-eval-after-load "goto-line-preview"
+  (global-set-key [remap goto-line] 'goto-line-preview))
+
+;; highlight-parentheses
+;; https://github.com/tsdh/highlight-parentheses.el
+(use-package highlight-parentheses
+  :ensure t
+  :hook (after-init . highlight-parentheses-mode))
+
 ;; ensure proper lisping
 (add-hook 'after-save-hook  'check-parens nil t)
 
@@ -646,6 +672,14 @@ $ emacsclient -c
 (bind-key "<f4>" (lambda ()
                    (interactive)
                    (find-file "~/.emacs.d/init.el")))
+
+;; find-file-in-project
+;; https://github.com/technomancy/find-file-in-project
+(use-package find-file-in-project
+  :ensure t
+  :bind
+  (("H-x f" . find-file-in-project)
+   ("H-x ." . find-file-in-project-at-point)))
 
 ;; save bookmarks
 ;; C-x r m   set a bookmark
@@ -777,6 +811,13 @@ $ emacsclient -c
 ;; set prefix for lsp-command-keymap (few alternatives - "C-l", "C-c l")
 (setq lsp-keymap-prefix "s-l")
 
+(use-package move-text
+  :ensure t
+  :bind
+  (("M-<up>" . move-text-up)
+   ("M-<down>" . move-text-down))
+  :config (move-text-default-bindings))
+
 (use-package lsp-mode
   :ensure t
   :commands (lsp lsp-deferred)
@@ -786,11 +827,11 @@ $ emacsclient -c
          (clojurescript-mode . lsp)
          (lsp-mode . lsp-enable-which-key-integration))
   :config
-  ;; add paths to your local installation of project mgmt tools, like lein
+  ;; (dolist (m '(clojure-mode
   (setenv "PATH" (concat
                   "/usr/local/bin" path-separator
                   (getenv "PATH")))
-  ;; (dolist (m '(clojure-mode
+  ;; add paths to your local installation of project mgmt tools, like lein
   ;;              clojurec-mode
   ;;              clojurescript-mode
   ;;              clojurex-mode))
@@ -849,6 +890,15 @@ $ emacsclient -c
 
 (use-package use-package-hydra
   :ensure t)
+
+;; eglot
+;; https://github.com/joaotavora/eglot
+(use-package eglot
+  :ensure t
+  :bind
+  (("H-p ." . eglot-help-at-point))
+  :hook
+  ((go-mode . eglot-ensure)))
 
 ;; ace-flyspell (https://github.com/cute-jumper/ace-flyspell)
 (use-package ace-flyspell
@@ -1104,6 +1154,11 @@ $ emacsclient -c
 (use-package smooth-scrolling
   :ensure t)
 
+(use-package visual-regexp-steroids
+  :ensure t
+  :bind (("C-c r" . vr/replace)
+         ("C-c q" . vr/query-replace)
+         ("C-c m" . vr/mc-mark)))
 
 (use-package projectile
   :ensure t
@@ -1321,10 +1376,10 @@ $ emacsclient -c
 ;;   :config
 ;;   (counsel-mode))
 
-(use-package smex
-  :delight
-  :ensure t
-  :config (smex-initialize))
+;; (use-package smex
+;;   :delight
+;;   :ensure t
+;;   :config (smex-initialize))
 
 ;; (use-package ivy-rich
 ;;   :ensure t
@@ -1350,6 +1405,29 @@ $ emacsclient -c
 ;; (use-package all-the-icons-ivy
 ;;   :ensure t
 ;;   :after ivy-mode)
+
+(use-package dashboard
+  :ensure t
+  :config
+  (dashboard-setup-startup-hook)
+  :init
+  (setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
+  (setq dashboard-startup-banner 'logo)
+  (setq dashboard-center-content t)
+  (setq dashboard-set-heading-icons t)
+  (setq dashboard-set-file-icons t)
+  (dashboard-modify-heading-icons '((recents . "file-text")
+                                    (bookmarks . "book")))
+  (setq dashboard-set-navigator t)
+  (setq dashboard-set-init-info t)
+  (setq dashboard-items '((recents  . 5)
+                          (bookmarks . 5)
+                          (projects . 5)
+                          (agenda . 5)
+                          (registers . 5))))
+
+(use-package zoom
+  :ensure t)
 
 (use-package swiper
   :ensure t
@@ -1791,8 +1869,12 @@ $ emacsclient -c
 (use-package helpful
   :ensure t
   :bind
-  ("C-h f" . helpful-function)
-  ("C-h x" . helpful-command)
+  ("C-c C-d" . helpful-at-point)
+  ("C-h f" . helpful-callable)
+  ("C-h F" . helpful-function)
+  ("C-h k" . helpful-key)
+  ("C-h v" . helpful-variable)
+  ("C-h C" . helpful-command)
   ("C-h z" . helpful-macro))
 
 (use-package winner

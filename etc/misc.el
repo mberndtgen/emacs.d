@@ -29,34 +29,31 @@
   (define-key help-mode-map (kbd "f") #'push-first-button))
 
 (use-package origami
+  :ensure t
   :custom
   (origami-show-fold-header t)
   :commands origami-mode
   :custom-face
   (origami-fold-replacement-face ((t (:inherit magit-diff-context-highlight))))
   (origami-fold-fringe-face ((t (:inherit magit-diff-context-highlight))))
-  :bind (:map origami-mode-map
-              ("C-:" . origami-hydra/body))
   :config
-  (progn
-    (face-spec-reset-face 'origami-fold-header-face)
-    (add-hook 'prog-mode-hook 'origami-mode)
-    (with-eval-after-load 'hydra
-      (define-key origami-mode-map (kbd "C-x f")
-        (defhydra hydra-folding (:color red :hint nil)
-          "
+  (face-spec-reset-face 'origami-fold-header-face)
+  (add-hook 'prog-mode-hook 'origami-mode)
+  (with-eval-after-load 'hydra
+    (define-key origami-mode-map (kbd "C-x f")
+      (defhydra hydra-folding (:color red :hint nil)
+        "
 _o_pen node    _n_ext fold       toggle _f_orward    _F_ill column: %`fill-column
 _c_lose node   _p_revious fold   toggle _a_ll        e_x_it
 "
-          ("o" origami-open-node)
-          ("c" origami-close-node)
-          ("n" origami-next-fold)
-          ("p" origami-previous-fold)
-          ("f" origami-forward-toggle-node)
-          ("a" origami-toggle-all-nodes)
-          ("F" fill-column)
-          ("x" nil :color blue)))))
-  )
+        ("o" origami-open-node)
+        ("c" origami-close-node)
+        ("n" origami-next-fold)
+        ("p" origami-previous-fold)
+        ("f" origami-forward-toggle-node)
+        ("a" origami-toggle-all-nodes)
+        ("F" fill-column)
+        ("x" nil :color blue)))))
 
 (use-package gamegrid
   :defer t
@@ -394,6 +391,12 @@ _c_lose node   _p_revious fold   toggle _a_ll        e_x_it
   (setq-default indent-tabs-mode nil)
   (smart-tabs-insinuate 'c 'cperl 'c++)
   (setq-default tab-width 2))
+
+;; k8s interface
+;; https://github.com/chrisbarrett/kubernetes-el
+(use-package kubernetes
+  :ensure t
+  :commands (kubernetes-overview))
 
 (provide 'misc)
 
