@@ -165,10 +165,10 @@
 
 ;; indium: javascript ide
 ;; https://github.com/NicolasPetton/indium
-(use-package indium
-  :ensure t
-  :hook
-  ((js-mode . indium-interaction-mode)))
+;; (use-package indium
+;;   :ensure t
+;;   :hook
+;;   ((js-mode . indium-interaction-mode)))
 
 (provide 'javascript-cfg)
 
