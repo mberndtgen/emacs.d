@@ -608,6 +608,13 @@ $ emacsclient -c
 
 (bind-key "M-k" 'fixup-whitespace)
 
+;; auto-revert buffer
+;; Source: http://www.emacswiki.org/emacs-en/download/misc-cmds.el
+(defun revert-buffer-no-confirm ()
+  "Revert buffer without confirmation."
+  (interactive)
+  (revert-buffer :ignore-auto :noconfirm))
+
 ;; scroll screen without moving the cursor
 (defun bnb/scroll-up-1 ()
   "Scroll up by one line."
@@ -1016,11 +1023,11 @@ $ emacsclient -c
   ("M-Z" . avy-zap-up-to-char-dwim))
 
 ;; The edit server talks to Chrome and uses emacs to edit any text areas.
-;; (use-package edit-server
-;;   :ensure t
-;;   :defer 10
-;;   :init
-;;   (edit-server-start))
+(use-package edit-server
+  :ensure t
+  :defer 10
+  :init
+  (edit-server-start))
 
 ;; regexp builder
 (setq reb-re-syntax 'string)
