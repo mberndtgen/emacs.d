@@ -64,12 +64,11 @@ inserted between the braces between the braces."
 (use-package go-mode
   :commands go-mode
   :ensure t
-  :bind
-  (:map go-mode-map
-        ("C-c e g" . godoc)
-        ("C-c P" . my-godoc-package)
-        ("C-c C-c" . compile)
-        ("M-." . godef-jump))
+  :bind (:map go-mode-map
+              ("C-c e g" . godoc)
+              ("C-c P" . my-godoc-package)
+              ("C-c C-c" . compile)
+              ("M-." . godef-jump))
   :mode ("\\.go$\\'" . go-mode)
   :hook (go-mode . lsp)
   :init

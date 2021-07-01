@@ -23,9 +23,9 @@
 (add-to-list 'package-pinned-packages '(cljr-helm . "melpa-stable") t)
 (add-to-list 'package-pinned-packages '(ac-cider . "melpa-stable") t)
 (setq package-archive-priorities '(("gnu" . 4)
-                                   ("org" . 3)
-                                   ("melpa" . 2)
-                                   ("melpa-stable" . 1)))
+           ("org" . 3)
+           ("melpa" . 2)
+           ("melpa-stable" . 1)))
 
 (defvar init.el-errors '()
   "A list of errors that occured during initialization. Each error is of the form (LINE ERROR &rest ARGS).")
@@ -71,12 +71,6 @@
   :delight " ፨"
   :commands (paradox-list-packages))
 
-;; (use-package use-package-ensure-system-package
-;;   :ensure t)
-
-;; (require 'use-package)
-;; (require 'diminish)
-
 ;; binding keys
 (use-package bind-key
   :bind ("C-h B" . describe-personal-keybindings))
@@ -87,6 +81,8 @@
   :config
   (exec-path-from-shell-initialize)
   (exec-path-from-shell-copy-env "PATH"))
+
+(when (memq window-system '(mac ns x)) (exec-path-from-shell-initialize))
 
 ;; backup settings
 (setq backup-by-copying t
@@ -164,8 +160,8 @@
 ;;   (set-frame-parameter frame 'fullscreen 'fullheight))
 
 (use-package ring
-  :bind ("H-f" . bnb/font-next)
-  ("H-F" . bnb/font-prev)
+  :bind (("H-f" . bnb/font-next)
+         ("H-F" . bnb/font-prev))
   :config
   (setq bnb/fontlist '("Fira Code-13" "Source Code Pro-13")
         bnb/font-ring
@@ -188,123 +184,123 @@
 
 (defconst fira-code-font-lock-keywords-alist
   (mapcar (lambda (regex-char-pair)
-            `(,(car regex-char-pair)
-              (0 (prog1 ()
-                   (compose-region (match-beginning 1)
-                                   (match-end 1)
-                                   ;; The first argument to concat is a string containing a literal tab
-                                   ,(concat " " (list (decode-char 'ucs (cadr regex-char-pair)))))))))
-          '(("\\(www\\)"                   #Xe100)
-            ("[^/]\\(\\*\\*\\)[^/]"        #Xe101)
-            ("\\(\\*\\*\\*\\)"             #Xe102)
-            ("\\(\\*\\*/\\)"               #Xe103)
-            ("\\(\\*>\\)"                  #Xe104)
-            ("[^*]\\(\\*/\\)"              #Xe105)
-            ("\\(\\\\\\\\\\)"              #Xe106)
-            ("\\(\\\\\\\\\\\\\\)"          #Xe107)
-            ("\\({-\\)"                    #Xe108)
-            ("\\(\\[\\]\\)"                #Xe109)
-            ("\\(::\\)"                    #Xe10a)
-            ("\\(:::\\)"                   #Xe10b)
-            ("[^=]\\(:=\\)"                #Xe10c)
-            ("\\(!!\\)"                    #Xe10d)
-            ("\\(!=\\)"                    #Xe10e)
-            ("\\(!==\\)"                   #Xe10f)
-            ("\\(-}\\)"                    #Xe110)
-            ("\\(--\\)"                    #Xe111)
-            ("\\(---\\)"                   #Xe112)
-            ("\\(-->\\)"                   #Xe113)
-            ("[^-]\\(->\\)"                #Xe114)
-            ("\\(->>\\)"                   #Xe115)
-            ("\\(-<\\)"                    #Xe116)
-            ("\\(-<<\\)"                   #Xe117)
-            ("\\(-~\\)"                    #Xe118)
-            ("\\(#{\\)"                    #Xe119)
-            ("\\(#\\[\\)"                  #Xe11a)
-            ("\\(##\\)"                    #Xe11b)
-            ("\\(###\\)"                   #Xe11c)
-            ("\\(####\\)"                  #Xe11d)
-            ("\\(#(\\)"                    #Xe11e)
-            ("\\(#\\?\\)"                  #Xe11f)
-            ("\\(#_\\)"                    #Xe120)
-            ("\\(#_(\\)"                   #Xe121)
-            ("\\(\\.-\\)"                  #Xe122)
-            ("\\(\\.=\\)"                  #Xe123)
-            ("\\(\\.\\.\\)"                #Xe124)
-            ("\\(\\.\\.<\\)"               #Xe125)
-            ("\\(\\.\\.\\.\\)"             #Xe126)
-            ("\\(\\?=\\)"                  #Xe127)
-            ("\\(\\?\\?\\)"                #Xe128)
-            ("\\(;;\\)"                    #Xe129)
-            ("\\(/\\*\\)"                  #Xe12a)
-            ("\\(/\\*\\*\\)"               #Xe12b)
-            ("\\(/=\\)"                    #Xe12c)
-            ("\\(/==\\)"                   #Xe12d)
-            ("\\(/>\\)"                    #Xe12e)
-            ("\\(//\\)"                    #Xe12f)
-            ("\\(///\\)"                   #Xe130)
-            ("\\(&&\\)"                    #Xe131)
-            ("\\(||\\)"                    #Xe132)
-            ("\\(||=\\)"                   #Xe133)
-            ("[^|]\\(|=\\)"                #Xe134)
-            ("\\(|>\\)"                    #Xe135)
-            ("\\(\\^=\\)"                  #Xe136)
-            ("\\(\\$>\\)"                  #Xe137)
-            ("\\(\\+\\+\\)"                #Xe138)
-            ("\\(\\+\\+\\+\\)"             #Xe139)
-            ("\\(\\+>\\)"                  #Xe13a)
-            ("\\(=:=\\)"                   #Xe13b)
-            ("[^!/]\\(==\\)[^>]"           #Xe13c)
-            ("\\(===\\)"                   #Xe13d)
-            ("\\(==>\\)"                   #Xe13e)
-            ("[^=]\\(=>\\)"                #Xe13f)
-            ("\\(=>>\\)"                   #Xe140)
-            ("\\(<=\\)"                    #Xe141)
-            ("\\(=<<\\)"                   #Xe142)
-            ("\\(=/=\\)"                   #Xe143)
-            ("\\(>-\\)"                    #Xe144)
-            ("\\(>=\\)"                    #Xe145)
-            ("\\(>=>\\)"                   #Xe146)
-            ("[^-=]\\(>>\\)"               #Xe147)
-            ("\\(>>-\\)"                   #Xe148)
-            ("\\(>>=\\)"                   #Xe149)
-            ("\\(>>>\\)"                   #Xe14a)
-            ("\\(<\\*\\)"                  #Xe14b)
-            ("\\(<\\*>\\)"                 #Xe14c)
-            ("\\(<|\\)"                    #Xe14d)
-            ("\\(<|>\\)"                   #Xe14e)
-            ("\\(<\\$\\)"                  #Xe14f)
-            ("\\(<\\$>\\)"                 #Xe150)
-            ("\\(<!--\\)"                  #Xe151)
-            ("\\(<-\\)"                    #Xe152)
-            ("\\(<--\\)"                   #Xe153)
-            ("\\(<->\\)"                   #Xe154)
-            ("\\(<\\+\\)"                  #Xe155)
-            ("\\(<\\+>\\)"                 #Xe156)
-            ("\\(<=\\)"                    #Xe157)
-            ("\\(<==\\)"                   #Xe158)
-            ("\\(<=>\\)"                   #Xe159)
-            ("\\(<=<\\)"                   #Xe15a)
-            ("\\(<>\\)"                    #Xe15b)
-            ("[^-=]\\(<<\\)"               #Xe15c)
-            ("\\(<<-\\)"                   #Xe15d)
-            ("\\(<<=\\)"                   #Xe15e)
-            ("\\(<<<\\)"                   #Xe15f)
-            ("\\(<~\\)"                    #Xe160)
-            ("\\(<~~\\)"                   #Xe161)
-            ("\\(</\\)"                    #Xe162)
-            ("\\(</>\\)"                   #Xe163)
-            ("\\(~@\\)"                    #Xe164)
-            ("\\(~-\\)"                    #Xe165)
-            ("\\(~=\\)"                    #Xe166)
-            ("\\(~>\\)"                    #Xe167)
-            ("[^<]\\(~~\\)"                #Xe168)
-            ("\\(~~>\\)"                   #Xe169)
-            ("\\(%%\\)"                    #Xe16a)
-            ;; ("\\(x\\)"                   #Xe16b) This ended up being hard to do properly so i'm leaving it out.
-            ("[^:=]\\(:\\)[^:=]"           #Xe16c)
-            ("[^\\+<>]\\(\\+\\)[^\\+<>]"   #Xe16d)
-            ("[^\\*/<>]\\(\\*\\)[^\\*/<>]" #Xe16f))))
+      `(,(car regex-char-pair)
+        (0 (prog1 ()
+       (compose-region (match-beginning 1)
+           (match-end 1)
+           ;; The first argument to concat is a string containing a literal tab
+           ,(concat " " (list (decode-char 'ucs (cadr regex-char-pair)))))))))
+    '(("\\(www\\)"                   #Xe100)
+      ("[^/]\\(\\*\\*\\)[^/]"        #Xe101)
+      ("\\(\\*\\*\\*\\)"             #Xe102)
+      ("\\(\\*\\*/\\)"               #Xe103)
+      ("\\(\\*>\\)"                  #Xe104)
+      ("[^*]\\(\\*/\\)"              #Xe105)
+      ("\\(\\\\\\\\\\)"              #Xe106)
+      ("\\(\\\\\\\\\\\\\\)"          #Xe107)
+      ("\\({-\\)"                    #Xe108)
+      ("\\(\\[\\]\\)"                #Xe109)
+      ("\\(::\\)"                    #Xe10a)
+      ("\\(:::\\)"                   #Xe10b)
+      ("[^=]\\(:=\\)"                #Xe10c)
+      ("\\(!!\\)"                    #Xe10d)
+      ("\\(!=\\)"                    #Xe10e)
+      ("\\(!==\\)"                   #Xe10f)
+      ("\\(-}\\)"                    #Xe110)
+      ("\\(--\\)"                    #Xe111)
+      ("\\(---\\)"                   #Xe112)
+      ("\\(-->\\)"                   #Xe113)
+      ("[^-]\\(->\\)"                #Xe114)
+      ("\\(->>\\)"                   #Xe115)
+      ("\\(-<\\)"                    #Xe116)
+      ("\\(-<<\\)"                   #Xe117)
+      ("\\(-~\\)"                    #Xe118)
+      ("\\(#{\\)"                    #Xe119)
+      ("\\(#\\[\\)"                  #Xe11a)
+      ("\\(##\\)"                    #Xe11b)
+      ("\\(###\\)"                   #Xe11c)
+      ("\\(####\\)"                  #Xe11d)
+      ("\\(#(\\)"                    #Xe11e)
+      ("\\(#\\?\\)"                  #Xe11f)
+      ("\\(#_\\)"                    #Xe120)
+      ("\\(#_(\\)"                   #Xe121)
+      ("\\(\\.-\\)"                  #Xe122)
+      ("\\(\\.=\\)"                  #Xe123)
+      ("\\(\\.\\.\\)"                #Xe124)
+      ("\\(\\.\\.<\\)"               #Xe125)
+      ("\\(\\.\\.\\.\\)"             #Xe126)
+      ("\\(\\?=\\)"                  #Xe127)
+      ("\\(\\?\\?\\)"                #Xe128)
+      ("\\(;;\\)"                    #Xe129)
+      ("\\(/\\*\\)"                  #Xe12a)
+      ("\\(/\\*\\*\\)"               #Xe12b)
+      ("\\(/=\\)"                    #Xe12c)
+      ("\\(/==\\)"                   #Xe12d)
+      ("\\(/>\\)"                    #Xe12e)
+      ("\\(//\\)"                    #Xe12f)
+      ("\\(///\\)"                   #Xe130)
+      ("\\(&&\\)"                    #Xe131)
+      ("\\(||\\)"                    #Xe132)
+      ("\\(||=\\)"                   #Xe133)
+      ("[^|]\\(|=\\)"                #Xe134)
+      ("\\(|>\\)"                    #Xe135)
+      ("\\(\\^=\\)"                  #Xe136)
+      ("\\(\\$>\\)"                  #Xe137)
+      ("\\(\\+\\+\\)"                #Xe138)
+      ("\\(\\+\\+\\+\\)"             #Xe139)
+      ("\\(\\+>\\)"                  #Xe13a)
+      ("\\(=:=\\)"                   #Xe13b)
+      ("[^!/]\\(==\\)[^>]"           #Xe13c)
+      ("\\(===\\)"                   #Xe13d)
+      ("\\(==>\\)"                   #Xe13e)
+      ("[^=]\\(=>\\)"                #Xe13f)
+      ("\\(=>>\\)"                   #Xe140)
+      ("\\(<=\\)"                    #Xe141)
+      ("\\(=<<\\)"                   #Xe142)
+      ("\\(=/=\\)"                   #Xe143)
+      ("\\(>-\\)"                    #Xe144)
+      ("\\(>=\\)"                    #Xe145)
+      ("\\(>=>\\)"                   #Xe146)
+      ("[^-=]\\(>>\\)"               #Xe147)
+      ("\\(>>-\\)"                   #Xe148)
+      ("\\(>>=\\)"                   #Xe149)
+      ("\\(>>>\\)"                   #Xe14a)
+      ("\\(<\\*\\)"                  #Xe14b)
+      ("\\(<\\*>\\)"                 #Xe14c)
+      ("\\(<|\\)"                    #Xe14d)
+      ("\\(<|>\\)"                   #Xe14e)
+      ("\\(<\\$\\)"                  #Xe14f)
+      ("\\(<\\$>\\)"                 #Xe150)
+      ("\\(<!--\\)"                  #Xe151)
+      ("\\(<-\\)"                    #Xe152)
+      ("\\(<--\\)"                   #Xe153)
+      ("\\(<->\\)"                   #Xe154)
+      ("\\(<\\+\\)"                  #Xe155)
+      ("\\(<\\+>\\)"                 #Xe156)
+      ("\\(<=\\)"                    #Xe157)
+      ("\\(<==\\)"                   #Xe158)
+      ("\\(<=>\\)"                   #Xe159)
+      ("\\(<=<\\)"                   #Xe15a)
+      ("\\(<>\\)"                    #Xe15b)
+      ("[^-=]\\(<<\\)"               #Xe15c)
+      ("\\(<<-\\)"                   #Xe15d)
+      ("\\(<<=\\)"                   #Xe15e)
+      ("\\(<<<\\)"                   #Xe15f)
+      ("\\(<~\\)"                    #Xe160)
+      ("\\(<~~\\)"                   #Xe161)
+      ("\\(</\\)"                    #Xe162)
+      ("\\(</>\\)"                   #Xe163)
+      ("\\(~@\\)"                    #Xe164)
+      ("\\(~-\\)"                    #Xe165)
+      ("\\(~=\\)"                    #Xe166)
+      ("\\(~>\\)"                    #Xe167)
+      ("[^<]\\(~~\\)"                #Xe168)
+      ("\\(~~>\\)"                   #Xe169)
+      ("\\(%%\\)"                    #Xe16a)
+      ;; ("\\(x\\)"                   #Xe16b) This ended up being hard to do properly so i'm leaving it out.
+      ("[^:=]\\(:\\)[^:=]"           #Xe16c)
+      ("[^\\+<>]\\(\\+\\)[^\\+<>]"   #Xe16d)
+      ("[^\\*/<>]\\(\\*\\)[^\\*/<>]" #Xe16f))))
 
 (defun add-fira-code-symbol-keywords ()
   (font-lock-add-keywords nil fira-code-font-lock-keywords-alist))
@@ -319,8 +315,8 @@
 (defun bnb/change-frame-font-size (fn)
   "Change the frame font size according to function FN."
   (let* ((font-name (frame-parameter nil 'font))
-         (decomposed-font-name (x-decompose-font-name font-name))
-         (font-size (string-to-number (aref decomposed-font-name 5))))
+   (decomposed-font-name (x-decompose-font-name font-name))
+   (font-size (string-to-number (aref decomposed-font-name 5))))
     (aset decomposed-font-name 5 (int-to-string (funcall fn font-size)))
     (set-frame-font (x-compose-font-name decomposed-font-name))))
 
@@ -343,7 +339,7 @@
 
 ;; If I ever use a font with a missing glyph, this will let Emacs check the Symbola font for the missing data.
 (set-fontset-font "fontset-default" nil
-                  (font-spec :size 20 :name "Symbola"))
+      (font-spec :size 20 :name "Symbola"))
 
 ;; Make the cursor the full width of the character at point.
 (setq x-stretch-cursor t)
@@ -351,8 +347,8 @@
 ;; Allow for profiling of font-locking.
 (use-package font-lock-profiler
   :commands (font-lock-profiler-start
-             font-lock-profiler-buffer
-             font-lock-profiler-region))
+       font-lock-profiler-buffer
+       font-lock-profiler-region))
 
 
 ;;; convenience settings
@@ -400,7 +396,7 @@
 (global-set-key (kbd "C-c I") 'find-user-init-file)
 
 (advice-add 'display-startup-echo-area-message
-            :override #'ignore)
+      :override #'ignore)
 
 ;; starting and terminating
 ;; confirm termination unless running in daemon mode
@@ -417,8 +413,8 @@
 
 ;; run emacs as server
 (when (and (or (eq system-type 'windows-nt) (eq system-type 'darwin))
-           (not (and (boundp 'server-clients) server-clients))
-           (not (daemonp)))
+     (not (and (boundp 'server-clients) server-clients))
+     (not (daemonp)))
   (server-start))
 
 (defun signal-restart-server ()
@@ -458,28 +454,28 @@ $ emacsclient -c
    'python-mode-hook
    (lambda ()
      (mapc (lambda (pair) (push pair prettify-symbols-alist))
-           '(;; Syntax
-             ("def" .      ?ℱ)
-             ("not" .      ?❗)
-             ("in" .       ?∈)
-             ("not in" .   ?∉)
-             ("return" .   ?⟼)
-             ("yield" .    ?⟻)
-             ("for" .      ?∀)
-             ;; Base Types
-             ("int" .      ?ℤ)
-             ("float" .    ?ℝ)
-             ("str" .      ?𝕊)
-             ("True" .     ?𝕋)
-             ("False" .    ?𝔽)
-             ;; Mypy
-             ("Dict" .     ?𝔇)
-             ("List" .     ?ℒ)
-             ("Tuple" .    ?⨂)
-             ("Set" .      ?Ω)
-             ("Iterable" . ?𝔊)
-             ("Any" .      ?❔)
-             ("Union" .    ?∪))))))
+     '(;; Syntax
+       ("def" .      ?ℱ)
+       ("not" .      ?❗)
+       ("in" .       ?∈)
+       ("not in" .   ?∉)
+       ("return" .   ?⟼)
+       ("yield" .    ?⟻)
+       ("for" .      ?∀)
+       ;; Base Types
+       ("int" .      ?ℤ)
+       ("float" .    ?ℝ)
+       ("str" .      ?𝕊)
+       ("True" .     ?𝕋)
+       ("False" .    ?𝔽)
+       ;; Mypy
+       ("Dict" .     ?𝔇)
+       ("List" .     ?ℒ)
+       ("Tuple" .    ?⨂)
+       ("Set" .      ?Ω)
+       ("Iterable" . ?𝔊)
+       ("Any" .      ?❔)
+       ("Union" .    ?∪))))))
 
 ;; color treatment
 
@@ -600,7 +596,7 @@ $ emacsclient -c
 
 ;; checks (on saving) whether the file you edit contains a shebang, and if yes, makes it executable.
 (add-hook 'after-save-hook
-          'executable-make-buffer-file-executable-if-script-p)
+    'executable-make-buffer-file-executable-if-script-p)
 
 ;; For view-only buffers rendering content, it is useful to have them auto-revert in case of changes.
 (add-hook 'doc-view-mode-hook 'auto-revert-mode)
@@ -661,10 +657,10 @@ $ emacsclient -c
     (setq aft (downcase (or (thing-at-point 'word) "")))
     (unless (string= aft bef)
       (message "\"%s\" now expands to \"%s\" %sally"
-               bef aft (if p "loc" "glob"))
+         bef aft (if p "loc" "glob"))
       (define-abbrev
-        (if p global-abbrev-table local-abbrev-table)
-        bef aft))))
+  (if p global-abbrev-table local-abbrev-table)
+  bef aft))))
 
 (use-package abbrev
   :delight " ⚆"
@@ -677,8 +673,8 @@ $ emacsclient -c
 
 ;; shortcut for editing init.el
 (bind-key "<f4>" (lambda ()
-                   (interactive)
-                   (find-file "~/.emacs.d/init.el")))
+       (interactive)
+       (find-file "~/.emacs.d/init.el")))
 
 ;; find-file-in-project
 ;; https://github.com/technomancy/find-file-in-project
@@ -699,10 +695,9 @@ $ emacsclient -c
 ;; writegood
 (use-package writegood-mode
   :ensure t
-  :bind
-  ("C-c g"     . writegood-mode)
-  ("C-c C-g g" . writegood-grade-level)
-  ("C-c C-g e" . writegood-reading-ease))
+  :bind (("C-c g" . writegood-mode)
+         ("C-c C-g g" . writegood-grade-level)
+         ("C-c C-g e" . writegood-reading-ease)))
 
 ;; spell checking
 (cond
@@ -721,10 +716,10 @@ $ emacsclient -c
     :command ("proselint" source-inplace)
     :error-patterns
     ((warning line-start (file-name) ":" line ":" column ": "
-              (id (one-or-more (not (any " "))))
-              (message (one-or-more not-newline)
-                       (zero-or-more "\n" (any " ") (one-or-more not-newline)))
-              line-end))
+        (id (one-or-more (not (any " "))))
+        (message (one-or-more not-newline)
+           (zero-or-more "\n" (any " ") (one-or-more not-newline)))
+        line-end))
     :modes (text-mode markdown-mode gfm-mode org-mode))
   (add-to-list 'flycheck-checkers 'proselint))
 
@@ -738,13 +733,13 @@ $ emacsclient -c
   :delight " 👁"
   :init (setq view-read-only t)
   :bind (:map view-mode-map
-              ("n" . next-line    )
-              ("p" . previous-line)
-              ("j" . next-line    )
-              ("k" . previous-line)
-              ("l" . forward-char)
-              ("h" . bnb/view/h)
-              ("q" . bnb/view/q))
+        ("n" . next-line    )
+        ("p" . previous-line)
+        ("j" . next-line    )
+        ("k" . previous-line)
+        ("l" . forward-char)
+        ("h" . bnb/view/h)
+        ("q" . bnb/view/q))
   :config
   (defun bnb/view/h ()
     "Setup a function to go backwards a character"
@@ -837,15 +832,7 @@ $ emacsclient -c
   ;; (dolist (m '(clojure-mode
   (setenv "PATH" (concat
                   "/usr/local/bin" path-separator
-                  (getenv "PATH")))
-  ;; add paths to your local installation of project mgmt tools, like lein
-  ;;              clojurec-mode
-  ;;              clojurescript-mode
-  ;;              clojurex-mode))
-  ;;   (add-to-list 'lsp-language-id-configuration `(,m . "clojure")))
-  ;; (setq lsp-enable-indentation nil
-  ;;       lsp-clojure-server-command '("bash" "-c" "clojure-lsp"))
-  )
+                  (getenv "PATH"))))
 
 ;; Set up before-save hooks to format buffer and add/delete imports.
 ;; Make sure you don't have other gofmt/goimports hooks enabled.
@@ -885,8 +872,7 @@ $ emacsclient -c
 
 ;; if you are helm user
 (use-package helm-lsp
-  :commands helm-lsp-workspace-symbol
-  )
+  :commands helm-lsp-workspace-symbol)
 ;; if you are ivy user
 ;; (use-package lsp-ivy :commands lsp-ivy-workspace-symbol)
 (use-package lsp-treemacs
@@ -903,9 +889,9 @@ $ emacsclient -c
 (use-package eglot
   :ensure t
   :bind
-  (("H-p ." . eglot-help-at-point))
+  ("H-p ." . eglot-help-at-point)
   :hook
-  ((go-mode . eglot-ensure)))
+  (go-mode . eglot-ensure))
 
 ;; ace-flyspell (https://github.com/cute-jumper/ace-flyspell)
 (use-package ace-flyspell
@@ -926,7 +912,7 @@ $ emacsclient -c
 (use-package ace-isearch
   :ensure t
   :bind (:map isearch-mode-map
-              ("C-'" . ace-isearch-jump-during-isearch))
+        ("C-'" . ace-isearch-jump-during-isearch))
   :delight ace-isearch-mode
   :config
   (global-ace-isearch-mode t)
@@ -942,9 +928,8 @@ $ emacsclient -c
 ;; provide numbers for quick window access
 (use-package ace-window
   :ensure t
-  :bind
-  ("H-a"    . ace-window)
-  ("<f9> a" . ace-window)
+  :bind (("H-a"    . ace-window)
+         ("<f9> a" . ace-window))
   :config
   (setq aw-keys '(?j ?k ?l ?\; ?n ?m)
         aw-leading-char-style 'path
@@ -996,25 +981,25 @@ $ emacsclient -c
   ("M-s" . hydra-go/body)
   :init
   (add-hook 'dap-stopped-hook
-            (lambda (arg) (call-interactively #'hydra-go/body)))
+      (lambda (arg) (call-interactively #'hydra-go/body)))
   :hydra (hydra-go (:color pink :hint nil :foreign-keys run)
-                   "
+       "
    _n_: Next       _c_: Continue _g_: goroutines      _i_: break log
    _s_: Step in    _o_: Step out _k_: break condition _h_: break hit condition
    _Q_: Disconnect _q_: quit     _l_: locals
    "
-                   ("n" dap-next)
-                   ("c" dap-continue)
-                   ("s" dap-step-in)
-                   ("o" dap-step-out)
-                   ("g" dap-ui-sessions)
-                   ("l" dap-ui-locals)
-                   ("e" dap-eval-thing-at-point)
-                   ("h" dap-breakpoint-hit-condition)
-                   ("k" dap-breakpoint-condition)
-                   ("i" dap-breakpoint-log-message)
-                   ("q" nil "quit" :color blue)
-                   ("Q" dap-disconnect :color red)))
+       ("n" dap-next)
+       ("c" dap-continue)
+       ("s" dap-step-in)
+       ("o" dap-step-out)
+       ("g" dap-ui-sessions)
+       ("l" dap-ui-locals)
+       ("e" dap-eval-thing-at-point)
+       ("h" dap-breakpoint-hit-condition)
+       ("k" dap-breakpoint-condition)
+       ("i" dap-breakpoint-log-message)
+       ("q" nil "quit" :color blue)
+       ("Q" dap-disconnect :color red)))
 
 ;; zap to char using avy
 (use-package avy-zap
@@ -1053,8 +1038,8 @@ $ emacsclient -c
                        (require 'dap-node)
                        (dap-node-setup))))
   :init
-  (setq dap-auto-configure-features '(sessions locals controls tooltip))
-  (setq dap-print-io t)
+  (setq dap-auto-configure-features '(sessions locals controls tooltip)
+        dap-print-io t)
   (require 'dap-hydra)
   (require 'dap-chrome)
   (dap-chrome-setup)
@@ -1074,18 +1059,17 @@ $ emacsclient -c
 (use-package company
   :ensure t
   :init
-  (progn
-    (add-hook 'after-init-hook #'global-company-mode)
-    (add-hook 'cider-repl-mode-hook #'company-mode)
-    (add-hook 'cider-more-hook #'company-mode)
-    (setq company-dabbrev-ignore-case nil
-          company-dabbrev-code-ignore-case nil
-          company-dabbrev-downcase nil
-          company-idle-delay 0
-          company-minimum-prefix-length 2
-          company-begin-commands '(self-insert-command)
-          company-transformers '(company-sort-by-occurrence)
-          company-tooltip-align-annotations t)))
+  (add-hook 'after-init-hook #'global-company-mode)
+  (add-hook 'cider-repl-mode-hook #'company-mode)
+  (add-hook 'cider-more-hook #'company-mode)
+  (setq company-dabbrev-ignore-case nil
+        company-dabbrev-code-ignore-case nil
+        company-dabbrev-downcase nil
+        company-idle-delay 0
+        company-minimum-prefix-length 2
+        company-begin-commands '(self-insert-command)
+        company-transformers '(company-sort-by-occurrence)
+        company-tooltip-align-annotations t))
 
 (use-package company-quickhelp
   :ensure t
@@ -1169,10 +1153,9 @@ $ emacsclient -c
 
 (use-package projectile
   :ensure t
-  :bind
-  ("C-c p" . projectile-command-map)
-  ("C-x w" . hydra-projectile-other-window/body)
-  ("C-c C-p" . hydra-projectile/body)
+  :bind (("C-c p" . projectile-command-map)
+         ("C-x w" . hydra-projectile-other-window/body)
+         ("C-c C-p" . hydra-projectile/body))
   :config
   (use-package counsel-projectile
     :after (projectile)
@@ -1273,19 +1256,19 @@ $ emacsclient -c
 
      ;; Is not magit buffer.
      (and (string-prefix-p "magit" name)
-          (not (file-name-extension name)))
+    (not (file-name-extension name)))
      )))
 
 (use-package centaur-tabs
   :ensure t
   :demand
-  :hook
-  (dired-mode . centaur-tabs-local-mode)
-  ;;(dashboard-mode . centaur-tabs-local-mode)
-  (term-mode . centaur-tabs-local-mode)
-  ;;(calendar-mode . centaur-tabs-local-mode)
-  ;;(org-agenda-mode . centaur-tabs-local-mode)
-  ;;(helpful-mode . centaur-tabs-local-mode)
+  :hook ((dired-mode . centaur-tabs-local-mode)
+         ;;(dashboard-mode . centaur-tabs-local-mode)
+         (term-mode . centaur-tabs-local-mode)
+         ;;(calendar-mode . centaur-tabs-local-mode)
+         (org-agenda-mode . centaur-tabs-local-mode)
+         ;;(helpful-mode . centaur-tabs-local-mode)
+         )
   :config
   (centaur-tabs-hide-tab "TAGS*")
   (setq centaur-tabs-style "box"
@@ -1299,41 +1282,38 @@ $ emacsclient -c
   (centaur-tabs-headline-match)
   (centaur-tabs-change-fonts "fira code" 120)
   (centaur-tabs-mode t)
-  :bind
-  ;;("C-<prior>" . centaur-tabs-backward)
-  ;;("C-<next>" . centaur-tabs-forward)
-  ;;("C-c t s" . centaur-tabs-counsel-switch-group)
-  ;; ("C-c t p" . centaur-tabs-group-by-projectile-project)
-  ;; ("C-c t g" . centaur-tabs-group-buffer-groups)
-  )
+  :bind (("C-<prior>" . centaur-tabs-backward)
+         ("C-<next>" . centaur-tabs-forward)
+         ;;("C-c t s" . centaur-tabs-counsel-switch-group)
+         ;;("C-c t p" . centaur-tabs-group-by-projectile-project)
+         ;;("C-c t g" . centaur-tabs-group-buffer-groups)
+         ))
 
 (use-package helm
   :ensure t
   :diminish helm-mode
   :init
-  (progn
-    (require 'helm-config)
-    ;; Froma https://gist.github.com/antifuchs/9238468
-    ;;(define-key helm-map (kbd "<left>") 'helm-previous-source)
-    ;;(define-key helm-map (kbd "<right>") 'helm-next-source)
-    ;;helm-ff-lynx-style-map t
-    ;;helm-imenu-lynx-style-map t
-
-    (setq helm-idle-delay 0.0 ; update fast sources immediately (doesn't)
-          helm-candidate-number-limit 100
-          helm-input-idle-delay 0.01    ; this actually updates things reeeelatively quickly.
-          helm-yas-display-key-on-candidate t
-          helm-quick-update t
-          helm-M-x-requires-pattern nil
-          helm-autoresize-mode t
-          helm-M-x-fuzzy-match t
-          helm-ff-skip-boring-files t)
-    (ido-mode -1) ;; Turn off ido mode in case I enabled it accidentally
-    (helm-mode 1)
-    (when (executable-find "ack-grep")
-      (setq helm-grep-default-command "ack-grep -Hn --no-group --no-color %e %p %f"
-            helm-grep-default-recurse-command "ack-grep -H --no-group --no-color %e %p %f"))
-    (add-to-list 'helm-sources-using-default-as-input 'helm-source-man-pages))
+  (require 'helm-config)
+  ;; Froma https://gist.github.com/antifuchs/9238468
+  ;;(define-key helm-map (kbd "<left>") 'helm-previous-source)
+  ;;(define-key helm-map (kbd "<right>") 'helm-next-source)
+  ;;helm-ff-lynx-style-map t
+  ;;helm-imenu-lynx-style-map t
+  (setq helm-idle-delay 0.0 ; update fast sources immediately (doesn't)
+        helm-candidate-number-limit 100
+        helm-input-idle-delay 0.01    ; this actually updates things reeeelatively quickly.
+        helm-yas-display-key-on-candidate t
+        helm-quick-update t
+        helm-M-x-requires-pattern nil
+        helm-autoresize-mode t
+        helm-M-x-fuzzy-match t
+        helm-ff-skip-boring-files t)
+  (ido-mode -1) ;; Turn off ido mode in case I enabled it accidentally
+  (helm-mode 1)
+  (when (executable-find "ack-grep")
+    (setq helm-grep-default-command "ack-grep -Hn --no-group --no-color %e %p %f"
+          helm-grep-default-recurse-command "ack-grep -H --no-group --no-color %e %p %f"))
+  (add-to-list 'helm-sources-using-default-as-input 'helm-source-man-pages)
   :bind (("C-c h" . helm-mini)
          ("C-h a" . helm-apropos)
          ("C-x C-b" . helm-buffers-list)
@@ -1413,25 +1393,25 @@ $ emacsclient -c
 ;;   :ensure t
 ;;   :after ivy-mode)
 
-(use-package dashboard
-  :ensure t
-  :config
-  (dashboard-setup-startup-hook)
-  :init
-  (setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
-  (setq dashboard-startup-banner 'logo)
-  (setq dashboard-center-content t)
-  (setq dashboard-set-heading-icons t)
-  (setq dashboard-set-file-icons t)
-  (dashboard-modify-heading-icons '((recents . "file-text")
-                                    (bookmarks . "book")))
-  (setq dashboard-set-navigator t)
-  (setq dashboard-set-init-info t)
-  (setq dashboard-items '((recents  . 5)
-                          (bookmarks . 5)
-                          (projects . 5)
-                          (agenda . 5)
-                          (registers . 5))))
+;; (use-package dashboard
+;;   :ensure t
+;;   :config
+;;   (dashboard-setup-startup-hook)
+;;   :init
+;;   (setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
+;;   (setq dashboard-startup-banner 'logo)
+;;   (setq dashboard-center-content t)
+;;   (setq dashboard-set-heading-icons t)
+;;   (setq dashboard-set-file-icons t)
+;;   (setq dashboard-set-navigator t)
+;;   (setq dashboard-set-init-info t)
+;;   (setq dashboard-items '((recents  . 5)
+;;                          (bookmarks . 5)
+;;                          (projects . 5)
+;;                          (agenda . 5)
+;;                          (registers . 5)))
+;;   (dashboard-modify-heading-icons '((recents . "file-text") (bookmarks . "book")))
+;;   )
 
 (use-package zoom
   :ensure t)
@@ -1439,12 +1419,11 @@ $ emacsclient -c
 (use-package swiper
   :ensure t
   :diminish
-  :bind
-  ("C-s" . swiper)
-  ("C-c S" . swiper)
-  ("C-x C-r" . counsel-recentf)
-  ("s-E" . counsel-colors-emacs)
-  ("s-W" . counsel-colors-web)
+  :bind (("C-s" . swiper)
+         ("C-c S" . swiper)
+         ("C-x C-r" . counsel-recentf)
+         ("s-E" . counsel-colors-emacs)
+         ("s-W" . counsel-colors-web))
   ;; :config
   ;; (progn
   ;;   ;; (ivy-mode 1)
@@ -1492,24 +1471,24 @@ $ emacsclient -c
   (flycheck-display-errors-delay .3)
   :config
   (bind-key "H-!"
-            (defhydra hydra-toggle (:color amaranth)
-              "
+      (defhydra hydra-toggle (:color amaranth)
+        "
   _c_ Check buffer      _x_ Explain error
   _n_ Next error        _h_ Show error
   _p_ Previous error
   _l_ Show all errors   _s_ Select syntax checker
   _C_ Clear errors      _?_ Describe syntax checker
   "
-              ("c" flycheck-buffer)
-              ("n" flycheck-next-error)
-              ("p" flycheck-previous-error)
-              ("l" flycheck-list-errors)
-              ("C" flycheck-clear-errors)
-              ("x" flycheck-explain-error-at-point)
-              ("h" flycheck-display-error-at-point)
-              ("s" flycheck-select-checker)
-              ("?" flycheck-describe-checker)
-              ("q" nil))))
+        ("c" flycheck-buffer)
+        ("n" flycheck-next-error)
+        ("p" flycheck-previous-error)
+        ("l" flycheck-list-errors)
+        ("C" flycheck-clear-errors)
+        ("x" flycheck-explain-error-at-point)
+        ("h" flycheck-display-error-at-point)
+        ("s" flycheck-select-checker)
+        ("?" flycheck-describe-checker)
+        ("q" nil))))
 
 (use-package prog-fill
   :ensure t
@@ -1537,9 +1516,9 @@ $ emacsclient -c
 ;; (require 'slime-cfg) ; --deprecated
 (require 'sly-cfg)
 (require 'clojure-cfg)
-(require 'haskell-cfg)
+;;(require 'haskell-cfg)
 ;;(require 'python-cfg)
-(require 'perl5-cfg)
+;;(require 'perl5-cfg)
 ;;(require 'perl6-cfg)
 (require 'golang-cfg)
 (require 'javascript-cfg)
@@ -1560,11 +1539,10 @@ $ emacsclient -c
 ;; multiple cursors - https://github.com/magnars/multiple-cursors.el
 (use-package multiple-cursors
   :ensure t
-  :bind
-  ("H-m"   . hydra-mc/body)
-  ("C-x m" . hydra-mc/body)
-  ("s-<mouse-1>" . mc/add-cursor-on-click)
-  ("C-x M" . compose-mail)
+  :bind (("H-m"   . hydra-mc/body)
+         ("C-x m" . hydra-mc/body)
+         ("s-<mouse-1>" . mc/add-cursor-on-click)
+         ("C-x M" . compose-mail))
   :config
   (defhydra hydra-mc (:hint nil)
     "
@@ -1590,19 +1568,19 @@ $ emacsclient -c
 (defun add-hydra-mc-funcs ()
   "Add my hydra-mc funcs to the proper whitelist"
   (let* ((hydra-mc-funcs
-          (cl-remove-if-not
-           'functionp
-           (apply #'append hydra-mc/heads)))
-         (mc-funcs-to-ignore (cl-intersection
-                              hydra-mc-funcs
-                              mc--default-cmds-to-run-once))
-         (funcs-to-whitelist
-          (cl-mapcar
-           (lambda (x) (intern (concat "hydra-mc/" (symbol-name x))))
-           mc-funcs-to-ignore)))
+    (cl-remove-if-not
+     'functionp
+     (apply #'append hydra-mc/heads)))
+   (mc-funcs-to-ignore (cl-intersection
+            hydra-mc-funcs
+            mc--default-cmds-to-run-once))
+   (funcs-to-whitelist
+    (cl-mapcar
+     (lambda (x) (intern (concat "hydra-mc/" (symbol-name x))))
+     mc-funcs-to-ignore)))
     (let (value)
       (dolist (element funcs-to-whitelist nil)
-        (add-to-list 'mc/cmds-to-run-once element)))))
+  (add-to-list 'mc/cmds-to-run-once element)))))
 
 ;; remember recently opened files.
 (use-package recentf
@@ -1624,13 +1602,13 @@ $ emacsclient -c
   :commands (markdown-mode gfm-mode)
   :config
   (add-hook 'markdown-mode-hook
-            (lambda ()
-              (remove-hook 'fill-nobreak-predicate
-                           'markdown-inside-link-p t)))
+      (lambda ()
+        (remove-hook 'fill-nobreak-predicate
+         'markdown-inside-link-p t)))
   (setf sentence-end-double-space nil
-        markdown-indent-on-enter nil
-        markdown-command
-        "pandoc -f markdown -t html5 -s --self-contained --smart")
+  markdown-indent-on-enter nil
+  markdown-command
+  "pandoc -f markdown -t html5 -s --self-contained --smart")
   :init (setq markdown-command "multimarkdown"))
 
 ;; for html
@@ -1642,9 +1620,9 @@ $ emacsclient -c
   (defun imp-markdown-filter (in)
     (let ((out (current-buffer)))
       (with-current-buffer in
-        (markdown out))))
+  (markdown out))))
   (push (cons 'markdown-mode #'imp-markdown-filter)
-        imp-default-user-filters)
+  imp-default-user-filters)
   (add-to-list 'imp-default-user-filters '(mhtml-mode . nil)))
 
 (use-package dired
@@ -1653,16 +1631,16 @@ $ emacsclient -c
   (progn
     (add-hook 'dired-mode-hook #'toggle-truncate-lines)
     (setf dired-listing-switches "-alhG"
-          dired-guess-shell-alist-user
-          '(("\\.pdf\\'" "evince")
-            ("\\(\\.ods\\|\\.xlsx?\\|\\.docx?\\|\\.csv\\)\\'" "libreoffice")
-            ("\\(\\.png\\|\\.jpe?g\\)\\'" "qiv")
-            ("\\.gif\\'" "animate"))
-          dired-dwim-target t
-          dired-recursive-copies 'top
-          dired-listing-switches "-ahl"
-          dired-auto-revert-buffer t
-          dired-allow-to-change-permissions 'advanced)))
+    dired-guess-shell-alist-user
+    '(("\\.pdf\\'" "evince")
+      ("\\(\\.ods\\|\\.xlsx?\\|\\.docx?\\|\\.csv\\)\\'" "libreoffice")
+      ("\\(\\.png\\|\\.jpe?g\\)\\'" "qiv")
+      ("\\.gif\\'" "animate"))
+    dired-dwim-target t
+    dired-recursive-copies 'top
+    dired-listing-switches "-ahl"
+    dired-auto-revert-buffer t
+    dired-allow-to-change-permissions 'advanced)))
 
 ;; (use-package dired+
 ;;   :ensure t
@@ -1685,23 +1663,23 @@ $ emacsclient -c
     (define-key notmuch-message-mode-map (kbd "C-x C-s") nil)
     (define-key notmuch-message-mode-map (kbd "C-c C-s") nil) ; super annoying
     (setf notmuch-command "notmuch-remote"
-          message-send-mail-function 'smtpmail-send-it
-          message-kill-buffer-on-exit t
-          smtpmail-smtp-server "localhost"
-          smtpmail-smtp-service 2525
-          notmuch-address-command "addrlookup-remote"
-          notmuch-fcc-dirs nil
-          notmuch-search-oldest-first nil
-          notmuch-archive-tags '("-inbox" "-unread" "+archive")
-          hashcash-path (executable-find "hashcash"))
+    message-send-mail-function 'smtpmail-send-it
+    message-kill-buffer-on-exit t
+    smtpmail-smtp-server "localhost"
+    smtpmail-smtp-service 2525
+    notmuch-address-command "addrlookup-remote"
+    notmuch-fcc-dirs nil
+    notmuch-search-oldest-first nil
+    notmuch-archive-tags '("-inbox" "-unread" "+archive")
+    hashcash-path (executable-find "hashcash"))
     (custom-set-faces
      '(notmuch-search-subject ((t :foreground "#afa")))
      '(notmuch-search-date    ((t :foreground "#aaf")))
      '(notmuch-search-count   ((t :foreground "#777"))))
     (setq notmuch-hello-sections
-          '(notmuch-hello-insert-header
-            notmuch-hello-insert-saved-searches
-            notmuch-hello-insert-search))))
+    '(notmuch-hello-insert-header
+      notmuch-hello-insert-saved-searches
+      notmuch-hello-insert-search))))
 
 (use-package elfeed
   :ensure t
@@ -1715,8 +1693,8 @@ $ emacsclient -c
   :config
   (progn
     (setf display-time-default-load-average nil
-          display-time-use-mail-icon t
-          display-time-24hr-format t)
+    display-time-use-mail-icon t
+    display-time-24hr-format t)
     (display-time-mode t)))
 
 (use-package comint
@@ -1729,20 +1707,19 @@ $ emacsclient -c
     (define-key comint-mode-map (kbd "C-p") #'comint-previous-input)
     (define-key comint-mode-map (kbd "C-r") #'comint-history-isearch-backward)
     (setf comint-prompt-read-only t
-          comint-history-isearch t)))
+    comint-history-isearch t)))
 
 (use-package tramp
   :defer t
   :config
   (setf tramp-persistency-file-name
-        (concat temporary-file-directory "tramp-" (user-login-name))))
+  (concat temporary-file-directory "tramp-" (user-login-name))))
 
 (use-package whitespace-cleanup-mode
   :ensure t
   :init
-  (progn
-    (setq-default indent-tabs-mode nil)
-    (global-whitespace-cleanup-mode)))
+  (setq-default indent-tabs-mode nil)
+  (global-whitespace-cleanup-mode))
 
 (use-package diff-mode
   :defer t
@@ -1754,7 +1731,7 @@ $ emacsclient -c
   :config
   ;; Global settings (defaults)
   (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
-        doom-themes-enable-italic t) ; if nil, italics is universally disabled
+  doom-themes-enable-italic t) ; if nil, italics is universally disabled
   (load-theme 'doom-one t)
 
   ;; Enable flashing mode-line on errors
@@ -1819,17 +1796,16 @@ $ emacsclient -c
 ;; highlight text an all shown buffers
 (use-package avy
   :ensure t
-  :bind
-  ("H-SPC" . avy-goto-char-timer)
-  ("H-w"   . avy-goto-word-1)
-  ("H-c"   . avy-goto-char-2)
-  ("H-l"   . avy-goto-line)
-  ("H-d"   . avy-goto-word-0)
-  ("<f9> SPC" . avy-goto-char-timer)
-  ("C-c g" . avy-goto-word-1)
-  ("M-g l" . avy-goto-line)
-  ("M-g c" . avy-goto-char-2)
-  ("M-g w" . avy-goto-word-0))
+  :bind (("H-SPC" . avy-goto-char-timer)
+         ("H-w"   . avy-goto-word-1)
+         ("H-c"   . avy-goto-char-2)
+         ("H-l"   . avy-goto-line)
+         ("H-d"   . avy-goto-word-0)
+         ("<f9> SPC" . avy-goto-char-timer)
+         ("C-c g" . avy-goto-word-1)
+         ("M-g l" . avy-goto-line)
+         ("M-g c" . avy-goto-char-2)
+         ("M-g w" . avy-goto-word-0)))
 
 (use-package simple
   :defer t
@@ -1844,14 +1820,13 @@ $ emacsclient -c
   :defer 10
   :config
   (setf uniquify-buffer-name-style 'post-forward-angle-brackets
-        uniquify-separator ":"))
+  uniquify-separator ":"))
 
 ;; Dim everything except for the thing-at-point.
 (use-package focus
   :ensure t
-  :bind
-  ("C-c f" . focus-mode)
-  ("C-c F" . focus-read-only-mode))
+  :bind (("C-c f" . focus-mode)
+         ("C-c F" . focus-read-only-mode)))
 
 (use-package linum-relative
   :defer 10
@@ -1864,8 +1839,8 @@ $ emacsclient -c
   :defer t
   :ensure t
   :init (add-hook 'pdf-view-mode-hook
-                  (lambda ()
-                    (nlinum-mode 0)))
+      (lambda ()
+        (nlinum-mode 0)))
   :config
   (custom-set-variables '(pdf-tools-handle-upgrades nil))
   (setq-default pdf-view-display-size 'fit-page)
@@ -1875,14 +1850,13 @@ $ emacsclient -c
 
 (use-package helpful
   :ensure t
-  :bind
-  ("C-c C-d" . helpful-at-point)
-  ("C-h f" . helpful-callable)
-  ("C-h F" . helpful-function)
-  ("C-h k" . helpful-key)
-  ("C-h v" . helpful-variable)
-  ("C-h C" . helpful-command)
-  ("C-h z" . helpful-macro))
+  :bind (("C-c C-d" . helpful-at-point)
+         ("C-h f" . helpful-callable)
+         ("C-h F" . helpful-function)
+         ("C-h k" . helpful-key)
+         ("C-h v" . helpful-variable)
+         ("C-h C" . helpful-command)
+         ("C-h z" . helpful-macro)))
 
 (use-package winner
   :config
@@ -1901,7 +1875,7 @@ $ emacsclient -c
   :config (setf calc-display-trail nil))
 
 (use-package eshell
-  :bind ([f1] . eshell-as)
+  :bind ("<f1>" . eshell-as)
   :init
   (setf eshell-directory-name (locate-user-emacs-file "local/eshell"))
   :config
@@ -1958,25 +1932,25 @@ $ emacsclient -c
   (add-hook 'LaTeX-mode-hook 'auto-fill-mode)
   (add-hook 'LaTeX-mode-hook 'orgtbl-mode)
   (setq TeX-auto-untabify t
-        TeX-auto-save t
-        TeX-save-query nil
-        TeX-parse-self t
-        TeX-output-view-style
-        (if (eq system-type 'windows-nt)
-            (quote
-             (("^pdf$" "." "SumatraPDF.exe -reuse-instance %o")
-              ("^html?$" "." "start %o")))
-          (quote
-           (("^pdf$" "." "evince -f %o")
-            ("^html?$" "." "start %o"))))
-        TeX-command-extra-options "-shell-escape"
-        TeX-PDF-mode 1
-        TeX-engine 'xetex)
+  TeX-auto-save t
+  TeX-save-query nil
+  TeX-parse-self t
+  TeX-output-view-style
+  (if (eq system-type 'windows-nt)
+      (quote
+       (("^pdf$" "." "SumatraPDF.exe -reuse-instance %o")
+        ("^html?$" "." "start %o")))
+    (quote
+     (("^pdf$" "." "evince -f %o")
+      ("^html?$" "." "start %o"))))
+  TeX-command-extra-options "-shell-escape"
+  TeX-PDF-mode 1
+  TeX-engine 'xetex)
   (setq-default TeX-master nil)
   (add-to-list 'org-latex-packages-alist
-               '("" "tikz" t))
+         '("" "tikz" t))
   (add-to-list 'org-latex-packages-alist
-               '("" "minted" t))
+         '("" "minted" t))
   (setq org-latex-create-formula-image-program 'imagemagick)
   (eval-after-load "preview"
     '(add-to-list 'preview-default-preamble "\\PreviewEnvironment{tikzpicture}" t))
@@ -1991,9 +1965,9 @@ $ emacsclient -c
   :init (setf magit-last-seen-setup-instructions "2.1.0")
   :config
   (setf vc-display-status nil
-        magit-push-always-verify nil)
+  magit-push-always-verify nil)
   (remove-hook 'git-commit-finish-query-functions
-               'git-commit-check-style-conventions)
+         'git-commit-check-style-conventions)
   (global-set-key (kbd "C-x M-g") 'magit-dispatch-popup))
 
 (use-package forge
@@ -2044,9 +2018,9 @@ $ emacsclient -c
   :ensure t
   :defer t
   :config (add-hook 'gitconfig-mode-hook
-                    (lambda ()
-                      (setf indent-tabs-mode nil
-                            tab-width 4))))
+        (lambda ()
+          (setf indent-tabs-mode nil
+          tab-width 4))))
 
 (use-package octave
   :defer t
@@ -2067,8 +2041,8 @@ $ emacsclient -c
       (setf httpd-root default-directory))
     (defadvice httpd-start (after httpd-query-on-exit-flag activate)
       (let ((httpd-process (get-process "httpd")))
-        (when httpd-process
-          (set-process-query-on-exit-flag httpd-process nil))))))
+  (when httpd-process
+    (set-process-query-on-exit-flag httpd-process nil))))))
 
 (use-package ielm
   :defer t
@@ -2083,33 +2057,31 @@ $ emacsclient -c
   :ensure t
   :defer t
   :delight " 🍐"
+  :hook ((emacs-lisp-mode . paredit-mode)
+         (sly-editing-mode . paredit-mode)
+         (lisp-mode-hook . paredit-mode)
+         (scheme-mode-hook . paredit-mode)
+         (ielm-mode-hook . paredit-mode))
   :init
-  (progn
-    (add-hook 'emacs-lisp-mode-hook #'paredit-mode)
-    (add-hook 'sly-editing-mode #'paredit-mode)
-    ;;(add-hook 'lisp-mode-hook #'paredit-mode)
-    (add-hook 'scheme-mode-hook #'paredit-mode)
-    (add-hook 'ielm-mode-hook #'paredit-mode))
   :config (define-key paredit-mode-map (kbd "C-j") #'join-line))
 
 (use-package paxedit
   :ensure t
   :delight " ꁀ"
   :commands (paxedit-mode)
-  :bind
-  ("M-<right>" . paxedit-transpose-forward)
-  ("M-<left>"  . paxedit-transpose-backward)
-  ("M-<up>"    . paxedit-backward-up)
-  ("M-<down>"  . paxedit-backward-end)
-  ("M-b"       . paxedit-previous-symbol)
-  ("M-f"       . paxedit-next-symbol)
-  ("C-%"       . paxedit-copy)
-  ("C-&"       . paxedit-kill)
-  ("C-*"       . paxedit-delete)
-  ("C-^"       . paxedit-sexp-raise)
-  ("M-u"       . paxedit-symbol-change-case)
-  ("C-@"       . paxedit-symbol-copy)
-  ("C-#"       . paxedit-symbol-kill))
+  :bind (("M-<right>" . paxedit-transpose-forward)
+         ("M-<left>"  . paxedit-transpose-backward)
+         ("M-<up>"    . paxedit-backward-up)
+         ("M-<down>"  . paxedit-backward-end)
+         ("M-b"       . paxedit-previous-symbol)
+         ("M-f"       . paxedit-next-symbol)
+         ("C-%"       . paxedit-copy)
+         ("C-&"       . paxedit-kill)
+         ("C-*"       . paxedit-delete)
+         ("C-^"       . paxedit-sexp-raise)
+         ("M-u"       . paxedit-symbol-change-case)
+         ("C-@"       . paxedit-symbol-copy)
+         ("C-#"       . paxedit-symbol-kill)))
 
 (use-package paren
   :config (show-paren-mode))
@@ -2118,9 +2090,8 @@ $ emacsclient -c
   :ensure t
   :defer t
   :init
-  (progn
-    (add-hook 'emacs-lisp-mode-hook #'rainbow-delimiters-mode)
-    (add-hook 'ielm-mode-hook #'rainbow-delimiters-mode))
+  (add-hook 'emacs-lisp-mode-hook #'rainbow-delimiters-mode)
+  (add-hook 'ielm-mode-hook #'rainbow-delimiters-mode)
   :config
   (progn
     (set-face-foreground 'rainbow-delimiters-depth-1-face "snow4")
@@ -2133,7 +2104,7 @@ $ emacsclient -c
 (use-package icomplete
   :init (icomplete-mode)
   :bind (:map icomplete-minibuffer-map
-              ("<C-tab>" . minibuffer-force-complete)))
+        ("<C-tab>" . minibuffer-force-complete)))
 
 (use-package etags
   :defer t
@@ -2141,21 +2112,21 @@ $ emacsclient -c
   (defun etags-build (directory)
     (interactive "DDirectory: ")
     (let* ((results ())
-           (head (list directory))
-           (tail head))
+     (head (list directory))
+     (tail head))
       (while head
-        (dolist (file (directory-files (car head) t nil t))
-          (cond ((and (not (string-match "\\.$" file))
-                      (not (string-match "\\.\\.$" file))
-                      (file-directory-p file))
-                 (let ((new-tail (list file)))
-                   (setf (cdr tail) new-tail
-                         tail new-tail)))
-                (or (string-match "\\.[ch]$" file) (string-match "\\.go$" file)
-                 (push file results))))
-        (pop head))
+  (dolist (file (directory-files (car head) t nil t))
+    (cond ((and (not (string-match "\\.$" file))
+          (not (string-match "\\.\\.$" file))
+          (file-directory-p file))
+     (let ((new-tail (list file)))
+       (setf (cdr tail) new-tail
+       tail new-tail)))
+    (or (string-match "\\.[ch]$" file) (string-match "\\.go$" file)
+     (push file results))))
+  (pop head))
       (let ((default-directory directory))
-        (apply #'call-process "etags" nil nil nil results)))))
+  (apply #'call-process "etags" nil nil nil results)))))
 
 (use-package javadoc-lookup
   :ensure t
@@ -2174,7 +2145,7 @@ $ emacsclient -c
   :defer t
   :config
   (setf graphviz-dot-indent-width 2
-        graphviz-dot-auto-indent-on-semi nil))
+  graphviz-dot-auto-indent-on-semi nil))
 
 (use-package uuid-simple
   :demand t

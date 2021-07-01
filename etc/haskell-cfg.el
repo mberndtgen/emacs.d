@@ -9,9 +9,9 @@
 (use-package intero
   :ensure t
   :mode ("\\.l?hsc?$'" . haskell-mode)
+  :hook ((haskell-mode . intero-mode)
+         (haskell-mode . hindent-mode))
   :config
-  (add-hook 'haskell-mode-hook 'intero-mode)
-  (add-hook 'haskell-mode-hook 'hindent-mode)
   (setq intero-global-mode 1))
 
 ;; (use-package haskell-mode
