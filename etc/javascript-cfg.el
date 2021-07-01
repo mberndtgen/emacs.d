@@ -12,19 +12,17 @@
 (use-package js2-mode
   :ensure t
   :mode (("\\.js$'" . js2-mode)
-     ("\\.jsx$" . js2-jsx-mode))
-  :hook (
-     (js2-mode . (lambda () (setq mode-name "js2")))
-     (js2-mode . #'js2-imenu-extras-mode) ;;; better imenu
-     (js2-mode . (lambda ()
-               (flycheck-mode)
-               (my-tide-setup-hook)
-               (company-mode)))
-     (js2-jsx-mode . (lambda ()
-               (flycheck-mode)
-               (my-tide-setup-hook)
-               (company-mode)))
-     )
+         ("\\.jsx$" . js2-jsx-mode))
+  :hook ((js2-mode . (lambda () (setq mode-name "js2")))
+         (js2-mode . #'js2-imenu-extras-mode) ;;; better imenu
+         (js2-mode . (lambda ()
+                       (flycheck-mode)
+                       (my-tide-setup-hook)
+                       (company-mode)))
+         (js2-jsx-mode . (lambda ()
+                           (flycheck-mode)
+                           (my-tide-setup-hook)
+                           (company-mode))))
   :custom
   (js2-include-node-externs t)
   (js2-global-externs '("customElements"))
@@ -34,21 +32,21 @@
   (js-indent-align-list-continuation t)
   (global-auto-highlight-symbol-mode t)
   :ensure-system-package ((prettier . "npm i -g prettier")
-              (eslint . "npm i -g eslint")
-              (eslint_d . "npm i -g eslint_d")
-              (tern . "npm i -g tern"))
+                          (eslint . "npm i -g eslint")
+                          (eslint_d . "npm i -g eslint_d")
+                          (tern . "npm i -g tern"))
   :config
   (progn
     (setq js-indent-level 2
-      js2-basic-offset 2
-      js-chain-indent t)
+          js2-basic-offset 2
+          js-chain-indent t)
     (setq flycheck-javascript-eslint-executable "eslint_d") ;;; use eslint_d insetad of eslint for faster linting
     (setq js2-mode-show-parse-errors t) ;;; turn off all warnings in js2-mode
     (setq js2-mode-show-strict-warnings nil)
     (setq js2-strict-missing-semi-warning nil)
     (advice-add #'js2-identifier-start-p
-        :after-until
-        (lambda (c) (eq c ?#)))))
+                :after-until
+                (lambda (c) (eq c ?#)))))
 
 (use-package ac-js2
   :ensure t
@@ -93,10 +91,9 @@
   :defer 30
   :after js2-mode
   :hook
-  (js2-mode . #'js2-refactor-mode)
-  :bind
-  (:map js2-mode-map
-    ("C-k" . js2r-kill))
+  (js2-mode . js2-refactor-mode)
+  :bind (:map js2-mode-map
+              ("C-k" . js2r-kill))
   :config
   (js2r-add-keybindings-with-prefix "C-c C-r"))
 
@@ -111,8 +108,7 @@
          ("\\.jshintrc$"    . json-mode)
          ("\\.json_schema$" . json-mode)
          ("\\.json\\'" . json-mode))
-  :hook
-  (json-mode . #'prettier-js-mode)
+  :hook (json-mode . #'prettier-js-mode)
   :bind (:package json-mode-map
                   :map json-mode-map
                   ("C-c <tab>" . json-mode-beautify))
@@ -167,8 +163,7 @@
 ;; https://github.com/NicolasPetton/indium
 (use-package indium
   :ensure t
-  :hook
-  ((js-mode . indium-interaction-mode)))
+  :hook (js-mode . indium-interaction-mode))
 
 (provide 'javascript-cfg)
 

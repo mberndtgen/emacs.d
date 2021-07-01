@@ -89,12 +89,12 @@ _c_lose node   _p_revious fold   toggle _a_ll        e_x_it
 ;; depends on slime, clojure-, and other modes
 (use-package eval-in-repl
   :ensure t
+  :hook ((cider-repl-mode . company-mode)
+         (cider-mode . company-mode))
   :config
   ;;(add-hook 'lisp-mode-hook '(lambda () (local-set-key (kbd "<C-return>") 'eir-eval-in-slime)))
   (define-key clojure-mode-map (kbd "<C-return>") 'eir-eval-in-cider)
   (setq cider-overlays-use-font-lock t)
-  (add-hook 'cider-repl-mode-hook #'company-mode)
-  (add-hook 'cider-mode-hook #'company-mode)
   ;; ielm support (for emacs lisp)
   (require 'eval-in-repl-ielm)
   ;; for .el files
@@ -115,12 +115,10 @@ _c_lose node   _p_revious fold   toggle _a_ll        e_x_it
 ;; see https://github.com/Malabarba/aggressive-indent-mode
 (use-package aggressive-indent
   :ensure t
-  :config
-  (progn
-    (add-hook 'emacs-lisp-mode-hook #'aggressive-indent-mode)
-    (add-hook 'css-mode-hook #'aggressive-indent-mode)
-    (add-hook 'clojure-mode #'aggressive-indent-mode)
-    (add-hook 'lisp-mode #'aggressive-indent-mode)))
+  :hook ((emacs-lisp-mode . aggressive-indent-mode)
+         (css-mode . aggressive-indent-mode)
+         (clojure-mode . aggressive-indent-mode)
+         (lisp-mode . aggressive-indent-mode)))
 
 ;; visually display kill ring
 ;; see https://github.com/browse-kill-ring/browse-kill-ring
@@ -133,13 +131,11 @@ _c_lose node   _p_revious fold   toggle _a_ll        e_x_it
 ;; see https://github.com/zk-phi/indent-guide
 (use-package indent-guide
   :ensure t
-  :config
-  (progn
-    (add-hook 'emacs-lisp-mode-hook #'indent-guide-mode)
-    (add-hook 'css-mode-hook #'indent-guide-mode)
-    (add-hook 'clojure-mode #'indent-guide-mode)
-    (add-hook 'lisp-mode #'indent-guide-mode)
-    (add-hook 'go-mode #'indent-guide-mode)))
+  :hook ((emacs-lisp-mode . indent-guide-mode)
+         (css-mode . indent-guide-mode)
+         (clojure-mode . indent-guide-mode)
+         (lisp-mode . indent-guide-mode)
+         (go-mode . indent-guide-mode)))
 
 ;; activate FiraCode font
 (when (window-system)
@@ -345,23 +341,23 @@ _c_lose node   _p_revious fold   toggle _a_ll        e_x_it
 
 ;; file management: dired
 (use-package dired-hacks-utils
-  :defer
+  :defer t
   :ensure t)
 
 (use-package dired-filter
-  :defer
+  :defer t
   :ensure t)
 
 (use-package dired-rainbow
-  :defer
+  :defer t
   :ensure t)
 
 (use-package dired-narrow
-  :defer
+  :defer t
   :ensure t)
 
 (use-package dired-collapse
-  :defer
+  :defer t
   :ensure t)
 
 ;; for moving files around
