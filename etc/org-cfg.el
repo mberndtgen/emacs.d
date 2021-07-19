@@ -862,23 +862,23 @@ A prefix arg forces clock in of the default task."
         ;; Use the current window for C-c ' source editing
         org-src-window-setup 'current-window
         ;; modules for habit tracking
-        org-modules '(org-bbdb
-                      org-bibtex
+        org-modules '(ol-bbdb
+                      ol-bibtex
                       org-crypt
-                      org-gnus
+                      ol-gnus
                       org-id
-                      org-info
-                      org-jsinfo
+                      ol-info
+                      ol-jsinfo
                       org-habit
                       org-inlinetask
-                      org-irc
-                      org-mew
-                      org-mhe
+                      ol-irc
+                      ol-mew
+                      ol-mhe
                       org-protocol
-                      org-rmail
-                      org-vm
-                      org-wl
-                      org-w3m)
+                      ol-rmail
+                      ol-vm
+                      ol-wl
+                      ol-w3m)
         ;; position the habit graph on the agenda to the right of the default
         org-habit-graph-column 50
         ;; speed commands
