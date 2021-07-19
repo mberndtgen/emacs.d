@@ -1,2 +1,2 @@
-;; org-clock-save.el - Mac.local at <2021-07-01 Do 14:07>
-(setq org-clock-stored-history '(("/Users/mberndtgen/Dropbox/orgfiles/work.org" . 15441) ("/Users/mberndtgen/Dropbox/orgfiles/work.org" . 15232) ("/Users/mberndtgen/Dropbox/orgfiles/work.org" . 14584) ("/Users/mberndtgen/Dropbox/orgfiles/work.org" . 13967) ("/Users/mberndtgen/Dropbox/orgfiles/work.org" . 15821) ("/Users/mberndtgen/Dropbox/orgfiles/work.org" . 16000) ("/Users/mberndtgen/Dropbox/orgfiles/refile.org" . 331) ("/Users/mberndtgen/Dropbox/orgfiles/work.org" . 16101)))
+;; org-clock-save.el - MacBook-Pro.local at <2021-07-06 Di 17:02>
+(setq org-clock-stored-history '(("/Users/mberndtgen/Dropbox/orgfiles/refile.org" . 1)))

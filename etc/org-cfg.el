@@ -6,13 +6,22 @@
 
 (use-package bbdb
   :ensure t
-  :bind (("<f9> p" . bh/phone-call)
-         ))
+  :bind (("<f9> p" . bh/phone-call)))
 
 ;; (use-package bbdb-com
 ;;   :ensure t)
 
 (use-package org
+  :hook ((org-clock-out . bh/remove-empty-drawer-on-clock-out)
+         (org-clock-out . bh/clock-out-maybe)
+         (org-agenda-mode . (lambda () (org-defkey org-agenda-mode-map "W" (lambda () (interactive) (setq bh/hide-scheduled-and-waiting-next-tasks t) (bh/widen)))))
+         (org-agenda-mode . (lambda () (org-defkey org-agenda-mode-map "V" 'bh/view-next-project)))
+         (org-agenda-mode . (lambda () (org-defkey org-agenda-mode-map "\C-c\C-x<" 'bh/set-agenda-restriction-lock)))
+         (org-agenda-mode . (lambda () (hl-line-mode 1)))
+         (org-agenda-mode . (lambda () (org-defkey org-agenda-mode-map "F" 'bh/restrict-to-file-or-follow)))
+         (org-agenda-mode . (lambda () (org-defkey org-agenda-mode-map "N" 'bh/narrow-to-subtree)))
+         (org-agenda-mode . (lambda () (org-defkey org-agenda-mode-map "U" 'bh/narrow-up-one-level)))
+         (org-agenda-mode . (lambda () (org-defkey org-agenda-mode-map "P" 'bh/narrow-to-project))))
   :mode (("\\.org$'" . org-mode)
          ("\\.org_archive$'" . org-mode)
          ("\\.txt$'" . org-mode))
@@ -407,8 +416,6 @@ Skip project and sub-project tasks, habits, and loose non-project tasks."
     "Exclude todo keywords with a done state from refile targets"
     (not (member (nth 2 (org-heading-components)) org-done-keywords)))
 
-  (add-hook 'org-clock-out-hook 'bh/remove-empty-drawer-on-clock-out 'append)
-
   (defun bh/clock-in-to-next (kw)
     "Switch a task from TODO to NEXT when clocking in.
 Skips capture tasks, projects, and subprojects.
@@ -532,7 +539,11 @@ A prefix arg forces clock in of the default task."
         org-blank-before-new-entry '((heading) (plain-list-item . auto))
         org-clone-delete-id t
         org-cycle-include-plain-lists t
-        org-cycle-separator-lines 2
+        ;; handling blank lines
+        org-cycle-separator-lines 0
+        org-blank-before-new-entry '((heading)
+                                     (plain-list-item . auto))
+        ;; deadlines and agenda visibility
         org-deadline-warning-days 30
 
         org-ellipsis "…" ;;; replace the "..." with "…" for collapsed org-mode content
@@ -540,10 +551,14 @@ A prefix arg forces clock in of the default task."
         org-enforce-todo-dependencies t
         org-hide-emphasis-markers t
         org-html-table-default-attributes '(:border "0" :cellspacing "0" :cellpadding "6" :rules "none" :frame "none")
+        ;; attachments
         org-id-method 'uuidgen
         org-image-actual-width nil ;;; See https://lists.gnu.org/archive/html/emacs-orgmode/2012-08/msg01388.html
         org-insert-heading-respect-content nil
-        org-log-done t
+        ;; logging
+        org-log-done 'time
+        org-log-into-drawer t
+        org-log-state-notes-insert-after-drawers nil
         org-todo-keywords '((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d)")
                             (sequence "WAITING(w@/!)" "HOLD(h@/!)" "|" "CANCELLED(c@/!)" "PHONE" "MEETING"))
         org-todo-keyword-faces '(("TODO" :foreground "red" :weight bold)
@@ -555,16 +570,19 @@ A prefix arg forces clock in of the default task."
                                  ("MEETING" :foreground "forest green" :weight bold)
                                  ("PHONE" :foreground "forest green" :weight bold))
         org-return-follows-link t ;;; RET follows hyperlinks in org-mode:
+        ;; notes at the top
         org-reverse-note-order nil
         org-src-fontify-natively t
         org-src-tab-acts-natively t
         org-src-window-setup 'other-window
+        ;; searching and showing results
         org-show-following-heading t
         org-show-hierarchy-above t
         org-show-siblings '((default))
         org-startup-align-all-tables t ;;; Can be set per file basis with: #+STARTUP: noalign (or align). Same as doing C-c C-c in a table.
         org-startup-indented t
         org-startup-truncated t
+        ;; exporting tables to csv
         org-table-export-default-format "orgtbl-to-csv"
         org-use-speed-commands t
         org-agenda-custom-commands '(("c" "Simple agenda view"
@@ -760,13 +778,163 @@ A prefix arg forces clock in of the default task."
         org-agenda-tags-todo-honor-ignore-options t
         org-agenda-span 'day
         org-stuck-projects '("" nil nil "")
+        ;; archiving
         org-archive-mark-done nil
         org-archive-location "%s_archive::* Archived Tasks"
         org-alphabetical-lists t
+        ;; ditaa & plantuml
+        org-ditaa-jar-path "~/Dropbpx/orgfiles/modules/ditaa.jar"
+        org-plantuml-jar-path "~/Dropbpx/orgfiles/modules/plantuml.jar"
+        ;; babel
+        org-babel-results-keyword "results"
+        org-babel-default-header-args '((:eval . "never-export"))
+        ;;org-startup-with-inline-images nil
+        ;; experimenting with docbook exports - not finished
+        org-export-docbook-xsl-fo-proc-command "fop %s %s"
+        org-export-docbook-xslt-proc-command "xsltproc --output %s /usr/share/xml/docbook/stylesheet/nwalsh/fo/docbook.xsl %s"
+        ;; Inline images in HTML instead of producting links to the image
+        org-html-inline-images t
+        ;; Do not use sub or superscripts - I currently don't need this functionality in my documents
+        org-export-with-sub-superscripts nil
+        ;; Use org.css from the norang website for export document stylesheets
+        org-html-head-extra "<link rel=\"stylesheet\" href=\"http://doc.norang.ca/org.css\" type=\"text/css\" />"
+        org-html-head-include-default-style nil
+        ;; Do not generate internal css formatting for HTML exports
+        org-export-htmlize-output-type (quote css)
+        ;; Export with LaTeX fragments
+        org-export-with-LaTeX-fragments t
+        ;; Increase default number of headings to export
+        org-export-headline-levels 6
+        org-export-allow-BIND t
+        ;; narrowing
+        org-show-entry-below '((default))
+        ;; Keep tasks with dates on the global todo lists
+        org-agenda-todo-ignore-with-date nil
+        ;; Keep tasks with deadlines on the global todo lists
+        org-agenda-todo-ignore-deadlines nil
+        ;; Keep tasks with scheduled dates on the global todo lists
+        org-agenda-todo-ignore-scheduled nil
+        ;; Keep tasks with timestamps on the global todo lists
+        org-agenda-todo-ignore-timestamp nil
+        ;; Remove completed deadline tasks from the agenda view
+        org-agenda-skip-deadline-if-done t
+        ;; Remove completed scheduled tasks from the agenda view
+        org-agenda-skip-scheduled-if-done t
+        ;; Remove completed items from search results
+        org-agenda-skip-timestamp-if-done t
+        ;; use diary for holidays and appointments
+        org-agenda-include-diary nil
+        org-agenda-diary-file "~/Dropbox/orgfiles/diary.org"
+        org-agenda-insert-diary-extract-time t
+        ;; Include agenda archive files when searching for things
+        org-agenda-text-search-extra-files '(agenda-archives)
+        ;; Show all future entries for repeating tasks
+        org-agenda-repeating-timestamp-show-all t
+        ;; Show all agenda dates - even if they are empty
+        org-agenda-show-all-dates t
+        ;; Sorting order for tasks on the agenda
+        org-agenda-sorting-strategy '((agenda habit-down time-up user-defined-up effort-up category-keep)
+                                      (todo category-up effort-up)
+                                      (tags category-up effort-up)
+                                      (search category-up))
+        ;; Start the weekly agenda on Monday
+        org-agenda-start-on-weekday 1
+        ;; Enable display of the time grid so we can see the marker for the current time
+        org-agenda-time-grid '((daily today remove-match)
+                               #("----------------" 0 16 (org-heading t))
+                               (0900 1100 1300 1500 1700))
+        ;; Display tags farther right
+        org-agenda-tags-column -102
+        ;; Agenda sorting functions
+        org-agenda-cmp-user-defined 'bh/agenda-sort
+        ;; Use sticky agenda's so they persist
+        org-agenda-sticky t
+        ;; show leading stars
+        org-hide-leading-stars nil
+        ;; editing and special key Handling
+        org-special-ctrl-a/e t
+        org-special-ctrl-k t
+        org-yank-adjusted-subtrees t
+        ;; minimize emacs frames
+        org-link-frame-setup '((vm . vm-visit-folder)
+                               (gnus . org-gnus-no-new-news)
+                               (file . find-file))
+        ;; Use the current window for C-c ' source editing
+        org-src-window-setup 'current-window
+        ;; modules for habit tracking
+        org-modules '(org-bbdb
+                      org-bibtex
+                      org-crypt
+                      org-gnus
+                      org-id
+                      org-info
+                      org-jsinfo
+                      org-habit
+                      org-inlinetask
+                      org-irc
+                      org-mew
+                      org-mhe
+                      org-protocol
+                      org-rmail
+                      org-vm
+                      org-wl
+                      org-w3m)
+        ;; position the habit graph on the agenda to the right of the default
+        org-habit-graph-column 50
+        ;; speed commands
+        org-use-speed-commands t
+        org-speed-commands-user '(("0" . ignore)
+                                  ("1" . ignore)
+                                  ("2" . ignore)
+                                  ("3" . ignore)
+                                  ("4" . ignore)
+                                  ("5" . ignore)
+                                  ("6" . ignore)
+                                  ("7" . ignore)
+                                  ("8" . ignore)
+                                  ("9" . ignore)
+
+                                  ("a" . ignore)
+                                  ("d" . ignore)
+                                  ("h" . bh/hide-other)
+                                  ("i" progn
+                                   (forward-char 1)
+                                   (call-interactively 'org-insert-heading-respect-content))
+                                  ("k" . org-kill-note-or-show-branches)
+                                  ("l" . ignore)
+                                  ("m" . ignore)
+                                  ("q" . bh/show-org-agenda)
+                                  ("r" . ignore)
+                                  ("s" . org-save-all-org-buffers)
+                                  ("w" . org-refile)
+                                  ("x" . ignore)
+                                  ("y" . ignore)
+                                  ("z" . org-add-note)
+
+                                  ("A" . ignore)
+                                  ("B" . ignore)
+                                  ("E" . ignore)
+                                  ("F" . bh/restrict-to-file-or-follow)
+                                  ("G" . ignore)
+                                  ("H" . ignore)
+                                  ("J" . org-clock-goto)
+                                  ("K" . ignore)
+                                  ("L" . ignore)
+                                  ("M" . ignore)
+                                  ("N" . bh/narrow-to-org-subtree)
+                                  ("P" . bh/narrow-to-org-project)
+                                  ("Q" . ignore)
+                                  ("R" . ignore)
+                                  ("S" . ignore)
+                                  ("T" . bh/org-todo)
+                                  ("U" . bh/narrow-up-one-org-level)
+                                  ("V" . ignore)
+                                  ("W" . bh/widen)
+                                  ("X" . ignore)
+                                  ("Y" . ignore)
+                                  ("Z" . ignore))
         )
 
-  (add-hook 'org-clock-out-hook 'bh/remove-empty-drawer-on-clock-out 'append)
-  (add-hook 'org-clock-out-hook 'bh/clock-out-maybe 'append)
   ;; Resume clocking task when emacs is restarted
   (org-clock-persistence-insinuate)
 
@@ -779,34 +947,449 @@ A prefix arg forces clock in of the default task."
       (org-cycle)
       (org-cycle)))
 
+  (defun bh/display-inline-images ()
+    (condition-case nil
+        (org-display-inline-images)
+      (error nil)))
+
+  ;; Add languages
+  (org-babel-do-load-languages 'org-babel-load-languages
+                               '((emacs-lisp . t)
+                                 (ditaa . t)
+                                 (R . t)
+                                 ;; (ipython . t)
+                                 (ruby . t)
+                                 (gnuplot . t)
+                                 (clojure . t)
+                                 (shell . t)
+                                 (ledger . t)
+                                 (org . t)
+                                 (plantuml . t)
+                                 (shell . t)
+                                 (haskell . t)
+                                 (js . t)
+                                 (C . t)
+                                 (sql . t)
+                                 (go . t)
+                                 (latex . t)))
+
+  ;; Do not prompt to confirm evaluation
+  ;; This may be dangerous - make sure you understand the consequences
+  ;; of setting this -- see the docstring for details
+  ;;(setq org-confirm-babel-evaluate nil)
+
+  ;; Use fundamental mode when editing plantuml blocks with C-c '
+  (add-to-list 'org-src-lang-modes '("plantuml" . fundamental))
+
+  ;; I'm lazy and don't want to remember the name of the project to publish when I modify
+  ;; a file that is part of a project.  So this function saves the file, and publishes
+  ;; the project that includes this file
+  ;;
+  ;; It's bound to C-S-F12 so I just edit and hit C-S-F12 when I'm done and move on to the next thing
+  (defun bh/save-then-publish (&optional force)
+    (interactive "P")
+    (save-buffer)
+    (org-save-all-org-buffers)
+    (let ((org-html-head-extra)
+          (org-html-validation-link "<a href=\"http://validator.w3.org/check?uri=referer\">Validate XHTML 1.0</a>"))
+      (org-publish-current-project force)))
+
+  ;; Skeletons
+  ;;
+  ;; sblk - Generic block #+begin_FOO .. #+end_FOO
+  (define-skeleton skel-org-block
+    "Insert an org block, querying for type."
+    "Type: "
+    "#+begin_" str "\n"
+    _ - \n
+    "#+end_" str "\n")
+
+  (define-abbrev org-mode-abbrev-table "sblk" "" 'skel-org-block)
+
+  ;; splantuml - PlantUML Source block
+  (define-skeleton skel-org-block-plantuml
+    "Insert a org plantuml block, querying for filename."
+    "File (no extension): "
+    "#+begin_src plantuml :file " str ".png :cache yes\n"
+    _ - \n
+    "#+end_src\n")
+
+  (define-abbrev org-mode-abbrev-table "splantuml" "" 'skel-org-block-plantuml)
+
+  (define-skeleton skel-org-block-plantuml-activity
+    "Insert a org plantuml block, querying for filename."
+    "File (no extension): "
+    "#+begin_src plantuml :file " str "-act.png :cache yes :tangle " str "-act.txt\n"
+    (bh/plantuml-reset-counters)
+    "@startuml\n"
+    "skinparam activity {\n"
+    "BackgroundColor<<New>> Cyan\n"
+    "}\n\n"
+    "title " str " - \n"
+    "note left: " str "\n"
+    "(*) --> \"" str "\"\n"
+    "--> (*)\n"
+    _ - \n
+    "@enduml\n"
+    "#+end_src\n")
+
+  (defvar bh/plantuml-if-count 0)
+
+  (defun bh/plantuml-if ()
+    (incf bh/plantuml-if-count)
+    (number-to-string bh/plantuml-if-count))
+
+  (defvar bh/plantuml-loop-count 0)
+
+  (defun bh/plantuml-loop ()
+    (incf bh/plantuml-loop-count)
+    (number-to-string bh/plantuml-loop-count))
+
+  (defun bh/plantuml-reset-counters ()
+    (setq bh/plantuml-if-count 0
+          bh/plantuml-loop-count 0)
+    "")
+
+  (define-abbrev org-mode-abbrev-table "sact" "" 'skel-org-block-plantuml-activity)
+
+  (define-skeleton skel-org-block-plantuml-activity-if
+    "Insert a org plantuml block activity if statement"
+    ""
+    "if \"\" then\n"
+    "  -> [condition] ==IF" (setq ifn (bh/plantuml-if)) "==\n"
+    "  --> ==IF" ifn "M1==\n"
+    "  -left-> ==IF" ifn "M2==\n"
+    "else\n"
+    "end if\n"
+    "--> ==IF" ifn "M2==")
+
+  (define-abbrev org-mode-abbrev-table "sif" "" 'skel-org-block-plantuml-activity-if)
+
+  (define-skeleton skel-org-block-plantuml-activity-for
+    "Insert a org plantuml block activity for statement"
+    "Loop for each: "
+    "--> ==LOOP" (setq loopn (bh/plantuml-loop)) "==\n"
+    "note left: Loop" loopn ": For each " str "\n"
+    "--> ==ENDLOOP" loopn "==\n"
+    "note left: Loop" loopn ": End for each " str "\n" )
+
+  (define-abbrev org-mode-abbrev-table "sfor" "" 'skel-org-block-plantuml-activity-for)
+
+  (define-skeleton skel-org-block-plantuml-sequence
+    "Insert a org plantuml activity diagram block, querying for filename."
+    "File appends (no extension): "
+    "#+begin_src plantuml :file " str "-seq.png :cache yes :tangle " str "-seq.txt\n"
+    "@startuml\n"
+    "title " str " - \n"
+    "actor CSR as \"Customer Service Representative\"\n"
+    "participant CSMO as \"CSM Online\"\n"
+    "participant CSMU as \"CSM Unix\"\n"
+    "participant NRIS\n"
+    "actor Customer"
+    _ - \n
+    "@enduml\n"
+    "#+end_src\n")
+
+  (define-abbrev org-mode-abbrev-table "sseq" "" 'skel-org-block-plantuml-sequence)
+
+  ;; sdot - Graphviz DOT block
+  (define-skeleton skel-org-block-dot
+    "Insert a org graphviz dot block, querying for filename."
+    "File (no extension): "
+    "#+begin_src dot :file " str ".png :cache yes :cmdline -Kdot -Tpng\n"
+    "graph G {\n"
+    _ - \n
+    "}\n"
+    "#+end_src\n")
+
+  (define-abbrev org-mode-abbrev-table "sdot" "" 'skel-org-block-dot)
+
+  ;; sditaa - Ditaa source block
+  (define-skeleton skel-org-block-ditaa
+    "Insert a org ditaa block, querying for filename."
+    "File (no extension): "
+    "#+begin_src ditaa :file " str ".png :cache yes\n"
+    _ - \n
+    "#+end_src\n")
+
+  (define-abbrev org-mode-abbrev-table "sditaa" "" 'skel-org-block-ditaa)
+
+  ;; selisp - Emacs Lisp source block
+  (define-skeleton skel-org-block-elisp
+    "Insert a org emacs-lisp block"
+    ""
+    "#+begin_src emacs-lisp\n"
+    _ - \n
+    "#+end_src\n")
+
+  (define-abbrev org-mode-abbrev-table "selisp" "" 'skel-org-block-elisp)
+
+  ;; subtree narrowing
+  (defun bh/org-todo (arg)
+    (interactive "p")
+    (if (equal arg 4)
+        (save-restriction
+          (bh/narrow-to-org-subtree)
+          (org-show-todo-tree nil))
+      (bh/narrow-to-org-subtree)
+      (org-show-todo-tree nil)))
+
+  (global-set-key (kbd "<S-f5>") 'bh/widen)
+
+  (defun bh/widen ()
+    (interactive)
+    (if (equal major-mode 'org-agenda-mode)
+        (progn
+          (org-agenda-remove-restriction-lock)
+          (when org-agenda-sticky
+            (org-agenda-redo)))
+      (widen)))
+
+  (defun bh/restrict-to-file-or-follow (arg)
+    "Set agenda restriction to 'file or with argument invoke follow mode.
+I don't use follow mode very often but I restrict to file all the time
+so change the default 'F' binding in the agenda to allow both"
+    (interactive "p")
+    (if (equal arg 4)
+        (org-agenda-follow-mode)
+      (widen)
+      (bh/set-agenda-restriction-lock 4)
+      (org-agenda-redo)
+      (beginning-of-buffer)))
+
+  (defun bh/narrow-to-org-subtree ()
+    (widen)
+    (org-narrow-to-subtree)
+    (save-restriction
+      (org-agenda-set-restriction-lock)))
+
+  (defun bh/narrow-to-subtree ()
+    (interactive)
+    (if (equal major-mode 'org-agenda-mode)
+        (progn
+          (org-with-point-at (org-get-at-bol 'org-hd-marker)
+            (bh/narrow-to-org-subtree))
+          (when org-agenda-sticky
+            (org-agenda-redo)))
+      (bh/narrow-to-org-subtree)))
+
+  (defun bh/narrow-up-one-org-level ()
+    (widen)
+    (save-excursion
+      (outline-up-heading 1 'invisible-ok)
+      (bh/narrow-to-org-subtree)))
+
+  (defun bh/get-pom-from-agenda-restriction-or-point ()
+    (or (and (marker-position org-agenda-restrict-begin) org-agenda-restrict-begin)
+        (org-get-at-bol 'org-hd-marker)
+        (and (equal major-mode 'org-mode) (point))
+        org-clock-marker))
+
+  (defun bh/narrow-up-one-level ()
+    (interactive)
+    (if (equal major-mode 'org-agenda-mode)
+        (progn
+          (org-with-point-at (bh/get-pom-from-agenda-restriction-or-point)
+            (bh/narrow-up-one-org-level))
+          (org-agenda-redo))
+      (bh/narrow-up-one-org-level)))
+
+  (defun bh/narrow-to-org-project ()
+    (widen)
+    (save-excursion
+      (bh/find-project-task)
+      (bh/narrow-to-org-subtree)))
+
+  (defun bh/narrow-to-project ()
+    (interactive)
+    (if (equal major-mode 'org-agenda-mode)
+        (progn
+          (org-with-point-at (bh/get-pom-from-agenda-restriction-or-point)
+            (bh/narrow-to-org-project)
+            (save-excursion
+              (bh/find-project-task)
+              (org-agenda-set-restriction-lock)))
+          (org-agenda-redo)
+          (beginning-of-buffer))
+      (bh/narrow-to-org-project)
+      (save-restriction
+        (org-agenda-set-restriction-lock))))
+
+  (defvar bh/project-list nil)
+
+  (defun bh/view-next-project ()
+    (interactive)
+    (let (num-project-left current-project)
+      (unless (marker-position org-agenda-restrict-begin)
+        (goto-char (point-min))
+                                        ; Clear all of the existing markers on the list
+        (while bh/project-list
+          (set-marker (pop bh/project-list) nil))
+        (re-search-forward "Tasks to Refile")
+        (forward-visible-line 1))
+
+                                        ; Build a new project marker list
+      (unless bh/project-list
+        (while (< (point) (point-max))
+          (while (and (< (point) (point-max))
+                      (or (not (org-get-at-bol 'org-hd-marker))
+                          (org-with-point-at (org-get-at-bol 'org-hd-marker)
+                            (or (not (bh/is-project-p))
+                                (bh/is-project-subtree-p)))))
+            (forward-visible-line 1))
+          (when (< (point) (point-max))
+            (add-to-list 'bh/project-list (copy-marker (org-get-at-bol 'org-hd-marker)) 'append))
+          (forward-visible-line 1)))
+
+                                        ; Pop off the first marker on the list and display
+      (setq current-project (pop bh/project-list))
+      (when current-project
+        (org-with-point-at current-project
+          (setq bh/hide-scheduled-and-waiting-next-tasks nil)
+          (bh/narrow-to-project))
+                                        ; Remove the marker
+        (setq current-project nil)
+        (org-agenda-redo)
+        (beginning-of-buffer)
+        (setq num-projects-left (length bh/project-list))
+        (if (> num-projects-left 0)
+            (message "%s projects left to view" num-projects-left)
+          (beginning-of-buffer)
+          (setq bh/hide-scheduled-and-waiting-next-tasks t)
+          (error "All projects viewed.")))))
+
+  (defun bh/set-agenda-restriction-lock (arg)
+    "Set restriction lock to current task subtree or file if prefix is specified"
+    (interactive "p")
+    (let* ((pom (bh/get-pom-from-agenda-restriction-or-point))
+           (tags (org-with-point-at pom (org-get-tags-at))))
+      (let ((restriction-type (if (equal arg 4) 'file 'subtree)))
+        (save-restriction
+          (cond
+           ((and (equal major-mode 'org-agenda-mode) pom)
+            (org-with-point-at pom
+              (org-agenda-set-restriction-lock restriction-type))
+            (org-agenda-redo))
+           ((and (equal major-mode 'org-mode) (org-before-first-heading-p))
+            (org-agenda-set-restriction-lock 'file))
+           (pom
+            (org-with-point-at pom
+              (org-agenda-set-restriction-lock restriction-type))))))))
+
+  (defun bh/agenda-sort (a b)
+    "Sorting strategy for agenda items.
+Late deadlines first, then scheduled, then non-late deadlines"
+    (let (result num-a num-b)
+      (cond
+                                        ; time specific items are already sorted first by org-agenda-sorting-strategy
+
+                                        ; non-deadline and non-scheduled items next
+       ((bh/agenda-sort-test 'bh/is-not-scheduled-or-deadline a b))
+
+                                        ; deadlines for today next
+       ((bh/agenda-sort-test 'bh/is-due-deadline a b))
+
+                                        ; late deadlines next
+       ((bh/agenda-sort-test-num 'bh/is-late-deadline '> a b))
+
+                                        ; scheduled items for today next
+       ((bh/agenda-sort-test 'bh/is-scheduled-today a b))
+
+                                        ; late scheduled items next
+       ((bh/agenda-sort-test-num 'bh/is-scheduled-late '> a b))
+
+                                        ; pending deadlines last
+       ((bh/agenda-sort-test-num 'bh/is-pending-deadline '< a b))
+
+                                        ; finally default to unsorted
+       (t (setq result nil)))
+      result))
+
+  (defmacro bh/agenda-sort-test (fn a b)
+    "Test for agenda sort"
+    `(cond
+                                        ; if both match leave them unsorted
+      ((and (apply ,fn (list ,a))
+            (apply ,fn (list ,b)))
+       (setq result nil))
+                                        ; if a matches put a first
+      ((apply ,fn (list ,a))
+       (setq result -1))
+                                        ; otherwise if b matches put b first
+      ((apply ,fn (list ,b))
+       (setq result 1))
+                                        ; if none match leave them unsorted
+      (t nil)))
+
+  (defmacro bh/agenda-sort-test-num (fn compfn a b)
+    `(cond
+      ((apply ,fn (list ,a))
+       (setq num-a (string-to-number (match-string 1 ,a)))
+       (if (apply ,fn (list ,b))
+           (progn
+             (setq num-b (string-to-number (match-string 1 ,b)))
+             (setq result (if (apply ,compfn (list num-a num-b))
+                              -1
+                            1)))
+         (setq result -1)))
+      ((apply ,fn (list ,b))
+       (setq result 1))
+      (t nil)))
+
+  (defun bh/is-not-scheduled-or-deadline (date-str)
+    (and (not (bh/is-deadline date-str))
+         (not (bh/is-scheduled date-str))))
+
+  (defun bh/is-due-deadline (date-str)
+    (string-match "Deadline:" date-str))
+
+  (defun bh/is-late-deadline (date-str)
+    (string-match "\\([0-9]*\\) d\. ago:" date-str))
+
+  (defun bh/is-pending-deadline (date-str)
+    (string-match "In \\([^-]*\\)d\.:" date-str))
+
+  (defun bh/is-deadline (date-str)
+    (or (bh/is-due-deadline date-str)
+        (bh/is-late-deadline date-str)
+        (bh/is-pending-deadline date-str)))
+
+  (defun bh/is-scheduled (date-str)
+    (or (bh/is-scheduled-today date-str)
+        (bh/is-scheduled-late date-str)))
+
+  (defun bh/is-scheduled-today (date-str)
+    (string-match "Scheduled:" date-str))
+
+  (defun bh/is-scheduled-late (date-str)
+    (string-match "Sched\.\\(.*\\)x:" date-str))
+
+  (defun bh/show-org-agenda ()
+    (interactive)
+    (if org-agenda-sticky
+        (switch-to-buffer "*Org Agenda( )*")
+      (switch-to-buffer "*Org Agenda*"))
+    (delete-other-windows))
+
+  (defun bh/prepare-meeting-notes ()
+    "Prepare meeting notes for email
+   Take selected region and convert tabs to spaces, mark TODOs with leading >>>, and copy to kill ring for pasting"
+    (interactive)
+    (let (prefix)
+      (save-excursion
+        (save-restriction
+          (narrow-to-region (region-beginning) (region-end))
+          (untabify (point-min) (point-max))
+          (goto-char (point-min))
+          (while (re-search-forward "^\\( *-\\\) \\(TODO\\|DONE\\): " (point-max) t)
+            (replace-match (concat (make-string (length (match-string 1)) ?>) " " (match-string 2) ": ")))
+          (goto-char (point-min))
+          (kill-ring-save (point-min) (point-max))))))
+
   :init
   (require 'org-id)
   )
 
-;; Add languages
-;;(use-package ob-ipython
-;;  :ensure t)
-
-(org-babel-do-load-languages 'org-babel-load-languages
-                             '((emacs-lisp . t)
-                               (ditaa . t)
-                               (R . t)
-                               ;; (ipython . t)
-                               (ruby . t)
-                               (gnuplot . t)
-                               (clojure . t)
-                               (shell . t)
-                               (ledger . t)
-                               (org . t)
-                               (plantuml . t)
-                               (shell . t)
-                               (haskell . t)
-                               (js . t)
-                               (C . t)
-                               (sql . t)
-                               (go . t)
-                               (latex . t)))
-(setq org-babel-default-header-args '((:eval . "never-export")))
 
 (use-package org-inlinetask
   :bind (:map org-mode-map
@@ -826,11 +1409,19 @@ A prefix arg forces clock in of the default task."
      (require 'ox-html)
      (require 'ox-latex)
      (require 'ox-ascii)
+     (add-hook 'org-babel-after-execute-hook 'bh/display-inline-images 'append)
      (use-package helm-org
        :ensure t
        :config
        (add-to-list 'helm-completing-read-handlers-alist '(org-capture . helm-org-completing-read-tags))
-       (add-to-list 'helm-completing-read-handlers-alist '(org-set-tags . helm-org-completing-read-tags)))))
+       (add-to-list 'helm-completing-read-handlers-alist '(org-set-tags . helm-org-completing-read-tags)))
+     ;; The following custom-set-faces create the highlights
+     (custom-set-faces
+      ;; custom-set-faces was added by Custom.
+      ;; If you edit it by hand, you could mess it up, so be careful.
+      ;; Your init file should contain only one such instance.
+      ;; If there is more than one, they won't work right.
+      '(org-mode-line-clock ((t (:background "grey75" :foreground "red" :box (:line-width -1 :style released-button)))) t))))
 
 (if (eq system-type 'gnu/linux)
     (setq org-reveal-root "file:///home/mberndtgen/Documents/src/emacs/reveal.js/"))

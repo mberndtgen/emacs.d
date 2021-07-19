@@ -1752,8 +1752,6 @@ $ emacsclient -c
 ;; remember to run 'M-x all-the-icons-install-fonts'
 (use-package doom-modeline
   :ensure t
-  :defer t
-  :delight
   :hook (after-init . doom-modeline-mode)
   :config
   (setq doom-modeline-height 25
