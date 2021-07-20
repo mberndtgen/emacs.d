@@ -11,7 +11,7 @@ recentf
 .emacs.desktop*
 network-security.data
 url/*
-org-clock-save.el
+./org-clock-save.el
 backups/*
 *~
 .DS_Store

@@ -868,16 +868,12 @@ A prefix arg forces clock in of the default task."
                       ol-gnus
                       org-id
                       ol-info
-                      ol-jsinfo
                       org-habit
                       org-inlinetask
                       ol-irc
-                      ol-mew
                       ol-mhe
                       org-protocol
                       ol-rmail
-                      ol-vm
-                      ol-wl
                       ol-w3m)
         ;; position the habit graph on the agenda to the right of the default
         org-habit-graph-column 50
