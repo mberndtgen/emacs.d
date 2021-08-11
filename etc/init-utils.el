@@ -1,3 +1,9 @@
+;;; package --- Summary
+
+;;; Commentary:
+
+;;; Code:
+
 (if (fboundp 'with-eval-after-load)
     (defalias 'after-load 'with-eval-after-load)
   (defmacro after-load (feature &rest body)
@@ -20,7 +26,7 @@
 ;; String utilities missing from core emacs
 ;;----------------------------------------------------------------------------
 (defun sanityinc/string-all-matches (regex str &optional group)
-  "Find all matches for `REGEX' within `STR', returning the full match string or group `GROUP'."
+  "Find all matches for `REGEX' within `STR', returning the fully matched string or group `GROUP'."
   (let ((result nil)
         (pos 0)
         (group (or group 0)))
@@ -80,13 +86,13 @@
 
 (defvar bnb/really-kill-emacs nil)
 (defun bnb/kill-emacs ()
-  "Actually kill emacs."
+  "Actually kill Emacs."
   (interactive)
   (setq bnb/really-kill-emacs t)
   (kill-emacs))
 
 (defadvice kill-emacs (around bnb/pardon-emacs activate)
-  "Only kill emacs if a prefix is set"
+  "Only kill Emacs if a prefix is set."
   (run-hooks 'bnb/kill-emacs-hooks)
   (if bnb/really-kill-emacs
       ad-do-it
@@ -140,9 +146,11 @@
 
 (defalias 'zsh 'ansi-term)
 
-(setq ansi-term-color-vector
-      [term term-color-black term-color-red term-color-green term-color-yellow term-color-blue term-color-magenta term-color-cyan term-color-white]
-      ansi-color-faces-vector
-      [default bold shadow italic underline bold bold-italic bold])
+(setq-default ansi-term-color-vector
+              [term term-color-black term-color-red term-color-green term-color-yellow term-color-blue term-color-magenta term-color-cyan term-color-white]
+              ansi-color-faces-vector
+              [default bold shadow italic underline bold bold-italic bold])
 
 (provide 'init-utils)
+
+;;; init-utils.el ends here

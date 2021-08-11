@@ -8,28 +8,14 @@
 
 ;;; Code:
 
-(use-package jekyll
-  :demand t
-  :functions httpd-send-header
-  :config
-  (progn
-    (setf jekyll-home "~/src/skeeto.github.com/")
-    (when (file-exists-p jekyll-home)
-      (require 'simple-httpd)
-      (setf httpd-root (concat jekyll-home "_site"))
-      (ignore-errors
-        (httpd-start)
-        (jekyll/start))
-      (defservlet robots.txt text/plain ()
-        (insert "User-agent: *\nDisallow: /\n")))))
-
 (use-package help-mode
   :defer t
-  :config
-  (define-key help-mode-map (kbd "f") #'push-first-button))
+  :bind (:map help-mode-map
+              ("f" . push-first-button)))
 
 (use-package origami
   :ensure t
+  :hook (prog-mode . origami-mode)
   :custom
   (origami-show-fold-header t)
   :commands origami-mode
@@ -38,7 +24,6 @@
   (origami-fold-fringe-face ((t (:inherit magit-diff-context-highlight))))
   :config
   (face-spec-reset-face 'origami-fold-header-face)
-  (add-hook 'prog-mode-hook 'origami-mode)
   (with-eval-after-load 'hydra
     (define-key origami-mode-map (kbd "C-x f")
       (defhydra hydra-folding (:color red :hint nil)
@@ -336,8 +321,8 @@ _c_lose node   _p_revious fold   toggle _a_ll        e_x_it
 ;; nice icons for dired
 (use-package all-the-icons-dired
   :ensure t
-  :commands (all-the-icons-dired-mode)
-  :config (add-hook 'dired-mode-hook 'all-the-icons-dired-mode))
+  :hook (dired-mode . all-the-icons-dired-mode)
+  :commands (all-the-icons-dired-mode))
 
 ;; file management: dired
 (use-package dired-hacks-utils
@@ -384,9 +369,9 @@ _c_lose node   _p_revious fold   toggle _a_ll        e_x_it
   :defer 10
   :ensure t
   :init
-  (setq-default indent-tabs-mode nil)
-  (smart-tabs-insinuate 'c 'cperl 'c++)
-  (setq-default tab-width 2))
+  (setq-default indent-tabs-mode nil
+                indent-tabs-modetab-width 2)
+  (smart-tabs-insinuate 'c 'cperl 'c++))
 
 ;; k8s interface
 ;; https://github.com/chrisbarrett/kubernetes-el

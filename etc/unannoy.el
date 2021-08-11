@@ -2,14 +2,13 @@
 ;;; Commentary:
 ;;; Code:
 
-(setf backup-inhibited t
+(setf backup-inhibited nil
       auto-save-default nil
       auto-save-list-file-prefix (locate-user-emacs-file "local/saves")
       inhibit-startup-message t
       inhibit-startup-screen t
       inhibit-splash-screen t
       initial-scratch-message nil
-      dired-allow-to-change-permissions t
       echo-keystrokes 0.1
       delete-active-region nil
       disabled-command-function nil
@@ -29,6 +28,8 @@
 
 ;; Make backups of files, even when they're in version control
 (setq vc-make-backup-files t)
+
+(setq-default dired-allow-to-change-permissions t)
 
 ;; GUIs are for newbs
 (dolist (mode'(menu-bar-mode tool-bar-mode tooltip-mode scroll-bar-mode))

@@ -355,8 +355,9 @@
 
 (global-linum-mode 1)
 (column-number-mode 1)
+(global-auto-revert-mode t)
 (setq-default comment-column 70) ; Set the default comment column to 70
-(setq-default line-spacing 0.2)
+(setq-default line-spacing 0.24)
 (setq-default indicate-buffer-boundaries 'right)
 (setq-default indicate-empty-lines t)
 (setq-default frame-title-format '("%b - %f - %I")) ;; buffer name, full file name and size
@@ -1059,17 +1060,17 @@ $ emacsclient -c
 (use-package company
   :ensure t
   :init
-  (add-hook 'after-init-hook #'global-company-mode)
+  ;;(add-hook 'after-init-hook #'global-company-mode)
   (add-hook 'cider-repl-mode-hook #'company-mode)
   (add-hook 'cider-more-hook #'company-mode)
-  (setq company-dabbrev-ignore-case nil
-        company-dabbrev-code-ignore-case nil
-        company-dabbrev-downcase nil
-        company-idle-delay 0
-        company-minimum-prefix-length 2
-        company-begin-commands '(self-insert-command)
-        company-transformers '(company-sort-by-occurrence)
-        company-tooltip-align-annotations t))
+  (setq-default company-dabbrev-ignore-case nil
+                company-dabbrev-code-ignore-case nil
+                company-dabbrev-downcase nil
+                company-idle-delay 0
+                company-minimum-prefix-length 2
+                company-begin-commands '(self-insert-command)
+                company-transformers '(company-sort-by-occurrence)
+                company-tooltip-align-annotations t))
 
 (use-package company-quickhelp
   :ensure t
@@ -1511,8 +1512,6 @@ $ emacsclient -c
 ;; Load local "packages"
 (require 'init-utils)
 (require 'unannoy)
-;;(require 'extras)
-
 ;; (require 'slime-cfg) ; --deprecated
 (require 'sly-cfg)
 (require 'clojure-cfg)
@@ -1663,23 +1662,23 @@ $ emacsclient -c
     (define-key notmuch-message-mode-map (kbd "C-x C-s") nil)
     (define-key notmuch-message-mode-map (kbd "C-c C-s") nil) ; super annoying
     (setf notmuch-command "notmuch-remote"
-    message-send-mail-function 'smtpmail-send-it
-    message-kill-buffer-on-exit t
-    smtpmail-smtp-server "localhost"
-    smtpmail-smtp-service 2525
-    notmuch-address-command "addrlookup-remote"
-    notmuch-fcc-dirs nil
-    notmuch-search-oldest-first nil
-    notmuch-archive-tags '("-inbox" "-unread" "+archive")
-    hashcash-path (executable-find "hashcash"))
+          message-send-mail-function 'smtpmail-send-it
+          message-kill-buffer-on-exit t
+          smtpmail-smtp-server "localhost"
+          smtpmail-smtp-service 2525
+          notmuch-address-command "addrlookup-remote"
+          notmuch-fcc-dirs nil
+          notmuch-search-oldest-first nil
+          notmuch-archive-tags '("-inbox" "-unread" "+archive")
+          hashcash-path (executable-find "hashcash"))
     (custom-set-faces
      '(notmuch-search-subject ((t :foreground "#afa")))
      '(notmuch-search-date    ((t :foreground "#aaf")))
      '(notmuch-search-count   ((t :foreground "#777"))))
     (setq notmuch-hello-sections
-    '(notmuch-hello-insert-header
-      notmuch-hello-insert-saved-searches
-      notmuch-hello-insert-search))))
+          '(notmuch-hello-insert-header
+            notmuch-hello-insert-saved-searches
+            notmuch-hello-insert-search))))
 
 (use-package elfeed
   :ensure t
@@ -1691,23 +1690,21 @@ $ emacsclient -c
 
 (use-package time
   :config
-  (progn
-    (setf display-time-default-load-average nil
-    display-time-use-mail-icon t
-    display-time-24hr-format t)
-    (display-time-mode t)))
+  (setf display-time-default-load-average nil
+        display-time-use-mail-icon t
+        display-time-24hr-format t)
+  (display-time-mode t))
 
 (use-package comint
   :defer t
   :config
-  (progn
-    (define-key comint-mode-map (kbd "<down>") #'comint-next-input)
-    (define-key comint-mode-map (kbd "<up>") #'comint-previous-input)
-    (define-key comint-mode-map (kbd "C-n") #'comint-next-input)
-    (define-key comint-mode-map (kbd "C-p") #'comint-previous-input)
-    (define-key comint-mode-map (kbd "C-r") #'comint-history-isearch-backward)
-    (setf comint-prompt-read-only t
-    comint-history-isearch t)))
+  (define-key comint-mode-map (kbd "<down>") #'comint-next-input)
+  (define-key comint-mode-map (kbd "<up>") #'comint-previous-input)
+  (define-key comint-mode-map (kbd "C-n") #'comint-next-input)
+  (define-key comint-mode-map (kbd "C-p") #'comint-previous-input)
+  (define-key comint-mode-map (kbd "C-r") #'comint-history-isearch-backward)
+  (setf comint-prompt-read-only t
+        comint-history-isearch t))
 
 (use-package tramp
   :defer t
@@ -1731,7 +1728,7 @@ $ emacsclient -c
   :config
   ;; Global settings (defaults)
   (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
-  doom-themes-enable-italic t) ; if nil, italics is universally disabled
+        doom-themes-enable-italic t) ; if nil, italics is universally disabled
   (load-theme 'doom-one t)
 
   ;; Enable flashing mode-line on errors
@@ -1818,7 +1815,7 @@ $ emacsclient -c
   :defer 10
   :config
   (setf uniquify-buffer-name-style 'post-forward-angle-brackets
-  uniquify-separator ":"))
+        uniquify-separator ":"))
 
 ;; Dim everything except for the thing-at-point.
 (use-package focus

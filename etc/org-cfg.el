@@ -548,7 +548,7 @@ A prefix arg forces clock in of the default task."
 
         org-ellipsis "…" ;;; replace the "..." with "…" for collapsed org-mode content
         org-export-with-smart-quotes t
-        org-enforce-todo-dependencies t
+        org-enforce-todo-dependencies t ;; enable task blocking - prevents tasks from changing to DONE if any subtasks are still open
         org-hide-emphasis-markers t
         org-html-table-default-attributes '(:border "0" :cellspacing "0" :cellpadding "6" :rules "none" :frame "none")
         ;; attachments
@@ -734,6 +734,7 @@ A prefix arg forces clock in of the default task."
         org-clock-auto-clock-resolution 'when-no-clock-is-running
         ;; Include current clocking task in clock reports
         org-clock-report-include-clocking-task t
+        bh/keep-clock-running nil
         org-time-stamp-rounding-minutes '(1 1)
         org-agenda-clock-consistency-checks '(
                                               :max-duration "4:00"
@@ -791,7 +792,7 @@ A prefix arg forces clock in of the default task."
         ;;org-startup-with-inline-images nil
         ;; experimenting with docbook exports - not finished
         org-export-docbook-xsl-fo-proc-command "fop %s %s"
-        org-export-docbook-xslt-proc-command "xsltproc --output %s /usr/share/xml/docbook/stylesheet/nwalsh/fo/docbook.xsl %s"
+        org-export-docbook-xslt-proc-command "xsltproc --output %s /usr/share/xml/docbook/stylesheet/nwalsh/fo/docbook.xsl %s" ; ##TODO##
         ;; Inline images in HTML instead of producting links to the image
         org-html-inline-images t
         ;; Do not use sub or superscripts - I currently don't need this functionality in my documents
@@ -799,12 +800,18 @@ A prefix arg forces clock in of the default task."
         ;; Use org.css from the norang website for export document stylesheets
         org-html-head-extra "<link rel=\"stylesheet\" href=\"http://doc.norang.ca/org.css\" type=\"text/css\" />"
         org-html-head-include-default-style nil
+        ;; remove xml header line for html exports
+        (setq org-html-xml-declaration (quote (("html" . "")
+                                               ("was-html" . "<?xml version=\"1.0\" encoding=\"%s\"?>")
+                                               ("php" . "<?php echo \"<?xml version=\\\"1.0\\\" encoding=\\\"%s\\\" ?>\"; ?>"))))
+
         ;; Do not generate internal css formatting for HTML exports
         org-export-htmlize-output-type (quote css)
         ;; Export with LaTeX fragments
         org-export-with-LaTeX-fragments t
         ;; Increase default number of headings to export
         org-export-headline-levels 6
+        ;; allow #+BIND: vars to be set on export w/o confirmation
         org-export-allow-BIND t
         ;; narrowing
         org-show-entry-below '((default))
@@ -929,6 +936,7 @@ A prefix arg forces clock in of the default task."
                                   ("X" . ignore)
                                   ("Y" . ignore)
                                   ("Z" . ignore))
+        require-final-newline t
         )
 
   ;; Resume clocking task when emacs is restarted
@@ -1384,6 +1392,7 @@ Late deadlines first, then scheduled, then non-late deadlines"
 
   :init
   (require 'org-id)
+  (require 'org-checklist)
   )
 
 
@@ -1430,7 +1439,8 @@ Late deadlines first, then scheduled, then non-late deadlines"
   '(progn
      (message "Now loading org-latex export settings")
      ;; page break after toc
-     (setq org-latex-toc-command "\\tableofcontents \\clearpage")
+     (setq org-latex-toc-command "\\tableofcontents \\clearpage"
+           org-latex-listings t)
      ;; use with: #+LATEX_CLASS: myclass
      ;;#+LaTeX_CLASS_OPTIONS: [a4paper,twoside,twocolumn]
      (add-to-list 'org-latex-classes
