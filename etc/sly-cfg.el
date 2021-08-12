@@ -20,7 +20,7 @@
   :config
   (setq inferior-lisp-program "/usr/local/bin/sbcl"
         sly-net-coding-system 'utf-8-unix
-        sly-complete-symbol-function (quote slime-fuzzy-complete-symbol))
+        sly-complete-symbol-function 'sly-flex-completions)
   (add-to-list 'auto-mode-alist '("\\.lisp$" . lisp-mode))
   ;; Stop SLIME's REPL from grabbing DEL, which is annoying when backspacing over a '('
   (add-to-list 'auto-mode-alist '("sly-mrepl" . sly-mrepl-mode)))
