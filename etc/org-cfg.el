@@ -11,7 +11,6 @@
 
 ;; (use-package bbdb-com
 ;;   :ensure t)
-
 (use-package org
   :hook ((org-clock-out . bh/remove-empty-drawer-on-clock-out)
 	 (org-clock-out . bh/clock-out-maybe)
@@ -821,7 +820,7 @@ A prefix arg forces clock in of the default task."
 	;; Do not use sub or superscripts - I currently don't need this functionality in my documents
 	org-export-with-sub-superscripts nil
 	;; Use org.css from the norang website for export document stylesheets
-	org-html-head-extra "<link rel=\"stylesheet\" href=\"http://doc.norang.ca/org.css\" type=\"text/css\" />"
+	;; org-html-head-extra "<link rel=\"stylesheet\" href=\"http://doc.norang.ca/org.css\" type=\"text/css\" />"
 	org-html-head-include-default-style nil
 	;; remove xml header line for html exports
 	org-html-xml-declaration '(("html" . "")
@@ -1504,7 +1503,7 @@ Late deadlines first, then scheduled, then non-late deadlines"
 
 (use-package org-inlinetask
   :bind (:map org-mode-map
-	      ("C-c C-x t" . org-inlinetask-insert-task))
+	  ("C-c C-x t" . org-inlinetask-insert-task))
   :after (org)
   :commands (org-inlinetask-insert-task))
 
@@ -1546,25 +1545,25 @@ Late deadlines first, then scheduled, then non-late deadlines"
      (message "Now loading org-latex export settings")
      ;; page break after toc
      (setq org-latex-toc-command "\\tableofcontents \\clearpage"
-	   org-latex-listings t)
+       org-latex-listings t)
      ;; use with: #+LATEX_CLASS: myclass
      ;;#+LaTeX_CLASS_OPTIONS: [a4paper,twoside,twocolumn]
      (add-to-list 'org-latex-classes
-		  '("myclass" "\\documentclass[11pt,a4paper]{article}
-		     [NO-DEFAULT-PACKAGES]
-		     [NO-PACKAGES]"
-		    ("\\usepackage[utf8]{inputenc}")
-		    ("\\usepackage[T1]{fontenc}")
-		    ("\\usepackage{graphicx}")
-		    ("\\usepackage{longtable}")
-		    ("\\usepackage{amssymb}")
-		    ("\\usepackage[colorlinks=true,urlcolor=SteelBlue4,linkcolor=Firebrick4]{hyperref}")
-		    ("\\usepackage[hyperref,x11names]{xcolor}")
-		    ("\\section{%s}" . "\\section*{%s}")
-		    ("\\subsection{%s}" . "\\subsection*{%s}")
-		    ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
-		    ("\\paragraph{%s}" . "\\paragraph*{%s}")
-		    ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))))
+	  '("myclass" "\\documentclass[11pt,a4paper]{article}
+	     [NO-DEFAULT-PACKAGES]
+	     [NO-PACKAGES]"
+	    ("\\usepackage[utf8]{inputenc}")
+	    ("\\usepackage[T1]{fontenc}")
+	    ("\\usepackage{graphicx}")
+	    ("\\usepackage{longtable}")
+	    ("\\usepackage{amssymb}")
+	    ("\\usepackage[colorlinks=true,urlcolor=SteelBlue4,linkcolor=Firebrick4]{hyperref}")
+	    ("\\usepackage[hyperref,x11names]{xcolor}")
+	    ("\\section{%s}" . "\\section*{%s}")
+	    ("\\subsection{%s}" . "\\subsection*{%s}")
+	    ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+	    ("\\paragraph{%s}" . "\\paragraph*{%s}")
+	    ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))))
   )
 
 (provide 'org-cfg)

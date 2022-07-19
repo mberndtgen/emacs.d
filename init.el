@@ -16,16 +16,18 @@
 ;; package archives
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
 (add-to-list 'package-archives '("melpa-stable" . "https://stable.melpa.org/packages/") t)
-(add-to-list 'package-archives '("org" . "https://orgmode.org/elpa/") t)
+;;(add-to-list 'package-archives '("org-contrib" . "https://elpa.nongnu.org/nongnu/") t)
 (add-to-list 'package-archives '("gnu" . "https://elpa.gnu.org/packages/") t)
 (add-to-list 'package-pinned-packages '(cider . "melpa-stable") t)
 (add-to-list 'package-pinned-packages '(clj-refactor . "melpa-stable") t)
 (add-to-list 'package-pinned-packages '(cljr-helm . "melpa-stable") t)
 (add-to-list 'package-pinned-packages '(ac-cider . "melpa-stable") t)
-(setq package-archive-priorities '(("gnu" . 4)
-           ("org" . 3)
-           ("melpa" . 2)
-           ("melpa-stable" . 1)))
+;;(add-to-list 'package-archives '("org" . "http://orgmode.org/elpa/") t)
+
+(setq package-archive-priorities '(("gnu" . 3)
+                                   ("melpa" . 2)
+                                   ("melpa-stable" . 1)
+                                   ))
 
 (defvar init.el-errors '()
   "A list of errors that occured during initialization. Each error is of the form (LINE ERROR &rest ARGS).")

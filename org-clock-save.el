@@ -1,2 +1,2 @@
-;; org-clock-save.el - MacBook-Pro.local at <2021-07-06 Di 17:02>
-(setq org-clock-stored-history '(("/Users/mberndtgen/Dropbox/orgfiles/refile.org" . 1)))
+;; org-clock-save.el - MacBook-Pro.local at <2022-07-01 Fr 09:56>
+(setq org-clock-stored-history '(("/Users/v236177/Dropbox/orgfiles/work.org" . 80846) ("/Users/v236177/Dropbox/orgfiles/work.org" . 81054) ("/Users/v236177/Dropbox/orgfiles/work.org" . 81245) ("/Users/v236177/Dropbox/orgfiles/work.org" . 81383) ("/Users/v236177/Dropbox/orgfiles/work.org" . 81654) ("/Users/v236177/Dropbox/orgfiles/refile.org" . 6385) ("/Users/v236177/Dropbox/orgfiles/refile.org" . 6385) ("/Users/v236177/Dropbox/orgfiles/work.org" . 81912)))

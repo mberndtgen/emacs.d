@@ -1,8 +1,9 @@
-;;; python-cfg.el - enable python
+;;; package --- Set up python mode
 
-;;----------------------------------------------------------------------------
-;; python settings
-;;----------------------------------------------------------------------------
+;;; Commentary:
+
+;;; Code:
+
 (use-package ein
   :ensure t)
 
@@ -26,7 +27,11 @@
                                         ;(elpy-use-ipython)
     ))
 
+(use-package anaconda-mode
+  ;; see https://github.com/pythonic-emacs/anaconda-mode
+  :ensure t
+  :hook ((python-mode . anaconda-mode)))
 
 (provide 'python-cfg)
 
-;;; end of python-cfg.el
+;;; python-cfg.el ends here
