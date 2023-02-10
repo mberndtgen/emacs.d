@@ -80,23 +80,23 @@
 
 ;; exit behaviour
 ;; variable bnb/kill-emacs-hooks for functions that need to run before emacs is killed.
-(defvar bnb/kill-emacs-hooks)
-(add-hook 'bnb/kill-emacs-hooks
-          (lambda () (if (functionp 'server-edit)(server-edit))))
+;; (defvar bnb/kill-emacs-hooks)
+;; (add-hook 'bnb/kill-emacs-hooks
+;;           (lambda () (if (functionp 'server-edit)(server-edit))))
 
-(defvar bnb/really-kill-emacs nil)
-(defun bnb/kill-emacs ()
-  "Actually kill Emacs."
-  (interactive)
-  (setq bnb/really-kill-emacs t)
-  (kill-emacs))
+;; (defvar bnb/really-kill-emacs nil)
+;; (defun bnb/kill-emacs ()
+;;   "Actually kill Emacs."
+;;   (interactive)
+;;   (setq bnb/really-kill-emacs t)
+;;   (kill-emacs))
 
-(defadvice kill-emacs (around bnb/pardon-emacs activate)
-  "Only kill Emacs if a prefix is set."
-  (run-hooks 'bnb/kill-emacs-hooks)
-  (if bnb/really-kill-emacs
-      ad-do-it
-    (iconify-frame)))
+;; (defadvice kill-emacs (around bnb/pardon-emacs activate)
+;;   "Only kill Emacs if a prefix is set."
+;;   (run-hooks 'bnb/kill-emacs-hooks)
+;;   (if bnb/really-kill-emacs
+;;       ad-do-it
+;;     (iconify-frame)))
 
 ;; better window splitting functions
 (defun bnb/vplit-last-buffer ()

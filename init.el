@@ -7,6 +7,7 @@
 (make-directory (locate-user-emacs-file "local") :no-error)
 (add-to-list 'load-path "~/.emacs.d/lisp")
 (add-to-list 'load-path "~/.emacs.d/etc")
+(add-to-list 'load-path "~/.emacs.d/elpa/emacs-reveal")
 
 ;; Set up package manager
 (require 'package)
@@ -28,6 +29,8 @@
                                    ("melpa" . 2)
                                    ("melpa-stable" . 1)
                                    ))
+
+(setq byte-compile-warnings '(cl-functions))
 
 (defvar init.el-errors '()
   "A list of errors that occured during initialization. Each error is of the form (LINE ERROR &rest ARGS).")
@@ -399,42 +402,42 @@
 (global-set-key (kbd "C-c I") 'find-user-init-file)
 
 (advice-add 'display-startup-echo-area-message
-      :override #'ignore)
+            :override #'ignore)
 
 ;; starting and terminating
 ;; confirm termination unless running in daemon mode
-(if (daemonp)
-    nil
-  (setq confirm-kill-emacs 'yes-or-no-p))
+;; (if (daemonp)
+;;     nil
+;;   (setq confirm-kill-emacs 'yes-or-no-p))
 
 ;; define function to shutdown emacs server instance
-(defun server-shutdown ()
-  "Save buffers, Quit, and Shutdown (kill) server"
-  (interactive)
-  (save-some-buffers)
-  (kill-emacs))
+;; (defun server-shutdown ()
+;;   "Save buffers, Quit, and Shutdown (kill) server"
+;;   (interactive)
+;;   (save-some-buffers)
+;;   (kill-emacs))
 
 ;; run emacs as server
-(when (and (or (eq system-type 'windows-nt) (eq system-type 'darwin))
-     (not (and (boundp 'server-clients) server-clients))
-     (not (daemonp)))
-  (server-start))
+;; (when (and (or (eq system-type 'windows-nt) (eq system-type 'darwin))
+;;      (not (and (boundp 'server-clients) server-clients))
+;;      (not (daemonp)))
+;;   (server-start))
 
-(defun signal-restart-server ()
-  "Handler for SIGUSR1 signal, to (re)start an emacs server.
+;; (defun signal-restart-server ()
+;;   "Handler for SIGUSR1 signal, to (re)start an emacs server.
 
-Can be tested from within emacs with:
-  (signal-process (emacs-pid) 'sigusr1)
+;; Can be tested from within emacs with:
+;;   (signal-process (emacs-pid) 'sigusr1)
 
-or from the command line with:
-$ kill -USR1 <emacs-pid>
-$ emacsclient -c
-"
-  (interactive)
-  (server-force-delete)
-  (server-start))
+;; or from the command line with:
+;; $ kill -USR1 <emacs-pid>
+;; $ emacsclient -c
+;; "
+;;   (interactive)
+;;   (server-force-delete)
+;;   (server-start))
 
-(define-key special-event-map [sigusr1] 'signal-restart-server)
+;; (define-key special-event-map [sigusr1] 'signal-restart-server)
 
 ;; mode line style
 (set-face-attribute 'mode-line nil :box nil)
@@ -1011,11 +1014,11 @@ $ emacsclient -c
   ("M-Z" . avy-zap-up-to-char-dwim))
 
 ;; The edit server talks to Chrome and uses emacs to edit any text areas.
-(use-package edit-server
-  :ensure t
-  :defer 10
-  :init
-  (edit-server-start))
+;; (use-package edit-server
+;;   :ensure t
+;;   :defer 10
+;;   :init
+;;   (edit-server-start))
 
 ;; regexp builder
 (setq reb-re-syntax 'string)
@@ -1154,83 +1157,83 @@ $ emacsclient -c
          ("C-c q" . vr/query-replace)
          ("C-c m" . vr/mc-mark)))
 
-(use-package projectile
-  :ensure t
-  :bind (("C-c p" . projectile-command-map)
-         ("C-x w" . hydra-projectile-other-window/body)
-         ("C-c C-p" . hydra-projectile/body))
-  :config
-  (use-package counsel-projectile
-    :after (projectile)
-    :ensure t
-    :bind
-    (:map projectile-command-map
-          ("s s" . counsel-projectile-rg)
-          ("p" . counsel-projectile-switch-project))
-    :config
-    (define-key projectile-mode-map (kbd "s-d") 'projectile-find-dir)
-    (define-key projectile-mode-map (kbd "s-e") 'er/expand-region)
-    (define-key projectile-mode-map (kbd "s-f") 'projectile-find-file)
-    (define-key projectile-mode-map (kbd "s-g") 'projectile-grep)
-    (define-key projectile-mode-map (kbd "s-j") 'prelude-top-join-line)
-    (define-key projectile-mode-map (kbd "s-k") 'prelude-kill-whole-line)
-    (define-key projectile-mode-map (kbd "s-l") 'goto-line)
-    (define-key projectile-mode-map (kbd "s-m") 'magit-status)
-    (define-key projectile-mode-map (kbd "s-o") 'prelude-open-line-above)
-    (define-key projectile-mode-map (kbd "s-p") 'projectile-command-map)
-    (define-key projectile-mode-map (kbd "s-w") 'delete-frame)
-    (define-key projectile-mode-map (kbd "s-x") 'exchange-point-and-mark))
-  (when (eq system-type 'windows-nt)
-    (setq projectile-indexing-method 'native))
-  (setq projectile-enable-caching t
-        projectile-require-project-root t
-        projectile-mode-line '(:eval (format " 🛠[%s]" (projectile-project-name)))
-        projectile-completion-system 'default)
-  (add-to-list 'projectile-globally-ignored-directories "node_modules")
-  (projectile-mode)
-  (defhydra hydra-projectile-other-window (:color teal)
-    "projectile-other-window"
-    ("f"  projectile-find-file-other-window        "file")
-    ("g"  projectile-find-file-dwim-other-window   "file dwim")
-    ("d"  projectile-find-dir-other-window         "dir")
-    ("b"  projectile-switch-to-buffer-other-window "buffer")
-    ("q"  nil                                      "cancel" :color blue))
-  (defhydra hydra-projectile (:color teal :hint nil)
-    "
- PROJECTILE: %(projectile-project-root)
+;; (use-package projectile
+;;   :ensure t
+;;   :bind (("C-c p" . projectile-command-map)
+;;          ("C-x w" . hydra-projectile-other-window/body)
+;;          ("C-c C-p" . hydra-projectile/body))
+;;   :config
+;;   (use-package counsel-projectile
+;;     :after (projectile)
+;;     :ensure t
+;;     :bind
+;;     (:map projectile-command-map
+;;           ("s s" . counsel-projectile-rg)
+;;           ("p" . counsel-projectile-switch-project))
+;;     :config
+;;     (define-key projectile-mode-map (kbd "s-d") 'projectile-find-dir)
+;;     (define-key projectile-mode-map (kbd "s-e") 'er/expand-region)
+;;     (define-key projectile-mode-map (kbd "s-f") 'projectile-find-file)
+;;     (define-key projectile-mode-map (kbd "s-g") 'projectile-grep)
+;;     (define-key projectile-mode-map (kbd "s-j") 'prelude-top-join-line)
+;;     (define-key projectile-mode-map (kbd "s-k") 'prelude-kill-whole-line)
+;;     (define-key projectile-mode-map (kbd "s-l") 'goto-line)
+;;     (define-key projectile-mode-map (kbd "s-m") 'magit-status)
+;;     (define-key projectile-mode-map (kbd "s-o") 'prelude-open-line-above)
+;;     (define-key projectile-mode-map (kbd "s-p") 'projectile-command-map)
+;;     (define-key projectile-mode-map (kbd "s-w") 'delete-frame)
+;;     (define-key projectile-mode-map (kbd "s-x") 'exchange-point-and-mark))
+;;   (when (eq system-type 'windows-nt)
+;;     (setq projectile-indexing-method 'native))
+;;   (setq projectile-enable-caching t
+;;         projectile-require-project-root t
+;;         projectile-mode-line '(:eval (format " 🛠[%s]" (projectile-project-name)))
+;;         projectile-completion-system 'default)
+;;   (add-to-list 'projectile-globally-ignored-directories "node_modules")
+;;   (projectile-mode)
+;;   (defhydra hydra-projectile-other-window (:color teal)
+;;     "projectile-other-window"
+;;     ("f"  projectile-find-file-other-window        "file")
+;;     ("g"  projectile-find-file-dwim-other-window   "file dwim")
+;;     ("d"  projectile-find-dir-other-window         "dir")
+;;     ("b"  projectile-switch-to-buffer-other-window "buffer")
+;;     ("q"  nil                                      "cancel" :color blue))
+;;   (defhydra hydra-projectile (:color teal :hint nil)
+;;     "
+;;  PROJECTILE: %(projectile-project-root)
 
- Find File            Search/Tags          Buffers                Cache
-  ------------------------------------------------------------------------------------------
-  _C-f_: file            _r_: ag                _i_: Ibuffer           _c_: cache clear
-   _ff_: file dwim       _g_: update gtags      _b_: switch to buffer  _x_: remove known project
-   _fd_: file curr dir   _o_: multi-occur     _C-k_: Kill all buffers  _X_: cleanup non-existing
-    _r_: recent file                                               ^^^^_z_: cache current
-    _d_: dir
+;;  Find File            Search/Tags          Buffers                Cache
+;;   ------------------------------------------------------------------------------------------
+;;   _C-f_: file            _r_: ag                _i_: Ibuffer           _c_: cache clear
+;;    _ff_: file dwim       _g_: update gtags      _b_: switch to buffer  _x_: remove known project
+;;    _fd_: file curr dir   _o_: multi-occur     _C-k_: Kill all buffers  _X_: cleanup non-existing
+;;     _r_: recent file                                               ^^^^_z_: cache current
+;;     _d_: dir
 
-  "
-    ("r"   counsel-projectile-rg)
-    ("b"   projectile-switch-to-buffer)
-    ("c"   projectile-invalidate-cache)
-    ("d"   projectile-find-dir)
-    ("C-f" projectile-find-file)
-    ("ff"  projectile-find-file-dwim)
-    ("fd"  projectile-find-file-in-directory)
-    ("g"   ggtags-update-tags)
-    ("C-g" ggtags-update-tags)
-    ("i"   projectile-ibuffer)
-    ("K"   projectile-kill-buffers)
-    ("C-k" projectile-kill-buffers)
-    ("m"   projectile-multi-occur)
-    ("o"   projectile-multi-occur)
-    ("C-p" projectile-switch-project "switch project")
-    ("p"   projectile-switch-project)
-    ("s"   projectile-switch-project)
-    ("r"   projectile-recentf)
-    ("x"   projectile-remove-known-project)
-    ("X"   projectile-cleanup-known-projects)
-    ("z"   projectile-cache-current-file)
-    ("`"   hydra-projectile-other-window/body "other window")
-    ("q"   nil "cancel" :color blue)))
+;;   "
+;;     ("r"   counsel-projectile-rg)
+;;     ("b"   projectile-switch-to-buffer)
+;;     ("c"   projectile-invalidate-cache)
+;;     ("d"   projectile-find-dir)
+;;     ("C-f" projectile-find-file)
+;;     ("ff"  projectile-find-file-dwim)
+;;     ("fd"  projectile-find-file-in-directory)
+;;     ("g"   ggtags-update-tags)
+;;     ("C-g" ggtags-update-tags)
+;;     ("i"   projectile-ibuffer)
+;;     ("K"   projectile-kill-buffers)
+;;     ("C-k" projectile-kill-buffers)
+;;     ("m"   projectile-multi-occur)
+;;     ("o"   projectile-multi-occur)
+;;     ("C-p" projectile-switch-project "switch project")
+;;     ("p"   projectile-switch-project)
+;;     ("s"   projectile-switch-project)
+;;     ("r"   projectile-recentf)
+;;     ("x"   projectile-remove-known-project)
+;;     ("X"   projectile-cleanup-known-projects)
+;;     ("z"   projectile-cache-current-file)
+;;     ("`"   hydra-projectile-other-window/body "other window")
+;;     ("q"   nil "cancel" :color blue)))
 
 
 (defun centaur-tabs-hide-tab (x)
@@ -1259,7 +1262,7 @@ $ emacsclient -c
 
      ;; Is not magit buffer.
      (and (string-prefix-p "magit" name)
-    (not (file-name-extension name)))
+          (not (file-name-extension name)))
      )))
 
 (use-package centaur-tabs
@@ -1908,17 +1911,17 @@ $ emacsclient -c
      (eshell/alias "ll" "ls -Aloh")
      (eshell/alias "llc" "*ls -AlohG --color=always")))
 
-(defun eshell/gst (&rest args)
-  (magit-status-internal (pop args) nil)
-  (eshell/echo))
+;; (defun eshell/gst (&rest args)
+;;   (magit-status-internal (pop args) nil)
+;;   (eshell/echo))
 
-(defun eshell/gd (&rest args)
-  (magit-diff-unstaged)
-  (eshell/echo))
+;; (defun eshell/gd (&rest args)
+;;   (magit-diff-unstaged)
+;;   (eshell/echo))
 
-(defun eshell/gds (&rest args)
-  (magit-diff-staged)
-  (eshell/echo))
+;; (defun eshell/gds (&rest args)
+;;   (magit-diff-staged)
+;;   (eshell/echo))
 
 (use-package tex-site
   :defer 10
@@ -1929,25 +1932,25 @@ $ emacsclient -c
   (add-hook 'LaTeX-mode-hook 'auto-fill-mode)
   (add-hook 'LaTeX-mode-hook 'orgtbl-mode)
   (setq TeX-auto-untabify t
-  TeX-auto-save t
-  TeX-save-query nil
-  TeX-parse-self t
-  TeX-output-view-style
-  (if (eq system-type 'windows-nt)
-      (quote
-       (("^pdf$" "." "SumatraPDF.exe -reuse-instance %o")
-        ("^html?$" "." "start %o")))
-    (quote
-     (("^pdf$" "." "evince -f %o")
-      ("^html?$" "." "start %o"))))
-  TeX-command-extra-options "-shell-escape"
-  TeX-PDF-mode 1
-  TeX-engine 'xetex)
+        TeX-auto-save t
+        TeX-save-query nil
+        TeX-parse-self t
+        TeX-output-view-style
+        (if (eq system-type 'windows-nt)
+            (quote
+             (("^pdf$" "." "SumatraPDF.exe -reuse-instance %o")
+              ("^html?$" "." "start %o")))
+          (quote
+           (("^pdf$" "." "evince -f %o")
+            ("^html?$" "." "start %o"))))
+        TeX-command-extra-options "-shell-escape"
+        TeX-PDF-mode 1
+        TeX-engine 'xetex)
   (setq-default TeX-master nil)
   (add-to-list 'org-latex-packages-alist
-         '("" "tikz" t))
+               '("" "tikz" t))
   (add-to-list 'org-latex-packages-alist
-         '("" "minted" t))
+               '("" "minted" t))
   (setq org-latex-create-formula-image-program 'imagemagick)
   (eval-after-load "preview"
     '(add-to-list 'preview-default-preamble "\\PreviewEnvironment{tikzpicture}" t))
@@ -1956,38 +1959,38 @@ $ emacsclient -c
 (add-hook 'LaTeX-mode-hook 'turn-on-reftex)
 
 ;; magit support, see https://magit.vc/
-(use-package magit
-  :ensure t
-  :bind ("C-x g" . magit-status)
-  :init (setf magit-last-seen-setup-instructions "2.1.0")
-  :config
-  (setf vc-display-status nil
-  magit-push-always-verify nil)
-  (remove-hook 'git-commit-finish-query-functions
-         'git-commit-check-style-conventions)
-  (global-set-key (kbd "C-x M-g") 'magit-dispatch-popup))
+;; (use-package magit
+;;   :ensure t
+;;   :bind ("C-x g" . magit-status)
+;;   :init (setf magit-last-seen-setup-instructions "2.1.0")
+;;   :config
+;;   (setf vc-display-status nil
+;;   magit-push-always-verify nil)
+;;   (remove-hook 'git-commit-finish-query-functions
+;;          'git-commit-check-style-conventions)
+;;   (global-set-key (kbd "C-x M-g") 'magit-dispatch-popup))
 
 (use-package forge
   :ensure t
   :commands (forge-pull))
 
-(use-package magit-todos
-  :ensure t
-  :after magit
-  :hook (magit-mode-hook . magit-todos-mode))
+;; (use-package magit-todos
+;;   :ensure t
+;;   :after magit
+;;   :hook (magit-mode-hook . magit-todos-mode))
 
 ;; git timemachine
-(use-package git-timemachine
-  :disabled
-  :ensure t
-  :bind ("C-x C-g" . git-timemachine-toggle)
-  :config
-  (bind-keys
-   :map git-timemachine-mode-map
-   ("<M-up>" . git-timemachine-show-previous-revision)
-   ("<M-down>" . git-timemachine-show-next-revision)
-   ("<S-wheel-up>" . git-timemachine-show-previous-revision)
-   ("<S-wheel-down>" . git-timemachine-show-next-revision)))
+;; (use-package git-timemachine
+;;   :disabled
+;;   :ensure t
+;;   :bind ("C-x C-g" . git-timemachine-toggle)
+;;   :config
+;;   (bind-keys
+;;    :map git-timemachine-mode-map
+;;    ("<M-up>" . git-timemachine-show-previous-revision)
+;;    ("<M-down>" . git-timemachine-show-next-revision)
+;;    ("<S-wheel-up>" . git-timemachine-show-previous-revision)
+;;    ("<S-wheel-down>" . git-timemachine-show-next-revision)))
 
 ;; smerge
 (add-hook
@@ -2011,13 +2014,13 @@ $ emacsclient -c
   :ensure t
   :defer 10)
 
-(use-package gitconfig-mode
-  :ensure t
-  :defer t
-  :config (add-hook 'gitconfig-mode-hook
-        (lambda ()
-          (setf indent-tabs-mode nil
-          tab-width 4))))
+;; (use-package gitconfig-mode
+;;   :ensure t
+;;   :defer t
+;;   :config (add-hook 'gitconfig-mode-hook
+;;         (lambda ()
+;;           (setf indent-tabs-mode nil
+;;           tab-width 4))))
 
 (use-package octave
   :defer t
