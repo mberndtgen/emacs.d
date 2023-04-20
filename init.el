@@ -17,13 +17,11 @@
 ;; package archives
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
 (add-to-list 'package-archives '("melpa-stable" . "https://stable.melpa.org/packages/") t)
-;;(add-to-list 'package-archives '("org-contrib" . "https://elpa.nongnu.org/nongnu/") t)
 (add-to-list 'package-archives '("gnu" . "https://elpa.gnu.org/packages/") t)
 (add-to-list 'package-pinned-packages '(cider . "melpa-stable") t)
 (add-to-list 'package-pinned-packages '(clj-refactor . "melpa-stable") t)
 (add-to-list 'package-pinned-packages '(cljr-helm . "melpa-stable") t)
 (add-to-list 'package-pinned-packages '(ac-cider . "melpa-stable") t)
-;;(add-to-list 'package-archives '("org" . "http://orgmode.org/elpa/") t)
 
 (setq package-archive-priorities '(("gnu" . 3)
                                    ("melpa" . 2)
@@ -1299,12 +1297,7 @@
   :ensure t
   :diminish helm-mode
   :init
-  (require 'helm-config)
-  ;; Froma https://gist.github.com/antifuchs/9238468
-  ;;(define-key helm-map (kbd "<left>") 'helm-previous-source)
-  ;;(define-key helm-map (kbd "<right>") 'helm-next-source)
-  ;;helm-ff-lynx-style-map t
-  ;;helm-imenu-lynx-style-map t
+  ;; From https://gist.github.com/antifuchs/9238468
   (setq helm-idle-delay 0.0 ; update fast sources immediately (doesn't)
         helm-candidate-number-limit 100
         helm-input-idle-delay 0.01    ; this actually updates things reeeelatively quickly.
@@ -1334,91 +1327,6 @@
          ("C-x c b" . my/helm-do-grep-book-notes)
          ("C-x c SPC" . helm-all-mark-rings)))
 
-;; (use-package ivy
-;;   :ensure t
-;;   :defer 0.1
-;;   :delight " 🙘"
-;;   :bind
-;;   ("C-c C-r" . ivy-resume)
-;;   ("C-x B" . ivy-switch-buffer-other-window)
-;;   :custom
-;;   (ivy-count-format "(%d/%d) ")
-;;   (ivy-use-virtual-buffers t)
-;;   (ivy-display-style 'fancy)
-;;   (ivy-re-builders-alist
-;;    '((t . ivy--regex-fuzzy)))
-;;   :config
-;;   (ivy-mode))
-
-;; (use-package counsel
-;;   :after ivy
-;;   :delight " 𝖈"
-;;   :bind
-;;   ("s-M-x"   . counsel-M-x)
-;;   ("H-y"     . counsel-yank-pop)
-;;   ("C-x C-f" . counsel-find-file)
-;;   ("C-c a"   . counsel-rg)
-;;   ("H-h f"  . counsel-describe-function)
-;;   ("H-h v"  . counsel-describe-variable)
-;;   ("H-h l"  . counsel-find-library)
-;;   ("H-h i"  . counsel-info-lookup-symbol)
-;;   ("H-u"    . counsel-unicode-char)
-;;   :custom
-;;   (counsel-find-file-at-point t)
-;;   (enable-recursive-minibuffers t)
-;;   :config
-;;   (counsel-mode))
-
-;; (use-package smex
-;;   :delight
-;;   :ensure t
-;;   :config (smex-initialize))
-
-;; (use-package ivy-rich
-;;   :ensure t
-;;   :after ivy
-;;   :delight
-;;   :custom
-;;   (ivy-virtual-abbreviate 'full)
-;;   (ivy-rich-switch-buffer-align-virtual-buffer t))
-
-;; (use-package ivy-hydra
-;;   :ensure t
-;;   :after ivy)
-
-;; (use-package ivy-view
-;;   :ensure nil
-;;   :bind
-;;   ("H-[" . ivy-push-view)
-;;   ("H-]" . ivy-pop-view)
-;;   ("H-b" . ivy-switch-buffer)
-;;   :config
-;;   (setq ivy-use-virtual-buffers t))
-
-;; (use-package all-the-icons-ivy
-;;   :ensure t
-;;   :after ivy-mode)
-
-;; (use-package dashboard
-;;   :ensure t
-;;   :config
-;;   (dashboard-setup-startup-hook)
-;;   :init
-;;   (setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
-;;   (setq dashboard-startup-banner 'logo)
-;;   (setq dashboard-center-content t)
-;;   (setq dashboard-set-heading-icons t)
-;;   (setq dashboard-set-file-icons t)
-;;   (setq dashboard-set-navigator t)
-;;   (setq dashboard-set-init-info t)
-;;   (setq dashboard-items '((recents  . 5)
-;;                          (bookmarks . 5)
-;;                          (projects . 5)
-;;                          (agenda . 5)
-;;                          (registers . 5)))
-;;   (dashboard-modify-heading-icons '((recents . "file-text") (bookmarks . "book")))
-;;   )
-
 (use-package zoom
   :ensure t)
 
@@ -1430,25 +1338,6 @@
          ("C-x C-r" . counsel-recentf)
          ("s-E" . counsel-colors-emacs)
          ("s-W" . counsel-colors-web))
-  ;; :config
-  ;; (progn
-  ;;   ;; (ivy-mode 1)
-  ;;   ;; (setq ivy-use-virtual-buffers t)
-  ;;   ;; (define-key read-expression-map (kbd "C-r") #'counsel-expression-history)
-  ;;   (ivy-set-actions
-  ;;    'counsel-find-file
-  ;;    '(("d" (lambda (x) (delete-file (expand-file-name x)))
-  ;;       "delete")))
-  ;;   (ivy-set-actions
-  ;;    'ivy-switch-buffer
-  ;;    '(("k"
-  ;;       (Lambda (x)
-  ;;               (kill-buffer x)
-  ;;               (ivy--reset-state ivy-last))
-  ;;       "kill")
-  ;;      ("j"
-  ;;       ivy--switch-buffer-other-window-action
-  ;;       "other window"))))
   )
 
 ;; expand region: https://github.com/magnars/expand-region.el.
@@ -1947,10 +1836,11 @@
         TeX-PDF-mode 1
         TeX-engine 'xetex)
   (setq-default TeX-master nil)
-  (add-to-list 'org-latex-packages-alist
-               '("" "tikz" t))
-  (add-to-list 'org-latex-packages-alist
-               '("" "minted" t))
+  (setq org-latex-listings t)
+  (with-eval-after-load 'org
+    (add-to-list 'org-latex-packages-alist '("" "tikzposter" t))
+    (add-to-list 'org-latex-packages-alist '("" "tikz-cd" t))
+    (add-to-list 'org-latex-packages-alist '("" "minted" t)))
   (setq org-latex-create-formula-image-program 'imagemagick)
   (eval-after-load "preview"
     '(add-to-list 'preview-default-preamble "\\PreviewEnvironment{tikzpicture}" t))
@@ -2156,28 +2046,6 @@
   :ensure t
   :config
   (global-yascroll-bar-mode 1))
-
-;; (use-package compile-bind
-;;   :demand t
-;;   :bind (("C-h g" . compile-bind-set-command)
-;;          ("C-h G" . compile-bind-set-root-file))
-;;   :config
-;;   (progn
-;;     (setf compilation-always-kill t
-;;           compilation-scroll-output 'first-error
-;;           compile-bind-command (format "make -kj%d " (numcores)))
-;;     (when (executable-find "nmake.exe")
-;;       (compile-bind-set-command "nmake -nologo "))
-;;     (compile-bind* (current-global-map)
-;;                    ("C-x c" ""
-;;                     "C-x t" 'test
-;;                     "C-x C" 'clean))))
-
-
-;; Compile configuration
-;;(byte-recompile-directory "~/.emacs.d/lisp/" 0)
-;;(byte-recompile-directory "~/.emacs.d/etc/" 0)
-;;(byte-recompile-file "~/.emacs.d/init.el" nil 0)
 
 
 (provide 'init)
