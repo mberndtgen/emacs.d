@@ -15,6 +15,7 @@
 
 (use-package origami
   :ensure t
+  :defer t
   :hook (prog-mode . origami-mode)
   :custom
   (origami-show-fold-header t)
@@ -71,15 +72,13 @@ _c_lose node   _p_revious fold   toggle _a_ll        e_x_it
   :config
   (define-key enriched-mode-map "\C-m" nil))
 
-;; depends on slime, clojure-, and other modes
+;; depends on slime and other modes
 (use-package eval-in-repl
   :ensure t
   :hook ((cider-repl-mode . company-mode)
          (cider-mode . company-mode))
   :config
   ;;(add-hook 'lisp-mode-hook '(lambda () (local-set-key (kbd "<C-return>") 'eir-eval-in-slime)))
-  (define-key clojure-mode-map (kbd "<C-return>") 'eir-eval-in-cider)
-  (setq cider-overlays-use-font-lock t)
   ;; ielm support (for emacs lisp)
   (require 'eval-in-repl-ielm)
   ;; for .el files
@@ -102,7 +101,6 @@ _c_lose node   _p_revious fold   toggle _a_ll        e_x_it
   :ensure t
   :hook ((emacs-lisp-mode . aggressive-indent-mode)
          (css-mode . aggressive-indent-mode)
-         (clojure-mode . aggressive-indent-mode)
          (lisp-mode . aggressive-indent-mode)))
 
 ;; visually display kill ring
@@ -118,7 +116,6 @@ _c_lose node   _p_revious fold   toggle _a_ll        e_x_it
   :ensure t
   :hook ((emacs-lisp-mode . indent-guide-mode)
          (css-mode . indent-guide-mode)
-         (clojure-mode . indent-guide-mode)
          (lisp-mode . indent-guide-mode)
          (go-mode . indent-guide-mode)))
 
@@ -303,7 +300,6 @@ _c_lose node   _p_revious fold   toggle _a_ll        e_x_it
 (set-default-coding-systems 'utf-8)
 
 ;; prettify symbols for various modes
-(add-hook 'clojure-mode-hook 'my-add-pretty-lambda)
 (add-hook 'haskell-mode-hook 'my-add-pretty-lambda)
 (add-hook 'shen-mode-hook 'my-add-pretty-lambda)
 (add-hook 'tex-mode-hook 'my-add-pretty-lambda)

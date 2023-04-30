@@ -75,6 +75,9 @@ inserted between the braces between the braces."
   (setq compile-command "go generate && go build -v && go test -v && go vet")
   (setq compilation-read-command nil)
   :config
+  (defvar lsp-gopls-staticcheck)
+  (defvar lsp-eldoc-render-all)
+  (defvar lsp-gopls-complete-unimported)
   (add-to-list 'load-path (concat (getenv "HOME") "/go/bin"))
   ;; (local-set-key (kbd "M-*") 'pop-tag-mark)
   (add-hook 'go-mode-hook (lambda () (progn
@@ -131,4 +134,4 @@ inserted between the braces between the braces."
 
 (provide 'golang-cfg)
 
-;;; golang-cfg ends here
+;;; golang-cfg.el ends here

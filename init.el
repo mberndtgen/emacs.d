@@ -5,9 +5,16 @@
 ;;; Code:
 
 (make-directory (locate-user-emacs-file "local") :no-error)
-(add-to-list 'load-path "~/.emacs.d/lisp")
-(add-to-list 'load-path "~/.emacs.d/etc")
-(add-to-list 'load-path "~/.emacs.d/elpa/emacs-reveal")
+(let ((default-directory  "~/.emacs.d/"))
+  (add-to-list 'load-path "~/.emacs.d")
+  (normal-top-level-add-to-load-path '("lisp" "etc" "elpa/emacs-reveal")))
+
+;; Place to put local packages.
+(let* ((path (expand-file-name "lisp" user-emacs-directory))
+       (local-pkgs (mapcar 'file-name-directory (directory-files-recursively path "\\.el$"))))
+  (if (file-accessible-directory-p path)
+      (mapc (apply-partially 'add-to-list 'load-path) local-pkgs)
+    (make-directory path :parents)))
 
 ;; Set up package manager
 (require 'package)
@@ -18,10 +25,6 @@
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
 (add-to-list 'package-archives '("melpa-stable" . "https://stable.melpa.org/packages/") t)
 (add-to-list 'package-archives '("gnu" . "https://elpa.gnu.org/packages/") t)
-(add-to-list 'package-pinned-packages '(cider . "melpa-stable") t)
-(add-to-list 'package-pinned-packages '(clj-refactor . "melpa-stable") t)
-(add-to-list 'package-pinned-packages '(cljr-helm . "melpa-stable") t)
-(add-to-list 'package-pinned-packages '(ac-cider . "melpa-stable") t)
 
 (setq package-archive-priorities '(("gnu" . 3)
                                    ("melpa" . 2)
@@ -31,7 +34,7 @@
 (setq byte-compile-warnings '(cl-functions))
 
 (defvar init.el-errors '()
-  "A list of errors that occured during initialization. Each error is of the form (LINE ERROR &rest ARGS).")
+  "List of errors that occured during initialization.")
 
 (defvar init.el-line 0
   "Approximation to the currently executed line in this file.")
@@ -44,6 +47,11 @@
 
 ;; performance and statistics
 ;; output see *Messages* buffer
+(defvar use-package-verbose)
+(defvar use-package-compute-statistics)
+(defvar use-package-minimum-reported-time)
+(defvar use-package-always-ensure)
+
 (setq use-package-verbose t
       use-package-compute-statistics t
       use-package-minimum-reported-time 0)
@@ -91,38 +99,31 @@
 (setq backup-by-copying t
       create-lockfiles nil
       backup-directory-alist '((".*" . "~/.saves"))
-      ;; auto-save-file-name-transforms `((".*" "~/.saves" t))
       delete-old-versions t
       kept-new-versions 6
       kept-old-versions 2
       version-control t)
 
-;; dash at point
-;; (when (eq system-type 'darwin)
-;;   (when (not (package-installed-p 'dash-at-point))
-;;     (package-install 'dash-at-point))
-;;   ;; dash-at-point
-;;   (autoload 'dash-at-point "dash-at-point" "Search the word at point with Dash." t nil)
-;;   (global-set-key "\C-cd" 'dash-at-point))
-
 ;; Define `expose' since it's used everywhere.
 (defun expose (function &rest args)
-  "Return an interactive version of FUNCTION, 'exposing' it to the user."
+  "Return interactive version of FUNCTION, 'exposing' it to user."
   (lambda ()
     (interactive)
     (apply function args)))
 
 ;; Some global keybindings
 ;;
+(defvar mac-pass-command-to-system)
+
 (if (eq system-type 'darwin)
     (setq mac-function-modifier 'hyper
           mac-right-option-modifier 'super
-          mac-right-command-modifier 'super
+          mac-right-command-modifier 'meta
           mac-right-control-modifier 'ctrl
           mac-pass-command-to-system nil
-          mac-command-modifier 'meta ; make opt key do Super
-          mac-control-modifier 'ctrl ; make Control key do Control
-          mac-option-modifier 'none
+          mac-command-modifier 'meta    ; make opt key do Super
+          mac-control-modifier 'ctrl    ; make Control key do Control
+          mac-option-modifier 'super
           ns-function-modifier 'hyper))
 (if (eq system-type 'gnu/linux)
     nil)
@@ -130,7 +131,6 @@
     nil)
 
 (global-set-key (kbd "C-j") #'join-line)
-;;(global-set-key (kbd "M-g") #'goto-line)
 (global-set-key (kbd "C-x C-k") #'compile)
 (global-set-key (kbd "<f4>") (expose #'revert-buffer nil t))
 (global-set-key (kbd "C-=") #'calc)
@@ -152,158 +152,157 @@
 (add-to-list 'auto-mode-alist '("\\.el$" . emacs-lisp-mode))
 (add-to-list 'auto-mode-alist '("\\.ino$" . arduino-mode))
 
+(defvar network-security-level)
 (setq network-security-level 'high)
 
 ;; Frames and fonts
 
-;; (add-to-list 'default-frame-alist
-;;              '(font . "Fira Code-16"))
+(add-to-list 'default-frame-alist
+             '(font . "Fira Code-16"))
 
-;; (defun my-set-frame-fullscreen (&optional frame)
-;;   (set-frame-parameter frame 'fullscreen 'fullheight))
 
-(use-package ring
-  :bind (("H-f" . bnb/font-next)
-         ("H-F" . bnb/font-prev))
-  :config
-  (setq bnb/fontlist '("Fira Code-13" "Source Code Pro-13")
-        bnb/font-ring
-        (ring-convert-sequence-to-ring bnb/fontlist)
-        bnb/font
-        (ring-ref bnb/font-ring 0))
-  (defun bnb/font-apply (font)
-    "Change the default font to FONT."
-    (set-frame-font (setq bnb/font font))
-    (message "Set default font to %s" bnb/font))
-  (defun bnb/font-next ()
-    "Cycle the default font to the next in the ring."
-    (interactive)
-    (bnb/font-apply (ring-next bnb/font-ring bnb/font)))
-  (defun bnb/font-prev ()
-    "Cycle the default font to the previous in the ring."
-    (interactive)
-    (bnb/font-apply (ring-prev bnb/font-ring bnb/font)))
-  (set-frame-font bnb/font))
+;; (use-package ring
+;;   :bind (("H-f" . bnb/font-next)
+;;          ("H-F" . bnb/font-prev))
+;;   :config
+;;   (setq bnb/fontlist '("Fira Code-13" "Source Code Pro-13")
+;;         bnb/font-ring
+;;         (ring-convert-sequence-to-ring bnb/fontlist)
+;;         bnb/font
+;;         (ring-ref bnb/font-ring 0))
+;;   (defun bnb/font-apply (font)
+;;     "Change the default font to FONT."
+;;     (set-frame-font (setq bnb/font font))
+;;     (message "Set default font to %s" bnb/font))
+;;   (defun bnb/font-next ()
+;;     "Cycle the default font to the next in the ring."
+;;     (interactive)
+;;     (bnb/font-apply (ring-next bnb/font-ring bnb/font)))
+;;   (defun bnb/font-prev ()
+;;     "Cycle the default font to the previous in the ring."
+;;     (interactive)
+;;     (bnb/font-apply (ring-prev bnb/font-ring bnb/font)))
+;;   (set-frame-font bnb/font))
 
 (defconst fira-code-font-lock-keywords-alist
   (mapcar (lambda (regex-char-pair)
-      `(,(car regex-char-pair)
-        (0 (prog1 ()
-       (compose-region (match-beginning 1)
-           (match-end 1)
-           ;; The first argument to concat is a string containing a literal tab
-           ,(concat " " (list (decode-char 'ucs (cadr regex-char-pair)))))))))
-    '(("\\(www\\)"                   #Xe100)
-      ("[^/]\\(\\*\\*\\)[^/]"        #Xe101)
-      ("\\(\\*\\*\\*\\)"             #Xe102)
-      ("\\(\\*\\*/\\)"               #Xe103)
-      ("\\(\\*>\\)"                  #Xe104)
-      ("[^*]\\(\\*/\\)"              #Xe105)
-      ("\\(\\\\\\\\\\)"              #Xe106)
-      ("\\(\\\\\\\\\\\\\\)"          #Xe107)
-      ("\\({-\\)"                    #Xe108)
-      ("\\(\\[\\]\\)"                #Xe109)
-      ("\\(::\\)"                    #Xe10a)
-      ("\\(:::\\)"                   #Xe10b)
-      ("[^=]\\(:=\\)"                #Xe10c)
-      ("\\(!!\\)"                    #Xe10d)
-      ("\\(!=\\)"                    #Xe10e)
-      ("\\(!==\\)"                   #Xe10f)
-      ("\\(-}\\)"                    #Xe110)
-      ("\\(--\\)"                    #Xe111)
-      ("\\(---\\)"                   #Xe112)
-      ("\\(-->\\)"                   #Xe113)
-      ("[^-]\\(->\\)"                #Xe114)
-      ("\\(->>\\)"                   #Xe115)
-      ("\\(-<\\)"                    #Xe116)
-      ("\\(-<<\\)"                   #Xe117)
-      ("\\(-~\\)"                    #Xe118)
-      ("\\(#{\\)"                    #Xe119)
-      ("\\(#\\[\\)"                  #Xe11a)
-      ("\\(##\\)"                    #Xe11b)
-      ("\\(###\\)"                   #Xe11c)
-      ("\\(####\\)"                  #Xe11d)
-      ("\\(#(\\)"                    #Xe11e)
-      ("\\(#\\?\\)"                  #Xe11f)
-      ("\\(#_\\)"                    #Xe120)
-      ("\\(#_(\\)"                   #Xe121)
-      ("\\(\\.-\\)"                  #Xe122)
-      ("\\(\\.=\\)"                  #Xe123)
-      ("\\(\\.\\.\\)"                #Xe124)
-      ("\\(\\.\\.<\\)"               #Xe125)
-      ("\\(\\.\\.\\.\\)"             #Xe126)
-      ("\\(\\?=\\)"                  #Xe127)
-      ("\\(\\?\\?\\)"                #Xe128)
-      ("\\(;;\\)"                    #Xe129)
-      ("\\(/\\*\\)"                  #Xe12a)
-      ("\\(/\\*\\*\\)"               #Xe12b)
-      ("\\(/=\\)"                    #Xe12c)
-      ("\\(/==\\)"                   #Xe12d)
-      ("\\(/>\\)"                    #Xe12e)
-      ("\\(//\\)"                    #Xe12f)
-      ("\\(///\\)"                   #Xe130)
-      ("\\(&&\\)"                    #Xe131)
-      ("\\(||\\)"                    #Xe132)
-      ("\\(||=\\)"                   #Xe133)
-      ("[^|]\\(|=\\)"                #Xe134)
-      ("\\(|>\\)"                    #Xe135)
-      ("\\(\\^=\\)"                  #Xe136)
-      ("\\(\\$>\\)"                  #Xe137)
-      ("\\(\\+\\+\\)"                #Xe138)
-      ("\\(\\+\\+\\+\\)"             #Xe139)
-      ("\\(\\+>\\)"                  #Xe13a)
-      ("\\(=:=\\)"                   #Xe13b)
-      ("[^!/]\\(==\\)[^>]"           #Xe13c)
-      ("\\(===\\)"                   #Xe13d)
-      ("\\(==>\\)"                   #Xe13e)
-      ("[^=]\\(=>\\)"                #Xe13f)
-      ("\\(=>>\\)"                   #Xe140)
-      ("\\(<=\\)"                    #Xe141)
-      ("\\(=<<\\)"                   #Xe142)
-      ("\\(=/=\\)"                   #Xe143)
-      ("\\(>-\\)"                    #Xe144)
-      ("\\(>=\\)"                    #Xe145)
-      ("\\(>=>\\)"                   #Xe146)
-      ("[^-=]\\(>>\\)"               #Xe147)
-      ("\\(>>-\\)"                   #Xe148)
-      ("\\(>>=\\)"                   #Xe149)
-      ("\\(>>>\\)"                   #Xe14a)
-      ("\\(<\\*\\)"                  #Xe14b)
-      ("\\(<\\*>\\)"                 #Xe14c)
-      ("\\(<|\\)"                    #Xe14d)
-      ("\\(<|>\\)"                   #Xe14e)
-      ("\\(<\\$\\)"                  #Xe14f)
-      ("\\(<\\$>\\)"                 #Xe150)
-      ("\\(<!--\\)"                  #Xe151)
-      ("\\(<-\\)"                    #Xe152)
-      ("\\(<--\\)"                   #Xe153)
-      ("\\(<->\\)"                   #Xe154)
-      ("\\(<\\+\\)"                  #Xe155)
-      ("\\(<\\+>\\)"                 #Xe156)
-      ("\\(<=\\)"                    #Xe157)
-      ("\\(<==\\)"                   #Xe158)
-      ("\\(<=>\\)"                   #Xe159)
-      ("\\(<=<\\)"                   #Xe15a)
-      ("\\(<>\\)"                    #Xe15b)
-      ("[^-=]\\(<<\\)"               #Xe15c)
-      ("\\(<<-\\)"                   #Xe15d)
-      ("\\(<<=\\)"                   #Xe15e)
-      ("\\(<<<\\)"                   #Xe15f)
-      ("\\(<~\\)"                    #Xe160)
-      ("\\(<~~\\)"                   #Xe161)
-      ("\\(</\\)"                    #Xe162)
-      ("\\(</>\\)"                   #Xe163)
-      ("\\(~@\\)"                    #Xe164)
-      ("\\(~-\\)"                    #Xe165)
-      ("\\(~=\\)"                    #Xe166)
-      ("\\(~>\\)"                    #Xe167)
-      ("[^<]\\(~~\\)"                #Xe168)
-      ("\\(~~>\\)"                   #Xe169)
-      ("\\(%%\\)"                    #Xe16a)
-      ;; ("\\(x\\)"                   #Xe16b) This ended up being hard to do properly so i'm leaving it out.
-      ("[^:=]\\(:\\)[^:=]"           #Xe16c)
-      ("[^\\+<>]\\(\\+\\)[^\\+<>]"   #Xe16d)
-      ("[^\\*/<>]\\(\\*\\)[^\\*/<>]" #Xe16f))))
+            `(,(car regex-char-pair)
+              (0 (prog1 ()
+                   (compose-region (match-beginning 1)
+                                   (match-end 1)
+                                   ;; The first argument to concat is a string containing a literal tab
+                                   ,(concat " " (list (decode-char 'ucs (cadr regex-char-pair)))))))))
+          '(("\\(www\\)"                   #Xe100)
+            ("[^/]\\(\\*\\*\\)[^/]"        #Xe101)
+            ("\\(\\*\\*\\*\\)"             #Xe102)
+            ("\\(\\*\\*/\\)"               #Xe103)
+            ("\\(\\*>\\)"                  #Xe104)
+            ("[^*]\\(\\*/\\)"              #Xe105)
+            ("\\(\\\\\\\\\\)"              #Xe106)
+            ("\\(\\\\\\\\\\\\\\)"          #Xe107)
+            ("\\({-\\)"                    #Xe108)
+            ("\\(\\[\\]\\)"                #Xe109)
+            ("\\(::\\)"                    #Xe10a)
+            ("\\(:::\\)"                   #Xe10b)
+            ("[^=]\\(:=\\)"                #Xe10c)
+            ("\\(!!\\)"                    #Xe10d)
+            ("\\(!=\\)"                    #Xe10e)
+            ("\\(!==\\)"                   #Xe10f)
+            ("\\(-}\\)"                    #Xe110)
+            ("\\(--\\)"                    #Xe111)
+            ("\\(---\\)"                   #Xe112)
+            ("\\(-->\\)"                   #Xe113)
+            ("[^-]\\(->\\)"                #Xe114)
+            ("\\(->>\\)"                   #Xe115)
+            ("\\(-<\\)"                    #Xe116)
+            ("\\(-<<\\)"                   #Xe117)
+            ("\\(-~\\)"                    #Xe118)
+            ("\\(#{\\)"                    #Xe119)
+            ("\\(#\\[\\)"                  #Xe11a)
+            ("\\(##\\)"                    #Xe11b)
+            ("\\(###\\)"                   #Xe11c)
+            ("\\(####\\)"                  #Xe11d)
+            ("\\(#(\\)"                    #Xe11e)
+            ("\\(#\\?\\)"                  #Xe11f)
+            ("\\(#_\\)"                    #Xe120)
+            ("\\(#_(\\)"                   #Xe121)
+            ("\\(\\.-\\)"                  #Xe122)
+            ("\\(\\.=\\)"                  #Xe123)
+            ("\\(\\.\\.\\)"                #Xe124)
+            ("\\(\\.\\.<\\)"               #Xe125)
+            ("\\(\\.\\.\\.\\)"             #Xe126)
+            ("\\(\\?=\\)"                  #Xe127)
+            ("\\(\\?\\?\\)"                #Xe128)
+            ("\\(;;\\)"                    #Xe129)
+            ("\\(/\\*\\)"                  #Xe12a)
+            ("\\(/\\*\\*\\)"               #Xe12b)
+            ("\\(/=\\)"                    #Xe12c)
+            ("\\(/==\\)"                   #Xe12d)
+            ("\\(/>\\)"                    #Xe12e)
+            ("\\(//\\)"                    #Xe12f)
+            ("\\(///\\)"                   #Xe130)
+            ("\\(&&\\)"                    #Xe131)
+            ("\\(||\\)"                    #Xe132)
+            ("\\(||=\\)"                   #Xe133)
+            ("[^|]\\(|=\\)"                #Xe134)
+            ("\\(|>\\)"                    #Xe135)
+            ("\\(\\^=\\)"                  #Xe136)
+            ("\\(\\$>\\)"                  #Xe137)
+            ("\\(\\+\\+\\)"                #Xe138)
+            ("\\(\\+\\+\\+\\)"             #Xe139)
+            ("\\(\\+>\\)"                  #Xe13a)
+            ("\\(=:=\\)"                   #Xe13b)
+            ("[^!/]\\(==\\)[^>]"           #Xe13c)
+            ("\\(===\\)"                   #Xe13d)
+            ("\\(==>\\)"                   #Xe13e)
+            ("[^=]\\(=>\\)"                #Xe13f)
+            ("\\(=>>\\)"                   #Xe140)
+            ("\\(<=\\)"                    #Xe141)
+            ("\\(=<<\\)"                   #Xe142)
+            ("\\(=/=\\)"                   #Xe143)
+            ("\\(>-\\)"                    #Xe144)
+            ("\\(>=\\)"                    #Xe145)
+            ("\\(>=>\\)"                   #Xe146)
+            ("[^-=]\\(>>\\)"               #Xe147)
+            ("\\(>>-\\)"                   #Xe148)
+            ("\\(>>=\\)"                   #Xe149)
+            ("\\(>>>\\)"                   #Xe14a)
+            ("\\(<\\*\\)"                  #Xe14b)
+            ("\\(<\\*>\\)"                 #Xe14c)
+            ("\\(<|\\)"                    #Xe14d)
+            ("\\(<|>\\)"                   #Xe14e)
+            ("\\(<\\$\\)"                  #Xe14f)
+            ("\\(<\\$>\\)"                 #Xe150)
+            ("\\(<!--\\)"                  #Xe151)
+            ("\\(<-\\)"                    #Xe152)
+            ("\\(<--\\)"                   #Xe153)
+            ("\\(<->\\)"                   #Xe154)
+            ("\\(<\\+\\)"                  #Xe155)
+            ("\\(<\\+>\\)"                 #Xe156)
+            ("\\(<=\\)"                    #Xe157)
+            ("\\(<==\\)"                   #Xe158)
+            ("\\(<=>\\)"                   #Xe159)
+            ("\\(<=<\\)"                   #Xe15a)
+            ("\\(<>\\)"                    #Xe15b)
+            ("[^-=]\\(<<\\)"               #Xe15c)
+            ("\\(<<-\\)"                   #Xe15d)
+            ("\\(<<=\\)"                   #Xe15e)
+            ("\\(<<<\\)"                   #Xe15f)
+            ("\\(<~\\)"                    #Xe160)
+            ("\\(<~~\\)"                   #Xe161)
+            ("\\(</\\)"                    #Xe162)
+            ("\\(</>\\)"                   #Xe163)
+            ("\\(~@\\)"                    #Xe164)
+            ("\\(~-\\)"                    #Xe165)
+            ("\\(~=\\)"                    #Xe166)
+            ("\\(~>\\)"                    #Xe167)
+            ("[^<]\\(~~\\)"                #Xe168)
+            ("\\(~~>\\)"                   #Xe169)
+            ("\\(%%\\)"                    #Xe16a)
+            ;; ("\\(x\\)"                   #Xe16b) This ended up being hard to do properly so i'm leaving it out.
+            ("[^:=]\\(:\\)[^:=]"           #Xe16c)
+            ("[^\\+<>]\\(\\+\\)[^\\+<>]"   #Xe16d)
+            ("[^\\*/<>]\\(\\*\\)[^\\*/<>]" #Xe16f))))
 
 (defun add-fira-code-symbol-keywords ()
   (font-lock-add-keywords nil fira-code-font-lock-keywords-alist))
@@ -315,34 +314,35 @@
   (unicode-fonts-setup))
 
 ;; dynamic font sizes
-(defun bnb/change-frame-font-size (fn)
-  "Change the frame font size according to function FN."
-  (let* ((font-name (frame-parameter nil 'font))
-   (decomposed-font-name (x-decompose-font-name font-name))
-   (font-size (string-to-number (aref decomposed-font-name 5))))
-    (aset decomposed-font-name 5 (int-to-string (funcall fn font-size)))
-    (set-frame-font (x-compose-font-name decomposed-font-name))))
+;; (defun bnb/change-frame-font-size (fn)
+;;   "Change the frame font size according to function FN."
+;;   (let* ((font-name (frame-parameter nil 'font))
+;;    (decomposed-font-name (x-decompose-font-name font-name))
+;;    (font-size (string-to-number (aref decomposed-font-name 5))))
+;;     (aset decomposed-font-name 5 (int-to-string (funcall fn font-size)))
+;;     (set-frame-font (x-compose-font-name decomposed-font-name))))
 
-(defun bnb/frame-text-scale-increase ()
-  "Increase the frame font size by 1."
-  (interactive)
-  (bnb/change-frame-font-size '1+))
+;; (defun bnb/frame-text-scale-increase ()
+;;   "Increase the frame font size by 1."
+;;   (interactive)
+;;   (bnb/change-frame-font-size '1+))
 
-(defun bnb/frame-text-scale-decrease ()
-  "Decrease the frame font size by 1."
-  (interactive)
-  (bnb/change-frame-font-size '1-))
+;; (defun bnb/frame-text-scale-decrease ()
+;;   "Decrease the frame font size by 1."
+;;   (interactive)
+;;   (bnb/change-frame-font-size '1-))
 
 (bind-keys
  ("C-+" . text-scale-increase)
  ("C--" . text-scale-decrease)
- ("s--" . bnb/frame-text-scale-decrease)
- ("s-+" . bnb/frame-text-scale-increase)
- ("s-=" . bnb/frame-text-scale-increase))
+ ;; ("s--" . bnb/frame-text-scale-decrease)
+ ;; ("s-+" . bnb/frame-text-scale-increase)
+ ;; ("s-=" . bnb/frame-text-scale-increase)
+ )
 
 ;; If I ever use a font with a missing glyph, this will let Emacs check the Symbola font for the missing data.
 (set-fontset-font "fontset-default" nil
-      (font-spec :size 20 :name "Symbola"))
+                  (font-spec :size 20 :name "Symbola"))
 
 ;; Make the cursor the full width of the character at point.
 (setq x-stretch-cursor t)
@@ -369,14 +369,6 @@
 ;;; M - Cmd key
 ;;; C - Ctrl key
 ;;; s - Option key
-;;(global-set-key (kbd "C-c s") 'slime-selector)
-;; (global-set-key (kbd "H-ü") "|")
-;; (global-set-key (kbd "H-2") "@")
-;; (global-set-key (kbd "H-ö") "[")
-;; (global-set-key (kbd "H-ä") "]")
-;; (global-set-key (kbd "H-p") "{")
-;; (global-set-key (kbd "H-+") "}")
-;; (global-set-key (kbd "H-<") "~")
 
 (custom-set-variables
  '(ansi-color-faces-vector [default bold shadow italic underline bold bold-italic bold])
@@ -401,41 +393,6 @@
 
 (advice-add 'display-startup-echo-area-message
             :override #'ignore)
-
-;; starting and terminating
-;; confirm termination unless running in daemon mode
-;; (if (daemonp)
-;;     nil
-;;   (setq confirm-kill-emacs 'yes-or-no-p))
-
-;; define function to shutdown emacs server instance
-;; (defun server-shutdown ()
-;;   "Save buffers, Quit, and Shutdown (kill) server"
-;;   (interactive)
-;;   (save-some-buffers)
-;;   (kill-emacs))
-
-;; run emacs as server
-;; (when (and (or (eq system-type 'windows-nt) (eq system-type 'darwin))
-;;      (not (and (boundp 'server-clients) server-clients))
-;;      (not (daemonp)))
-;;   (server-start))
-
-;; (defun signal-restart-server ()
-;;   "Handler for SIGUSR1 signal, to (re)start an emacs server.
-
-;; Can be tested from within emacs with:
-;;   (signal-process (emacs-pid) 'sigusr1)
-
-;; or from the command line with:
-;; $ kill -USR1 <emacs-pid>
-;; $ emacsclient -c
-;; "
-;;   (interactive)
-;;   (server-force-delete)
-;;   (server-start))
-
-;; (define-key special-event-map [sigusr1] 'signal-restart-server)
 
 ;; mode line style
 (set-face-attribute 'mode-line nil :box nil)
@@ -487,14 +444,14 @@
   :commands (rainbow-mode)
   :ensure t)
 
-(use-package kurecolor
-  :bind (("H-k" . kurecolor-increase-hue-by-step)
-         ("H-j" . kurecolor-decrease-hue-by-step)
-         ("s-k" . kurecolor-increase-saturation-by-step)
-         ("s-j" . kurecolor-decrease-saturation-by-step)
-         ("s-l" . kurecolor-increase-brightness-by-step)
-         ("s-h" . kurecolor-decrease-brightness-by-step))
-  :ensure t)
+;; (use-package kurecolor
+;;   :bind (("H-k" . kurecolor-increase-hue-by-step)
+;;          ("H-j" . kurecolor-decrease-hue-by-step)
+;;          ("s-k" . kurecolor-increase-saturation-by-step)
+;;          ("s-j" . kurecolor-decrease-saturation-by-step)
+;;          ("s-l" . kurecolor-increase-brightness-by-step)
+;;          ("s-h" . kurecolor-decrease-brightness-by-step))
+;;   :ensure t)
 
 ;; hydra
 (use-package hydra
@@ -576,10 +533,13 @@
 ;; beacon: highlight cursor
 ;; https://github.com/Malabarba/beacon
 (use-package beacon
-  :ensure t)
+  :ensure t
+  :hook (after.init . 'beacon-mode)
+  :config (progn (setq beacon-push-mark 35)
+                 (setq beacon-color "#666600")))
 
-(with-eval-after-load "beacon"
-  (beacon-mode 1))
+;; (With-eval-after-load "beacon"
+;;                       (beacon-mode 1))
 
 ;; goto-line-preview
 ;; https://github.com/jcs-elpa/goto-line-preview
@@ -615,27 +575,12 @@
   (interactive)
   (revert-buffer :ignore-auto :noconfirm))
 
-;; scroll screen without moving the cursor
-(defun bnb/scroll-up-1 ()
-  "Scroll up by one line."
-  (interactive)
-  (cua-scroll-up 1))
-
-(defun bnb/scroll-down-1 ()
-  "Scroll down by one line."
-  (interactive)
-  (cua-scroll-down 1))
-
-(bind-keys
- ("M-n" . bnb/scroll-up-1)
- ("M-p" . bnb/scroll-down-1))
-
 ;; align text by regexp
 (bind-key "C-c TAB" 'align-regexp)
 
 ;; kill current buffer (instead of asking which one)
 (defun bnb/kill-this-buffer ()
-  "Kill the current buffer"
+  "Kill the current buffer."
   (interactive)
   (kill-buffer (current-buffer)))
 
@@ -643,28 +588,30 @@
  ("C-x C-k" . bnb/kill-this-buffer))
 
 ;; no duplicates in minibuffer history
+(defvar savehist-additional-variables)
+(defvar savehist-file)
 (setq history-delete-duplicates t)
 (setq savehist-additional-variables '(search-ring regexp-search-ring)
       savehist-file "~/.emacs.d/savehist")
 (savehist-mode t)
 
-;; abbrev
-(bind-key "C-x C-i" 'bnb/ispell-word-then-abbrev)
+;; abbrev - now crux
+;;(bind-key "C-x C-i" 'bnb/ispell-word-then-abbrev)
 
-(defun bnb/ispell-word-then-abbrev (p)
-  "Call `ispell-word'. Then create an abbrev for the correction
-    made. With prefix P, create local abbrev. Otherwise, it will be
-    global."
-  (interactive "P")
-  (let ((bef (downcase (or (thing-at-point 'word) ""))) aft)
-    (call-interactively 'ispell-word)
-    (setq aft (downcase (or (thing-at-point 'word) "")))
-    (unless (string= aft bef)
-      (message "\"%s\" now expands to \"%s\" %sally"
-         bef aft (if p "loc" "glob"))
-      (define-abbrev
-  (if p global-abbrev-table local-abbrev-table)
-  bef aft))))
+;; (defun bnb/ispell-word-then-abbrev (p)
+;;   "Call `ispell-word'. Then create an abbrev for the correction
+;;     made. With prefix P, create local abbrev. Otherwise, it will be
+;;     global."
+;;   (interactive "P")
+;;   (let ((bef (downcase (or (thing-at-point 'word) ""))) aft)
+;;     (call-interactively 'ispell-word)
+;;     (setq aft (downcase (or (thing-at-point 'word) "")))
+;;     (unless (string= aft bef)
+;;       (message "\"%s\" now expands to \"%s\" %sally"
+;;          bef aft (if p "loc" "glob"))
+;;       (define-abbrev
+;;   (if p global-abbrev-table local-abbrev-table)
+;;   bef aft))))
 
 (use-package abbrev
   :delight " ⚆"
@@ -675,10 +622,10 @@
 ;; try to expand text before point in an intelligent way
 (bind-key "M-/" 'hippie-expand)
 
-;; shortcut for editing init.el
-(bind-key "<f4>" (lambda ()
-       (interactive)
-       (find-file "~/.emacs.d/init.el")))
+;; shortcut for editing init.el - now crux
+;; (bind-key "<f4>" (lambda ()
+;;        (interactive)
+;;        (find-file "~/.emacs.d/init.el")))
 
 ;; find-file-in-project
 ;; https://github.com/technomancy/find-file-in-project
@@ -694,6 +641,7 @@
 ;; C-x r l   list bookmarks
 ;; M-x bookmark-delete delete bookmark by name
 ;; auto-save bookmarks:
+(defvar bookmark-save-flag)
 (setq bookmark-save-flag t)
 
 ;; writegood
@@ -704,6 +652,9 @@
          ("C-c C-g e" . writegood-reading-ease)))
 
 ;; spell checking
+(defvar ispell-extra-args)
+(defvar ispell-program-name)
+
 (cond
  ((executable-find "aspell")
   (setq ispell-program-name (executable-find "aspell")
@@ -782,6 +733,7 @@
   "Generic mode for Vim configuration files.")
 
 ;; ediff single frame
+(defvar ediff-window-setup-function)
 (setq ediff-window-setup-function 'ediff-setup-windows-plain)
 
 ;; see https://github.com/bbatsov/crux
@@ -814,8 +766,6 @@
          ([remap kill-whole-line] . crux-kill-whole-line)
          ("C-c s" . crux-ispell-word-then-abbrev)))
 
-;; set prefix for lsp-command-keymap (few alternatives - "C-l", "C-c l")
-(setq lsp-keymap-prefix "s-l")
 
 (use-package move-text
   :ensure t
@@ -826,17 +776,28 @@
 
 (use-package lsp-mode
   :ensure t
-  :commands (lsp lsp-deferred)
+  :init
+  (setq lsp-keymap-prefix "s-l") ; set prefix for lsp-command-keymap (few alternatives - "C-l", "C-c l")
+  :commands lsp
   :hook ((go-mode . lsp-deferred)
-         (clojure-mode . lsp)
-         (clojurec-mode . lsp)
-         (clojurescript-mode . lsp)
+         (javascript-mode . lsp-deferred)
          (lsp-mode . lsp-enable-which-key-integration))
   :config
-  ;; (dolist (m '(clojure-mode
   (setenv "PATH" (concat
                   "/usr/local/bin" path-separator
                   (getenv "PATH"))))
+
+;; optionally
+(use-package lsp-treemacs :commands lsp-treemacs-errors-list)
+
+;; optionally if you want to use debugger
+(use-package dap-mode)
+;; (use-package dap-LANGUAGE) to load the dap adapter for your language
+
+;; optional if you want which-key integration
+(use-package which-key
+  :config
+  (which-key-mode))
 
 ;; Set up before-save hooks to format buffer and add/delete imports.
 ;; Make sure you don't have other gofmt/goimports hooks enabled.
@@ -854,6 +815,7 @@
   ;; disable inline documentation
   ;; (setq lsp-ui-sideline-enable nil)
   ;; disable showing docs on hover at the top of the window
+  (defvar lsp-ui-flycheck-enable)
   (setq lsp-ui-imenu-enable t
         lsp-ui-imenu-kind-position 'top
         lsp-ui-imenu-window-width 20
@@ -916,13 +878,15 @@
 (use-package ace-isearch
   :ensure t
   :bind (:map isearch-mode-map
-        ("C-'" . ace-isearch-jump-during-isearch))
+              ("C-'" . ace-isearch-jump-during-isearch))
   :delight ace-isearch-mode
   :config
   (global-ace-isearch-mode t)
   (setq ace-isearch-input-length 8))
 
 ;; In modes with links, use o to jump to links. Map M-o to do the same in org-mode.
+(defvar org-mode-map)
+
 (use-package ace-link
   :ensure t
   :bind (:map org-mode-map
@@ -1019,6 +983,7 @@
 ;;   (edit-server-start))
 
 ;; regexp builder
+(defvar reb-re-syntax)
 (setq reb-re-syntax 'string)
 
 ;; DAP
@@ -1037,6 +1002,7 @@
          (go-mode . (lambda ()
                       (require 'dap-go)
                       (dap-go-setup)
+                      (defvar dap-go-delve-path)
                       (setq dap-go-delve-path (concat (getenv "HOME") "/go/bin/dlv"))))
          (js2-mode . (lambda ()
                        (require 'dap-node)
@@ -1053,19 +1019,10 @@
     (dap-ui-mode 1)))
 
 
-(use-package lsp-treemacs
-  :ensure t
-  :config
-  ;;(lsp-metals-treeview-enable t) ; scala metals support
-  ;;(setq lsp-metals-treeview-show-when-views-received t)
-  )
-
 (use-package company
   :ensure t
   :init
   ;;(add-hook 'after-init-hook #'global-company-mode)
-  (add-hook 'cider-repl-mode-hook #'company-mode)
-  (add-hook 'cider-more-hook #'company-mode)
   (setq-default company-dabbrev-ignore-case nil
                 company-dabbrev-code-ignore-case nil
                 company-dabbrev-downcase nil
@@ -1298,9 +1255,18 @@
   :diminish helm-mode
   :init
   ;; From https://gist.github.com/antifuchs/9238468
+  (defvar helm-idle-delay)
+  (defvar helm-yas-display-key-on-candidate)
+  (defvar helm-quick-update)
+  (defvar helm-M-x-requires-pattern)
+  (defvar helm-M-x-fuzzy-match)
+  (defvar helm-ff-skip-boring-files)
+  (defvar helm-grep-default-command)
+  (defvar helm-grep-default-recurse-command)
+
   (setq helm-idle-delay 0.0 ; update fast sources immediately (doesn't)
         helm-candidate-number-limit 100
-        helm-input-idle-delay 0.01    ; this actually updates things reeeelatively quickly.
+        helm-input-idle-delay 0.01 ; this actually updates things reeeelatively quickly.
         helm-yas-display-key-on-candidate t
         helm-quick-update t
         helm-M-x-requires-pattern nil
@@ -1389,6 +1355,7 @@
   :ensure t
   :commands (prog-fill)
   :config
+  (defvar prog-fill-break-method-immediate-p)
   (setq
    prog-fill-floating-close-paren-p nil
    prog-fill-break-method-immediate-p t))
@@ -1408,12 +1375,11 @@
 (require 'unannoy)
 ;; (require 'slime-cfg) ; --deprecated
 (require 'sly-cfg)
-(require 'clojure-cfg)
+;;(require 'clojure-cfg)
 ;;(require 'haskell-cfg)
 ;;(require 'python-cfg)
 ;;(require 'perl5-cfg)
-;;(require 'perl6-cfg)
-(require 'golang-cfg)
+;;(require 'golang-cfg)
 (require 'javascript-cfg)
 (require 'other-languages)
 (require 'org-cfg)
@@ -1775,7 +1741,7 @@
 (setenv "PAGER" "cat")
 
 (defun eshell/emacs (&rest args)
-  "Open a file in emacs the natural way"
+  "Open a file in Emacs the natural way."
   (if (null args)
       ;; If emacs is called by itself, then just go to emacs directly
       (bury-buffer)
@@ -1794,11 +1760,11 @@
    (mapcar #'expand-file-name (eshell-flatten-list (reverse args)))))
 
 ;; some aliases for eshell
-(with-eval-after-load "em-alias"
-  '(progn
-     (eshell/alias "em" "emacs")
-     (eshell/alias "ll" "ls -Aloh")
-     (eshell/alias "llc" "*ls -AlohG --color=always")))
+;; (with-eval-after-load "em-alias"
+;;   '(progn
+;;      (eshell/alias "em" "emacs")
+;;      (eshell/alias "ll" "ls -Aloh")
+;;      (eshell/alias "llc" "*ls -AlohG --color=always")))
 
 ;; (defun eshell/gst (&rest args)
 ;;   (magit-status-internal (pop args) nil)
