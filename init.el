@@ -774,18 +774,19 @@
    ("M-<down>" . move-text-down))
   :config (move-text-default-bindings))
 
+(defvar lsp-headerline-breadcrumb-segments)
+(defun efs/lsp-mode-setup ()
+  (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
+  (lsp-headerline-breadcrumb-mode))
+
 (use-package lsp-mode
   :ensure t
   :init
   (setq lsp-keymap-prefix "s-l") ; set prefix for lsp-command-keymap (few alternatives - "C-l", "C-c l")
-  :commands lsp
-  :hook ((go-mode . lsp-deferred)
-         (javascript-mode . lsp-deferred)
-         (lsp-mode . lsp-enable-which-key-integration))
+  :commands (lsp lsp-deferred)
+  :hook (lsp-mode . efs/lsp-mode-setup)
   :config
-  (setenv "PATH" (concat
-                  "/usr/local/bin" path-separator
-                  (getenv "PATH"))))
+  (lsp-enable-which-key-integration t))
 
 ;; optionally
 (use-package lsp-treemacs :commands lsp-treemacs-errors-list)
@@ -808,40 +809,39 @@
 
 ;; provides fancier overlays.
 (use-package lsp-ui
-  :ensure t
   :after lsp-mode
-  :commands lsp-ui-mode
+  :hook (lsp-mode . lsp-ui-mode)
+  :custom
+  (lsp-ui-imenu-enable t)
+  (lsp-ui-imenu-kind-position 'top)
+  (lsp-ui-imenu-window-width 20)
+  (lsp-ui-sideline-show-diagnostics t)
+  (lsp-ui-sideline-show-hover t)
+  (lsp-ui-sideline-show-code-actions t)
+  (lsp-ui-sideline-update-mode 'line)
+  (lsp-ui-sideline-delay 0.5)
+  (lsp-ui-sideline-enable t)
+  (lsp-ui-imenu-enable t)
+  (lsp-ui-flycheck-enable t)
+  (lsp-ui-doc-enable nil)
+  (lsp-ui-doc-position 'bottom-and-right)
+  (lsp-ui-doc-delay '2)
+  (lsp-ui-peek-enable t)
   :config
-  ;; disable inline documentation
-  ;; (setq lsp-ui-sideline-enable nil)
-  ;; disable showing docs on hover at the top of the window
-  (defvar lsp-ui-flycheck-enable)
-  (setq lsp-ui-imenu-enable t
-        lsp-ui-imenu-kind-position 'top
-        lsp-ui-imenu-window-width 20
-        lsp-ui-sideline-show-diagnostics t
-        lsp-ui-sideline-show-hover t
-        lsp-ui-sideline-show-code-actions t
-        lsp-ui-sideline-update-mode 'line
-        lsp-ui-sideline-delay 0.5
-        lsp-ui-sideline-enable t
-        lsp-ui-imenu-enable t
-        lsp-ui-flycheck-enable t
-        lsp-ui-doc-enable nil
-        lsp-ui-doc-position 'bottom-and-right
-        lsp-ui-doc-delay '2
-        lsp-ui-peek-enable t)
   (define-key lsp-ui-mode-map [remap xref-find-definitions] #'lsp-ui-peek-find-definitions)
-  (define-key lsp-ui-mode-map [remap xref-find-references] #'lsp-ui-peek-find-reference)
-  :init
-  (add-hook 'lsp-mode-hook #'lsp-ui-mode))
+  (define-key lsp-ui-mode-map [remap xref-find-references] #'lsp-ui-peek-find-reference))
+
 
 ;; if you are helm user
 (use-package helm-lsp
-  :commands helm-lsp-workspace-symbol)
+  :commands helm-lsp-workspace-symbol
+  :after lsp)
+
 ;; if you are ivy user
 ;; (use-package lsp-ivy :commands lsp-ivy-workspace-symbol)
+
 (use-package lsp-treemacs
+  :after lsp
   :commands (lsp-treemacs-errors-list helm-lsp-global-workspace-symbol helm-lsp-code-actions helm-lsp-switch-project)
   :config
   (lsp-treemacs-sync-mode 1)
@@ -1020,17 +1020,21 @@
 
 
 (use-package company
-  :ensure t
-  :init
-  ;;(add-hook 'after-init-hook #'global-company-mode)
-  (setq-default company-dabbrev-ignore-case nil
-                company-dabbrev-code-ignore-case nil
-                company-dabbrev-downcase nil
-                company-idle-delay 0
-                company-minimum-prefix-length 2
-                company-begin-commands '(self-insert-command)
-                company-transformers '(company-sort-by-occurrence)
-                company-tooltip-align-annotations t))
+  :after lsp-mode
+  :hook (lsp-mode . company-mode)
+  :bind ((:map company-active-map
+               ("<tab>" . company-complete-selection))
+         (:map lsp-mode-map
+               ("<tab>" . company-indent-or-complete-common)))
+  :custom
+  (company-dabbrev-ignore-case nil)
+  (company-dabbrev-code-ignore-case nil)
+  (company-dabbrev-downcase nil)
+  (company-idle-delay 0.0)
+  (company-minimum-prefix-length 1)
+  (company-begin-commands '(self-insert-command))
+  (company-transformers '(company-sort-by-occurrence))
+  (company-tooltip-align-annotations t))
 
 (use-package company-quickhelp
   :ensure t
@@ -1039,24 +1043,24 @@
 
 ;; company-lsp integrates company mode completion with lsp-mode.
 ;; completion-at-point also works out of the box but doesn't support snippets.
-(use-package company-lsp
-  :ensure t
-  ;; :custom
-  ;; (company-lsp-cache-candidates t) ;; auto, t(always using a cache), or nil
-  ;; (company-lsp-async t)
-  ;; (company-lsp-enable-snippet t)
-  ;; (company-lsp-enable-recompletion t)
-  :commands company-lsp)
+;; (use-package company-lsp
+;;   :ensure t
+;;   ;; :custom
+;;   ;; (company-lsp-cache-candidates t) ;; auto, t(always using a cache), or nil
+;;   ;; (company-lsp-async t)
+;;   ;; (company-lsp-enable-snippet t)
+;;   ;; (company-lsp-enable-recompletion t)
+;;   :commands company-lsp)
 
 (use-package company-tabnine
-  :ensure t
-  :config
-  ;; Trigger completion immediately.
-  (setq company-idle-delay 0)
-  ;; Number the candidates (use M-1, M-2 etc to select completions).
-  (setq company-show-numbers t)
+  :custom
+  (company-idle-delay 0) ;; Trigger completion immediately.
+  (company-show-numbers t) ;; Number the candidates (use M-1, M-2 etc to select completions).
   :init
   (add-to-list 'company-backends #'company-tabnine))
+
+(use-package company-box
+  :hook (company-mode . company-box-mode))
 
 ;; Optional - provides snippet support.
 (use-package yasnippet
@@ -1102,6 +1106,10 @@
          ("<f3>" . highlight-symbol-next)
          ("<S-f3>" . highlight-symbol-prev)
          ("<M-f3>" . highlight-symbol-query-replace)))
+
+(use-package evil-nerd-commenter
+  :ensure t
+  :bind ("M-/" . evilnc-comment-or-uncomment-lines))
 
 (use-package smooth-scrolling
   :ensure t)
@@ -1914,7 +1922,6 @@
   :defer t
   :delight " 🍐"
   :hook ((emacs-lisp-mode . paredit-mode)
-         (sly-editing-mode . paredit-mode)
          (lisp-mode-hook . paredit-mode)
          (scheme-mode-hook . paredit-mode)
          (ielm-mode-hook . paredit-mode))

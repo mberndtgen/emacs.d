@@ -14,6 +14,7 @@
   :mode (("\\.js$'" . js2-mode)
          ("\\.jsx$" . js2-jsx-mode))
   :hook ((js2-mode . (lambda () (setq mode-name "js2")))
+         (js2-mode . lsp-deferred)
          (js2-mode . #'js2-imenu-extras-mode) ;;; better imenu
          (js2-mode . (lambda ()
                        (flycheck-mode)
@@ -159,13 +160,6 @@
 ;; https://github.com/aaronjensen/eslintd-fix/tree/master
 (use-package eslintd-fix
   :ensure t)
-
-;; indium: javascript ide
-;; https://github.com/NicolasPetton/indium
-;; (use-package indium
-;;   :ensure t
-;;   :hook
-;;   ((js-mode . indium-interaction-mode)))
 
 (provide 'javascript-cfg)
 
