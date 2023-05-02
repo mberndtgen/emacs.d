@@ -782,14 +782,11 @@
 (use-package lsp-mode
   :ensure t
   :init
-  (setq lsp-keymap-prefix "s-l") ; set prefix for lsp-command-keymap (few alternatives - "C-l", "C-c l")
+  (setq lsp-keymap-prefix "C-c l") ; set prefix for lsp-command-keymap (few alternatives - "C-l", "C-c l")
   :commands (lsp lsp-deferred)
   :hook (lsp-mode . efs/lsp-mode-setup)
   :config
   (lsp-enable-which-key-integration t))
-
-;; optionally
-(use-package lsp-treemacs :commands lsp-treemacs-errors-list)
 
 ;; optionally if you want to use debugger
 (use-package dap-mode)
@@ -1022,10 +1019,11 @@
 (use-package company
   :after lsp-mode
   :hook (lsp-mode . company-mode)
-  :bind ((:map company-active-map
-               ("<tab>" . company-complete-selection))
-         (:map lsp-mode-map
-               ("<tab>" . company-indent-or-complete-common)))
+  :bind
+  (:map company-active-map
+        ("<tab>" . company-complete-selection))
+  (:map lsp-mode-map
+        ("<tab>" . company-indent-or-complete-common))
   :custom
   (company-dabbrev-ignore-case nil)
   (company-dabbrev-code-ignore-case nil)
@@ -1040,17 +1038,6 @@
   :ensure t
   :after company
   :config (company-quickhelp-mode 1))
-
-;; company-lsp integrates company mode completion with lsp-mode.
-;; completion-at-point also works out of the box but doesn't support snippets.
-;; (use-package company-lsp
-;;   :ensure t
-;;   ;; :custom
-;;   ;; (company-lsp-cache-candidates t) ;; auto, t(always using a cache), or nil
-;;   ;; (company-lsp-async t)
-;;   ;; (company-lsp-enable-snippet t)
-;;   ;; (company-lsp-enable-recompletion t)
-;;   :commands company-lsp)
 
 (use-package company-tabnine
   :custom
