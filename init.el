@@ -18,8 +18,6 @@
 
 ;; Set up package manager
 (require 'package)
-(setq package-enable-at-startup nil)
-(package-initialize)
 
 ;; package archives
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
@@ -30,6 +28,11 @@
                                    ("melpa" . 2)
                                    ("melpa-stable" . 1)
                                    ))
+(package-initialize)
+(unless package-archive-contents
+  (package-refresh-contents))
+
+;; (setq package-enable-at-startup nil)
 
 (setq byte-compile-warnings '(cl-functions))
 
@@ -56,11 +59,16 @@
       use-package-compute-statistics t
       use-package-minimum-reported-time 0)
 
+;; initialise use-packages on non-Linux platforms
 (unless (package-installed-p 'use-package)
-  (package-refresh-contents)
   (package-install 'use-package))
-(setq use-package-always-ensure nil)
+
 (require 'use-package)
+(setq use-package-always-ensure t)
+
+(use-package command-log-mode
+  :commands command-log-mode
+  :config (global-command-log-mode t))
 
 ;; https://github.com/waymondo/use-package-ensure-system-package
 (use-package use-package-ensure-system-package
@@ -1598,6 +1606,8 @@
   ;; Corrects (and improves) org-mode's native fontification.
   (doom-themes-org-config))
 
+(use-package all-the-icons)
+
 (use-package ghub
   :ensure t)
 
@@ -1605,42 +1615,42 @@
 (use-package doom-modeline
   :ensure t
   :hook (after-init . doom-modeline-mode)
-  :config
-  (setq doom-modeline-height 25
-        doom-modeline-bar-width 3
-        doom-modeline-project-detection 'project
-        doom-modeline-icon (display-graphic-p)
-        doom-modeline-major-mode-icon t
-        doom-modeline-major-mode-color-icon t
-        doom-modeline-buffer-state-icon t
-        doom-modeline-buffer-modification-icon t
-        doom-modeline-unicode-fallback nil
-        doom-modeline-minor-modes nil
-        doom-modeline-enable-word-count nil
-        doom-modeline-continuous-word-count-modes '(markdown-mode gfm-mode org-mode)
-        doom-modeline-buffer-encoding t
-        doom-modeline-indent-info nil
-        doom-modeline-checker-simple-format t
-        doom-modeline-number-limit 99
-        doom-modeline-vcs-max-length 12
-        doom-modeline-persp-name t
-        doom-modeline-display-default-persp-name nil
-        doom-modeline-lsp t
-        doom-modeline-github t
-        doom-modeline-github-interval (* 30 60)
-        doom-modeline-modal-icon t
-        doom-modeline-mu4e nil
-        doom-modeline-gnus t
-        doom-modeline-gnus-timer 2
-        doom-modeline-irc t
-        doom-modeline-irc-stylize 'identity
-        doom-modeline-env-version t
-        doom-modeline-env-go-executable "go"
-        doom-modeline-env-perl-executable "perl"
-        doom-modeline-env-load-string "Check-check"
-        doom-modeline-before-update-env-hook nil
-        doom-modeline-after-update-env-hook nil)
-  (global-hl-line-mode 1))
+  :custom
+  ((doom-modeline-height 25)
+   (doom-modeline-bar-width 3)
+   (doom-modeline-project-detection 'project)
+   (doom-modeline-icon (display-graphic-p))
+   (doom-modeline-major-mode-icon t)
+   (doom-modeline-major-mode-color-icon t)
+   (doom-modeline-buffer-state-icon t)
+   (doom-modeline-buffer-modification-icon t)
+   (doom-modeline-unicode-fallback nil)
+   (doom-modeline-minor-modes nil)
+   (doom-modeline-enable-word-count nil)
+   (doom-modeline-continuous-word-count-modes '(markdown-mode gfm-mode org-mode))
+   (doom-modeline-buffer-encoding t)
+   (doom-modeline-indent-info nil)
+   (doom-modeline-checker-simple-format t)
+   (doom-modeline-number-limit 99)
+   (doom-modeline-vcs-max-length 12)
+   (doom-modeline-persp-name t)
+   (doom-modeline-display-default-persp-name nil)
+   (doom-modeline-lsp t)
+   (doom-modeline-github t)
+   (doom-modeline-github-interval (* 30 60))
+   (doom-modeline-modal-icon t)
+   (doom-modeline-mu4e nil)
+   (doom-modeline-gnus t)
+   (doom-modeline-gnus-timer 2)
+   (doom-modeline-irc t)
+   (doom-modeline-irc-stylize 'identity)
+   (doom-modeline-env-version t)
+   (doom-modeline-env-go-executable "go")
+   (doom-modeline-env-perl-executable "perl")
+   (doom-modeline-env-load-string "Check-check")
+   (doom-modeline-before-update-env-hook nil)
+   (doom-modeline-after-update-env-hook nil)
+   (global-hl-line-mode 1)))
 
 ;; jump anywhere in buffer, see https://github.com/abo-abo/avy
 ;; highlight text an all shown buffers
