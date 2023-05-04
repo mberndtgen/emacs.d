@@ -6,7 +6,6 @@
 
 (make-directory (locate-user-emacs-file "local") :no-error)
 (let ((default-directory  "~/.emacs.d/"))
-  (add-to-list 'load-path "~/.emacs.d")
   (normal-top-level-add-to-load-path '("lisp" "etc" "elpa/emacs-reveal")))
 
 ;; Place to put local packages.
@@ -415,36 +414,36 @@
   (pretty-activate-groups
    '(:sub-and-superscripts :greek :arithmetic-nary)))
 
-(use-package prog-mode ; Contains pretty-symbols-mode
-  :config
-  (setq prettify-symbols-unprettify-at-point 'right-edge)
-  (global-prettify-symbols-mode t)
-  (add-hook
-   'python-mode-hook
-   (lambda ()
-     (mapc (lambda (pair) (push pair prettify-symbols-alist))
-     '(;; Syntax
-       ("def" .      ?ℱ)
-       ("not" .      ?❗)
-       ("in" .       ?∈)
-       ("not in" .   ?∉)
-       ("return" .   ?⟼)
-       ("yield" .    ?⟻)
-       ("for" .      ?∀)
-       ;; Base Types
-       ("int" .      ?ℤ)
-       ("float" .    ?ℝ)
-       ("str" .      ?𝕊)
-       ("True" .     ?𝕋)
-       ("False" .    ?𝔽)
-       ;; Mypy
-       ("Dict" .     ?𝔇)
-       ("List" .     ?ℒ)
-       ("Tuple" .    ?⨂)
-       ("Set" .      ?Ω)
-       ("Iterable" . ?𝔊)
-       ("Any" .      ?❔)
-       ("Union" .    ?∪))))))
+;; (use-package prog-mode ; Contains pretty-symbols-mode
+;;   :config
+;;   (setq prettify-symbols-unprettify-at-point 'right-edge)
+;;   (global-prettify-symbols-mode t)
+;;   (add-hook
+;;    'python-mode-hook
+;;    (lambda ()
+;;      (mapc (lambda (pair) (push pair prettify-symbols-alist))
+;;      '(;; Syntax
+;;        ("def" .      ?ℱ)
+;;        ("not" .      ?❗)
+;;        ("in" .       ?∈)
+;;        ("not in" .   ?∉)
+;;        ("return" .   ?⟼)
+;;        ("yield" .    ?⟻)
+;;        ("for" .      ?∀)
+;;        ;; Base Types
+;;        ("int" .      ?ℤ)
+;;        ("float" .    ?ℝ)
+;;        ("str" .      ?𝕊)
+;;        ("True" .     ?𝕋)
+;;        ("False" .    ?𝔽)
+;;        ;; Mypy
+;;        ("Dict" .     ?𝔇)
+;;        ("List" .     ?ℒ)
+() ;;        ("Tuple" .    ?⨂)
+;;        ("Set" .      ?Ω)
+;;        ("Iterable" . ?𝔊)
+;;        ("Any" .      ?❔)
+;;        ("Union" .    ?∪))))))
 
 ;; color treatment
 
@@ -621,11 +620,11 @@
 ;;   (if p global-abbrev-table local-abbrev-table)
 ;;   bef aft))))
 
-(use-package abbrev
-  :delight " ⚆"
-  :config
-  (setq save-abbrevs t)
-  (setq-default abbrev-mode t))
+;; (use-package abbrev
+;;   :delight " ⚆"
+;;   :config
+;;   (setq save-abbrevs t)
+;;   (setq-default abbrev-mode t))
 
 ;; try to expand text before point in an intelligent way
 (bind-key "M-/" 'hippie-expand)
@@ -1558,22 +1557,22 @@
         display-time-24hr-format t)
   (display-time-mode t))
 
-(use-package comint
-  :defer t
-  :config
-  (define-key comint-mode-map (kbd "<down>") #'comint-next-input)
-  (define-key comint-mode-map (kbd "<up>") #'comint-previous-input)
-  (define-key comint-mode-map (kbd "C-n") #'comint-next-input)
-  (define-key comint-mode-map (kbd "C-p") #'comint-previous-input)
-  (define-key comint-mode-map (kbd "C-r") #'comint-history-isearch-backward)
-  (setf comint-prompt-read-only t
-        comint-history-isearch t))
+;; (use-package comint
+;;   :defer t
+;;   :config
+;;   (define-key comint-mode-map (kbd "<down>") #'comint-next-input)
+;;   (define-key comint-mode-map (kbd "<up>") #'comint-previous-input)
+;;   (define-key comint-mode-map (kbd "C-n") #'comint-next-input)
+;;   (define-key comint-mode-map (kbd "C-p") #'comint-previous-input)
+;;   (define-key comint-mode-map (kbd "C-r") #'comint-history-isearch-backward)
+;;   (setf comint-prompt-read-only t
+;;         comint-history-isearch t))
 
 (use-package tramp
   :defer t
   :config
   (setf tramp-persistency-file-name
-  (concat temporary-file-directory "tramp-" (user-login-name))))
+        (concat temporary-file-directory "tramp-" (user-login-name))))
 
 (use-package whitespace-cleanup-mode
   :ensure t
@@ -1667,20 +1666,20 @@
          ("M-g c" . avy-goto-char-2)
          ("M-g w" . avy-goto-word-0)))
 
-(use-package simple
-  :defer t
-  :config
-  (progn
-    ;; disable so I don't use it by accident
-    (define-key visual-line-mode-map (kbd "M-q") (expose (lambda ())))
-    (add-hook 'tabulated-list-mode-hook #'hl-line-mode)))
+;; (use-package simple
+;;   :defer t
+;;   :config
+;;   (progn
+;;     ;; disable so I don't use it by accident
+;;     (define-key visual-line-mode-map (kbd "M-q") (expose (lambda ())))
+;;     (add-hook 'tabulated-list-mode-hook #'hl-line-mode)))
 
 ;; When editing files with the same name, but different location, a unique identifier (based on path) is preferred over a number.
-(use-package uniquify
-  :defer 10
-  :config
-  (setf uniquify-buffer-name-style 'post-forward-angle-brackets
-        uniquify-separator ":"))
+;; (use-package uniquify
+;;   :defer 10
+;;   :config
+;;   (setf uniquify-buffer-name-style 'post-forward-angle-brackets
+;;         uniquify-separator ":"))
 
 ;; Dim everything except for the thing-at-point.
 (use-package focus
@@ -2005,12 +2004,12 @@
   :defer t
   :config
   (setf graphviz-dot-indent-width 2
-  graphviz-dot-auto-indent-on-semi nil))
+        graphviz-dot-auto-indent-on-semi nil))
 
-(use-package uuid-simple
-  :demand t
-  :bind ("C-x !" . uuid-insert)
-  :config (random (make-uuid)))
+;; (use-package uuid-simple
+;;   :demand t
+;;   :bind ("C-x !" . uuid-insert)
+;;   :config (random (make-uuid)))
 
 (use-package yascroll
   :ensure t
