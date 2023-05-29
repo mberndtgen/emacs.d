@@ -12,8 +12,51 @@
 
 ;; (use-package bbdb-com
 ;;   :ensure t)
+
+
+(defun efs/org-font-setup ()
+  ;; Replace list hyphen with dot
+  (font-lock-add-keywords 'org-mode
+                          '(("^ *\\([-]\\) "
+                             (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
+
+  ;; Set faces for heading levels
+  (dolist (face '((org-level-1 . 1.2)
+                  (org-level-2 . 1.1)
+                  (org-level-3 . 1.05)
+                  (org-level-4 . 1.0)
+                  (org-level-5 . 1.1)
+                  (org-level-6 . 1.1)
+                  (org-level-7 . 1.1)
+                  (org-level-8 . 1.1)))
+    (set-face-attribute (car face) nil :font "Cantarell" :weight 'regular :height (cdr face)))
+
+  ;; Ensure that anything that should be fixed-pitch in Org files appears that way
+  (set-face-attribute 'org-block nil    :foreground nil :inherit 'fixed-pitch)
+  (set-face-attribute 'org-table nil    :inherit 'fixed-pitch)
+  (set-face-attribute 'org-formula nil  :inherit 'fixed-pitch)
+  (set-face-attribute 'org-code nil     :inherit '(shadow fixed-pitch))
+  (set-face-attribute 'org-table nil    :inherit '(shadow fixed-pitch))
+  (set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
+  (set-face-attribute 'org-special-keyword nil :inherit '(font-lock-comment-face fixed-pitch))
+  (set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch))
+  (set-face-attribute 'org-checkbox nil  :inherit 'fixed-pitch)
+  (set-face-attribute 'line-number nil :inherit 'fixed-pitch)
+  (set-face-attribute 'line-number-current-line nil :inherit 'fixed-pitch))
+
+(defun efs/org-mode-setup ()
+  (org-indent-mode)
+  (variable-pitch-mode 1)
+  (visual-line-mode 1))
+
+(use-package org-bullets
+  :hook (org-mode . org-bullets-mode)
+  :custom
+  (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●")))
+
 (use-package org
-  :hook (
+  :commands (org-capture org-agenda)
+  :hook ((org-mode . efs/org-mode-setup)
          (org-agenda-mode . (lambda () (hl-line-mode 1)))
          ((message-mode orgstruct-mode) . append)
          ((message-mode turn-on-auto-fill) . append)
@@ -65,411 +108,490 @@
          ("C-<f11>" . org-clock-in)
          ;;("C-s-<f12>" . bh/save-then-publish)
          )
+  :custom
+  (org-directory "~/Dropbox/orgfiles")
+  ;; Compact the block agenda view
+  (org-agenda-compact-blocks t)
+  (org-agenda-custom-commands '(("d" "Dashboard"
+                                 ((agenda "" ((org-deadline-warning-days 7)))
+                                  (todo "NEXT"
+                                        ((org-agenda-overriding-header "Next Tasks")))
+                                  (tags-todo "agenda/ACTIVE" ((org-agenda-overriding-header "Active Projects")))))
+
+                                ("n" "Next Tasks"
+                                 ((todo "NEXT"
+                                        ((org-agenda-overriding-header "Next Tasks")))))
+
+                                ("W" "Work Tasks" tags-todo "+work-email")
+
+                                ;; Low-effort next actions
+                                ("e" tags-todo "+TODO=\"NEXT\"+Effort<15&+Effort>0"
+                                 ((org-agenda-overriding-header "Low Effort Tasks")
+                                  (org-agenda-max-todos 20)
+                                  (org-agenda-files org-agenda-files)))
+
+                                ("w" "Workflow Status"
+                                 ((todo "WAIT"
+                                        ((org-agenda-overriding-header "Waiting on External")
+                                         (org-agenda-files org-agenda-files)))
+                                  (todo "REVIEW"
+                                        ((org-agenda-overriding-header "In Review")
+                                         (org-agenda-files org-agenda-files)))
+                                  (todo "PLAN"
+                                        ((org-agenda-overriding-header "In Planning")
+                                         (org-agenda-todo-list-sublevels nil)
+                                         (org-agenda-files org-agenda-files)))
+                                  (todo "BACKLOG"
+                                        ((org-agenda-overriding-header "Project Backlog")
+                                         (org-agenda-todo-list-sublevels nil)
+                                         (org-agenda-files org-agenda-files)))
+                                  (todo "READY"
+                                        ((org-agenda-overriding-header "Ready for Work")
+                                         (org-agenda-files org-agenda-files)))
+                                  (todo "ACTIVE"
+                                        ((org-agenda-overriding-header "Active Projects")
+                                         (org-agenda-files org-agenda-files)))
+                                  (todo "COMPLETED"
+                                        ((org-agenda-overriding-header "Completed Projects")
+                                         (org-agenda-files org-agenda-files)))
+                                  (todo "CANC"
+                                        ((org-agenda-overriding-header "Cancelled Projects")
+                                         (org-agenda-files org-agenda-files)))))))
+  (org-agenda-files (mapcar (lambda (path) (concat org-directory path))
+                            '("/work.org"
+                              "/home.org")))
+  (org-agenda-persistent-filter t)
+  (org-ascii-links-to-notes nil)
+  (org-ascii-headline-spacing (quote (1 . 1)))
+  (org-blank-before-new-entry '((heading)
+                                (plain-list-item . auto)))
+  (org-capture-templates '(("t" "todo" entry (file org-default-notes-file)
+                            "* TODO %?\n%U\n%a\n" :clock-in t :clock-resume t)
+                           ("r" "respond" entry (file org-default-notes-file)
+                            "* NEXT Respond to %:from on %:subject\nSCHEDULED: %t\n%U\n%a\n" :clock-in t :clock-resume t :immediate-finish t)
+                           ("n" "note" entry (file org-default-notes-file)
+                            "* %? :NOTE:\n%U\n%a\n" :clock-in t :clock-resume t)
+                           ("j" "Journal" entry (file+datetree "~/Dropbox/orgfiles/diary.org")
+                            "* %?\n%U\n" :clock-in t :clock-resume t)
+                           ("w" "org-protocol" entry (file org-default-notes-file)
+                            "* TODO Review %c\n%U\n" :immediate-finish t)
+                           ("m" "Meeting" entry (file org-default-notes-file)
+                            "* MEETING with %? :MEETING:\n%U" :clock-in t :clock-resume t)
+                           ("p" "Phone call" entry (file org-default-notes-file)
+                            "* PHONE %? :PHONE:\n%U" :clock-in t :clock-resume t)
+                           ("h" "Habit" entry (file org-default-notes-file)
+                            "* NEXT %?\n%U\n%a\nSCHEDULED: %(format-time-string \"%<<%Y-%m-%d %a .+1d/3d>>\")\n:PROPERTIES:\n:STYLE: habit\n:REPEAT_TO_STATE: NEXT\n:END:\n")))
+  ;; Show lot of clocking history so it's easy to pick items off the C-F11 list
+  (org-clock-history-length 23)
+  ;; Resume clocking task on clock-in if the clock is open
+  (org-clock-in-resume t)
+  ;; Save clock data and state changes and notes in the LOGBOOK drawer
+  (org-clock-into-drawer t)
+  ;; Sometimes I change tasks I'm clocking quickly - this removes clocked tasks with 0:00 duration
+  (org-clock-out-remove-zero-time-clocks t)
+  ;; Clock out when moving task to a done state
+  (org-clock-out-when-done t)
+  ;; Save the running clock and all clock history when exiting Emacs, load it on startup
+  (org-clock-persist t)
+  ;; Do not prompt to resume an active clock
+  (org-clock-persist-query-resume nil)
+  (org-clone-delete-id t)
+  (org-cycle-include-plain-lists t)
+  ;; handling blank lines
+  (org-cycle-separator-lines 0)
+  ;; deadlines and agenda visibility
+  (org-deadline-warning-days 30)
+  (org-default-notes-file "~/Dropbox/orgfiles/refile.org")
+  ;; Separate drawers for clocking and logs
+  (org-drawers '("PROPERTIES" "LOGBOOK"))
+  ;; enable task blocking - prevents tasks from changing to DONE if any subtasks are still open
+  (org-enforce-todo-dependencies t )
+  (org-ellipsis " ▾")
+  (org-export-with-smart-quotes t)
+  (org-hide-emphasis-markers t)
+  (org-html-table-default-attributes '(:border "0" :cellspacing "0" :cellpadding "6" :rules "none" :frame "none"))
+  ;; attachments
+  (org-id-method 'uuidgen)
+  ;; See https://lists.gnu.org/archive/html/emacs-orgmode/2012-08/msg01388.html
+  (org-image-actual-width nil)
+  ;; Use the current window for indirect buffer display
+  (org-indirect-buffer-display 'current-window)
+  (org-insert-heading-respect-content nil)
+  ;; logging
+  (org-log-done 'time)
+  (org-log-into-drawer t)
+  (org-log-state-notes-insert-after-drawers nil)
+  ;; Targets complete directly with IDO
+  (org-outline-path-complete-in-steps nil)
+  ;; Allow refile to create parent tasks with confirmation
+  (org-refile-allow-creating-parent-nodes (quote confirm))
+  ;; Targets include this file and any file contributing to the agenda - up to 9 levels deep
+  (org-refile-targets '((nil :maxlevel . 9)
+                        (org-agenda-files :maxlevel . 9)))
+  ;; Use full outline paths for refile targets - we file directly with IDO
+  (org-refile-use-outline-path t)
+  ;; RET follows hyperlinks in org-mode:
+  (org-return-follows-link t)
+  ;; notes at the top
+  (org-reverse-note-order nil)
+  ;; searching and showing results
+  (org-show-following-heading t)
+  (org-show-hierarchy-above t)
+  (org-show-siblings '((default)))
+  (org-src-fontify-natively t)
+  (org-src-tab-acts-natively t)
+  (org-src-window-setup 'other-window)
+  ;; Can be set per file basis with: #+STARTUP: noalign (or align). Same as doing C-c C-c in a table.
+  (org-startup-align-all-tables t)
+  (org-startup-indented t)
+  (org-startup-truncated t)
+  ;; tags with fast selection keys
+  (org-tag-alist '((:startgroup) ;; put mutually exclusive tasks here
+                   ("@errand" . ?e)
+                   ("@office" . ?o)
+                   ("@home" . ?H)
+                   ("@farm" . ?f)
+                   (:endgroup)
+                   ("AGENDA" . ?a)
+                   ("PLANNING" . ?p)
+                   ("WAITING" . ?w)
+                   ("HOLD" . ?h)
+                   ("PERSONAL" . ?P)
+                   ("WORK" . ?W)
+                   ("FARM" . ?F)
+                   ("ORG" . ?O)
+                   ("NORANG" . ?N)
+                   ("crypt" . ?E)
+                   ("NOTE" . ?n)
+                   ("IDEA" . ?i)
+                   ("CANCELLED" . ?c)
+                   ("FLAGGED" . ??)))
+  (org-todo-state-tags-triggers '(("CANCELLED" ("CANCELLED" . t))
+                                  ("WAITING" ("WAITING" . t))
+                                  ("HOLD" ("WAITING") ("HOLD" . t))
+                                  (done ("WAITING") ("HOLD"))
+                                  ("TODO" ("WAITING") ("CANCELLED") ("HOLD"))
+                                  ("NEXT" ("WAITING") ("CANCELLED") ("HOLD"))
+                                  ("DONE" ("WAITING") ("CANCELLED") ("HOLD"))))
+  ;; exporting tables to csv
+  (org-table-export-default-format "orgtbl-to-csv")
+  (org-todo-keywords '((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d)")
+                       (sequence "BACKLOG(b)" "PLAN(p)" "ACTIVE(a)" "REVIEW(v)" "MEETING(m)" "WAITING(w@/!)" "HOLD(h@/!)" "|" "CANCELLED(k@)" "COMPLETED(c)")))
+  (org-todo-keyword-faces '(("TODO" :foreground "red" :weight bold)
+                            ("NEXT" :foreground "blue" :weight bold)
+                            ("DONE" :foreground "forest green" :weight bold)
+                            ("WAITING" :foreground "orange" :weight bold)
+                            ("HOLD" :foreground "magenta" :weight bold)
+                            ("CANCELLED" :foreground "forest green" :weight bold)
+                            ("MEETING" :foreground "forest green" :weight bold)
+                            ("PHONE" :foreground "forest green" :weight bold)))
+  (org-treat-S-cursor-todo-selection-as-state-change nil)
+  (org-use-fast-todo-selection t)
+  (org-use-speed-commands t)
+
   :config
   ;; Global
-  (setq org-directory "~/Dropbox/orgfiles"
-        org-agenda-files (mapcar (lambda (path) (concat org-directory path))
-                                 '("/work.org"
-                                   "/home.org"))
-        org-ascii-links-to-notes nil
-        org-ascii-headline-spacing (quote (1 . 1))
-        org-blank-before-new-entry '((heading) (plain-list-item . auto))
-        org-clone-delete-id t
-        org-cycle-include-plain-lists t
-        ;; handling blank lines
-        org-cycle-separator-lines 0
-        org-blank-before-new-entry '((heading)
-                                     (plain-list-item . auto))
-        ;; deadlines and agenda visibility
-        org-deadline-warning-days 30
+  (advice-add 'org-refile :after 'org-save-all-org-buffers)
+  (setq
 
-        org-ellipsis "…" ;;; replace the "..." with "…" for collapsed org-mode content
-        org-export-with-smart-quotes t
-        org-enforce-todo-dependencies t ;; enable task blocking - prevents tasks from changing to DONE if any subtasks are still open
-        org-hide-emphasis-markers t
-        org-html-table-default-attributes '(:border "0" :cellspacing "0" :cellpadding "6" :rules "none" :frame "none")
-        ;; attachments
-        org-id-method 'uuidgen
-        org-image-actual-width nil ;;; See https://lists.gnu.org/archive/html/emacs-orgmode/2012-08/msg01388.html
-        org-insert-heading-respect-content nil
-        ;; logging
-        org-log-done 'time
-        org-log-into-drawer t
-        org-log-state-notes-insert-after-drawers nil
-        org-todo-keywords '((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d)")
-                            (sequence "WAITING(w@/!)" "HOLD(h@/!)" "|" "CANCELLED(c@/!)" "PHONE" "MEETING"))
-        org-todo-keyword-faces '(("TODO" :foreground "red" :weight bold)
-                                 ("NEXT" :foreground "blue" :weight bold)
-                                 ("DONE" :foreground "forest green" :weight bold)
-                                 ("WAITING" :foreground "orange" :weight bold)
-                                 ("HOLD" :foreground "magenta" :weight bold)
-                                 ("CANCELLED" :foreground "forest green" :weight bold)
-                                 ("MEETING" :foreground "forest green" :weight bold)
-                                 ("PHONE" :foreground "forest green" :weight bold))
-        org-return-follows-link t ;;; RET follows hyperlinks in org-mode:
-        ;; notes at the top
-        org-reverse-note-order nil
-        org-src-fontify-natively t
-        org-src-tab-acts-natively t
-        org-src-window-setup 'other-window
-        ;; searching and showing results
-        org-show-following-heading t
-        org-show-hierarchy-above t
-        org-show-siblings '((default))
-        org-startup-align-all-tables t ;;; Can be set per file basis with: #+STARTUP: noalign (or align). Same as doing C-c C-c in a table.
-        org-startup-indented t
-        org-startup-truncated t
-        ;; exporting tables to csv
-        org-table-export-default-format "orgtbl-to-csv"
-        org-use-speed-commands t
-        org-agenda-custom-commands '(("c" "Simple agenda view"
-                                      ((agenda "")
-                                       (alltodo ""))))
-        org-use-fast-todo-selection t
-        org-treat-S-cursor-todo-selection-as-state-change nil
-        org-todo-state-tags-triggers '(("CANCELLED" ("CANCELLED" . t))
-                                       ("WAITING" ("WAITING" . t))
-                                       ("HOLD" ("WAITING") ("HOLD" . t))
-                                       (done ("WAITING") ("HOLD"))
-                                       ("TODO" ("WAITING") ("CANCELLED") ("HOLD"))
-                                       ("NEXT" ("WAITING") ("CANCELLED") ("HOLD"))
-                                       ("DONE" ("WAITING") ("CANCELLED") ("HOLD")))
-        org-default-notes-file "~/Dropbox/orgfiles/refile.org"
-        org-capture-templates '(("t" "todo" entry (file org-default-notes-file)
-                                 "* TODO %?\n%U\n%a\n" :clock-in t :clock-resume t)
-                                ("r" "respond" entry (file org-default-notes-file)
-                                 "* NEXT Respond to %:from on %:subject\nSCHEDULED: %t\n%U\n%a\n" :clock-in t :clock-resume t :immediate-finish t)
-                                ("n" "note" entry (file org-default-notes-file)
-                                 "* %? :NOTE:\n%U\n%a\n" :clock-in t :clock-resume t)
-                                ("j" "Journal" entry (file+datetree "~/Dropbox/orgfiles/diary.org")
-                                 "* %?\n%U\n" :clock-in t :clock-resume t)
-                                ("w" "org-protocol" entry (file org-default-notes-file)
-                                 "* TODO Review %c\n%U\n" :immediate-finish t)
-                                ("m" "Meeting" entry (file org-default-notes-file)
-                                 "* MEETING with %? :MEETING:\n%U" :clock-in t :clock-resume t)
-                                ("p" "Phone call" entry (file org-default-notes-file)
-                                 "* PHONE %? :PHONE:\n%U" :clock-in t :clock-resume t)
-                                ("h" "Habit" entry (file org-default-notes-file)
-                                 "* NEXT %?\n%U\n%a\nSCHEDULED: %(format-time-string \"%<<%Y-%m-%d %a .+1d/3d>>\")\n:PROPERTIES:\n:STYLE: habit\n:REPEAT_TO_STATE: NEXT\n:END:\n"))
-        ;; Targets include this file and any file contributing to the agenda - up to 9 levels deep
-        org-refile-targets '((nil :maxlevel . 9)
-                             (org-agenda-files :maxlevel . 9))
-        ;; Use full outline paths for refile targets - we file directly with IDO
-        org-refile-use-outline-path t
-        ;; Targets complete directly with IDO
-        org-outline-path-complete-in-steps nil
-        ;; Allow refile to create parent tasks with confirmation
-        org-refile-allow-creating-parent-nodes (quote confirm)
-        ;; Use IDO for both buffer and file completion and ido-everywhere to t
-        ;;org-completion-use-ido t
-        ;;ido-everywhere t
-        ;;ido-max-directory-size 100000
-        ;;ido-mode 'both
-        ;; Use the current window when visiting files and buffers with ido
-        ;;ido-default-file-method 'selected-window
-        ;;ido-default-buffer-method 'selected-window
-        ;; Use the current window for indirect buffer display
-        org-indirect-buffer-display 'current-window
-        ;;org-refile-target-verify-function 'bh/verify-refile-target
-        ;; Do not dim blocked tasks
-        org-agenda-dim-blocked-tasks nil
-        ;; Compact the block agenda view
-        org-agenda-compact-blocks t
-        ;; Show lot of clocking history so it's easy to pick items off the C-F11 list
-        org-clock-history-length 23
-        ;; Resume clocking task on clock-in if the clock is open
-        org-clock-in-resume t
-        ;; Change tasks to NEXT when clocking in
-        ;;org-clock-in-switch-to-state 'bh/clock-in-to-next
-        ;; Separate drawers for clocking and logs
-        org-drawers '("PROPERTIES" "LOGBOOK")
-        ;; Save clock data and state changes and notes in the LOGBOOK drawer
-        org-clock-into-drawer t
-        ;; Sometimes I change tasks I'm clocking quickly - this removes clocked tasks with 0:00 duration
-        org-clock-out-remove-zero-time-clocks t
-        ;; Clock out when moving task to a done state
-        org-clock-out-when-done t
-        ;; Save the running clock and all clock history when exiting Emacs, load it on startup
-        org-clock-persist t
-        ;; Do not prompt to resume an active clock
-        org-clock-persist-query-resume nil
-        ;; Enable auto clock resolution for finding open clocks
-        org-clock-auto-clock-resolution 'when-no-clock-is-running
-        ;; Include current clocking task in clock reports
-        org-clock-report-include-clocking-task t
-        ;;bh/keep-clock-running nil
-        org-time-stamp-rounding-minutes '(1 1)
-        org-agenda-clock-consistency-checks '(
-                                              :max-duration "4:00"
-                                              :min-duration 0
-                                              :max-gap 0
-                                              :gap-ok-around ("4:00")
-                                              )
-        ;; Sometimes I change tasks I'm clocking quickly - this removes clocked tasks with 0:00 duration
-        org-clock-out-remove-zero-time-clocks t
-        ;; Agenda clock report parameters
-        org-agenda-clockreport-parameter-plist '(:link t :maxlevel 5 :fileskip0 t :compact t :narrow 80)
-        ;; Set default column view headings: Task Effort Clock_Summary
-        org-columns-default-format "%80ITEM(Task) %10Effort(Effort){:} %10CLOCKSUM"
-        ;; global Effort estimate values
-        ;; global STYLE property values for completion
-        org-global-properties '(("Effort_ALL" . "0:15 0:30 0:45 1:00 2:00 3:00 4:00 5:00 6:00 0:00")
-                                ("STYLE_ALL" . "habit"))
-        ;; Agenda log mode items to display (closed and state changes by default)
-        org-agenda-log-mode-items '(closed state)
 
-        ;; tags with fast selection keys
-        org-tag-alist '((:startgroup)
-                        ("@errand" . ?e)
-                        ("@office" . ?o)
-                        ("@home" . ?H)
-                        ("@farm" . ?f)
-                        (:endgroup)
-                        ("WAITING" . ?w)
-                        ("HOLD" . ?h)
-                        ("PERSONAL" . ?P)
-                        ("WORK" . ?W)
-                        ("FARM" . ?F)
-                        ("ORG" . ?O)
-                        ("NORANG" . ?N)
-                        ("crypt" . ?E)
-                        ("NOTE" . ?n)
-                        ("CANCELLED" . ?c)
-                        ("FLAGGED" . ??))
-        ;; Allow setting single tags without the menu
-        org-fast-tag-selection-single-key 'expert
-        ;; For tag searches ignore tasks with scheduled and deadline dates
-        org-agenda-tags-todo-honor-ignore-options t
-        org-agenda-span 'day
-        org-stuck-projects '("" nil nil "")
-        ;; archiving
-        org-archive-mark-done nil
-        org-archive-location "%s_archive::* Archived Tasks"
-        org-alphabetical-lists t
-        ;; ditaa & plantuml
-        org-ditaa-jar-path "~/Dropbpx/orgfiles/modules/ditaa.jar"
-        org-plantuml-jar-path "~/Dropbpx/orgfiles/modules/plantuml.jar"
-        ;; babel
-        org-babel-results-keyword "results"
-        org-babel-default-header-args '((:eval . "never-export"))
-        ;;org-startup-with-inline-images nil
-        ;; experimenting with docbook exports - not finished
-        org-export-docbook-xsl-fo-proc-command "fop %s %s"
-        org-export-docbook-xslt-proc-command "xsltproc --output %s /usr/share/xml/docbook/stylesheet/nwalsh/fo/docbook.xsl %s" ; ##TODO##
-        ;; Inline images in HTML instead of producting links to the image
-        org-html-inline-images t
-        ;; Do not use sub or superscripts - I currently don't need this functionality in my documents
-        org-export-with-sub-superscripts nil
-        ;; Use org.css from the norang website for export document stylesheets
-        ;; org-html-head-extra "<link rel=\"stylesheet\" href=\"http://doc.norang.ca/org.css\" type=\"text/css\" />"
-        org-html-head-include-default-style nil
-        ;; remove xml header line for html exports
-        org-html-xml-declaration '(("html" . "")
-                                   ("was-html" . "<?xml version=\"1.0\" encoding=\"%s\"?>")
-                                   ("php" . "<?php echo \"<?xml version=\\\"1.0\\\" encoding=\\\"%s\\\" ?>\"; ?>"))
 
-        ;; Do not generate internal css formatting for HTML exports
-        org-export-htmlize-output-type 'css
-        ;; Export with LaTeX fragments
-        org-export-with-LaTeX-fragments t
-        ;; Increase default number of headings to export
-        org-export-headline-levels 6
-        ;; allow #+BIND: vars to be set on export w/o confirmation
-        org-export-allow-BIND t
-        ;; narrowing
-        org-show-entry-below '((default))
-        ;; Keep tasks with dates on the global todo lists
-        org-agenda-todo-ignore-with-date nil
-        ;; Keep tasks with deadlines on the global todo lists
-        org-agenda-todo-ignore-deadlines nil
-        ;; Keep tasks with scheduled dates on the global todo lists
-        org-agenda-todo-ignore-scheduled nil
-        ;; Keep tasks with timestamps on the global todo lists
-        org-agenda-todo-ignore-timestamp nil
-        ;; Remove completed deadline tasks from the agenda view
-        org-agenda-skip-deadline-if-done t
-        ;; Remove completed scheduled tasks from the agenda view
-        org-agenda-skip-scheduled-if-done t
-        ;; Remove completed items from search results
-        org-agenda-skip-timestamp-if-done t
-        ;; use diary for holidays and appointments
-        org-agenda-include-diary nil
-        org-agenda-diary-file "~/Dropbox/orgfiles/diary.org"
-        org-agenda-insert-diary-extract-time t
-        ;; Include agenda archive files when searching for things
-        org-agenda-text-search-extra-files '(agenda-archives)
-        ;; Show all future entries for repeating tasks
-        org-agenda-repeating-timestamp-show-all t
-        ;; Show all agenda dates - even if they are empty
-        org-agenda-show-all-dates t
-        ;; Sorting order for tasks on the agenda
-        org-agenda-sorting-strategy '((agenda habit-down time-up user-defined-up effort-up category-keep)
-                                      (todo category-up effort-up)
-                                      (tags category-up effort-up)
-                                      (search category-up))
-        ;; Start the weekly agenda on Monday
-        org-agenda-start-on-weekday 1
-        ;; Enable display of the time grid so we can see the marker for the current time
-        org-agenda-time-grid '((daily today remove-match)
-                               #("----------------" 0 16 (org-heading t))
-                               (0900 1100 1300 1500 1700))
-        ;; Display tags farther right
-        org-agenda-tags-column -102
-        ;; Agenda sorting functions
-        ;;org-agenda-cmp-user-defined 'bh/agenda-sort
-        ;; Use sticky agenda's so they persist
-        org-agenda-sticky t
-        ;; show leading stars
-        org-hide-leading-stars nil
-        ;; editing and special key Handling
-        org-special-ctrl-a/e t
-        org-special-ctrl-k t
-        org-yank-adjusted-subtrees t
-        ;; minimize emacs frames
-        org-link-frame-setup '((vm . vm-visit-folder)
-                               (gnus . org-gnus-no-new-news)
-                               (file . find-file))
-        ;; Use the current window for C-c ' source editing
-        org-src-window-setup 'current-window
-        ;; modules for habit tracking
-        org-modules '(ol-bbdb
-                      ol-bibtex
-                      org-crypt
-                      ol-gnus
-                      org-id
-                      ol-info
-                      org-habit
-                      org-inlinetask
-                      ol-irc
-                      ol-mhe
-                      org-protocol
-                      ol-rmail
-                      ol-w3m)
-        ;; position the habit graph on the agenda to the right of the default
-        org-habit-graph-column 50
-        ;; speed commands
-        org-use-speed-commands t
-        org-speed-commands-user '(("0" . ignore)
-                                  ("1" . ignore)
-                                  ("2" . ignore)
-                                  ("3" . ignore)
-                                  ("4" . ignore)
-                                  ("5" . ignore)
-                                  ("6" . ignore)
-                                  ("7" . ignore)
-                                  ("8" . ignore)
-                                  ("9" . ignore)
 
-                                  ("a" . ignore)
-                                  ("d" . ignore)
-                                  ;;("h" . bh/hide-other)
-                                  ("i" progn
-                                   (forward-char 1)
-                                   (call-interactively 'org-insert-heading-respect-content))
-                                  ("k" . org-kill-note-or-show-branches)
-                                  ("l" . ignore)
-                                  ("m" . ignore)
-                                  ;;("q" . bh/show-org-agenda)
-                                  ("r" . ignore)
-                                  ("s" . org-save-all-org-buffers)
-                                  ("w" . org-refile)
-                                  ("x" . ignore)
-                                  ("y" . ignore)
-                                  ("z" . org-add-note)
+   ;; Enable auto clock resolution for finding open clocks
+   org-clock-auto-clock-resolution 'when-no-clock-is-running
+   ;; Include current clocking task in clock reports
+   org-clock-report-include-clocking-task t
+   ;;bh/keep-clock-running nil
+   org-time-stamp-rounding-minutes '(1 1)
+   org-agenda-clock-consistency-checks '(
+                                         :max-duration "4:00"
+                                         :min-duration 0
+                                         :max-gap 0
+                                         :gap-ok-around ("4:00")
+                                         )
+   ;; Sometimes I change tasks I'm clocking quickly - this removes clocked tasks with 0:00 duration
+   org-clock-out-remove-zero-time-clocks t
+   ;; Agenda clock report parameters
+   org-agenda-clockreport-parameter-plist '(:link t :maxlevel 5 :fileskip0 t :compact t :narrow 80)
+   ;; Set default column view headings: Task Effort Clock_Summary
+   org-columns-default-format "%80ITEM(Task) %10Effort(Effort){:} %10CLOCKSUM"
+   ;; global Effort estimate values
+   ;; global STYLE property values for completion
+   org-global-properties '(("Effort_ALL" . "0:15 0:30 0:45 1:00 2:00 3:00 4:00 5:00 6:00 0:00")
+                           ("STYLE_ALL" . "habit"))
+   ;; Agenda log mode items to display (closed and state changes by default)
+   org-agenda-log-mode-items '(closed state)
 
-                                  ("A" . ignore)
-                                  ("B" . ignore)
-                                  ("E" . ignore)
-                                  ;;("F" . bh/restrict-to-file-or-follow)
-                                  ("G" . ignore)
-                                  ("H" . ignore)
-                                  ("J" . org-clock-goto)
-                                  ("K" . ignore)
-                                  ("L" . ignore)
-                                  ("M" . ignore)
-                                  ;;("N" . bh/narrow-to-org-subtree)
-                                  ;;("P" . bh/narrow-to-org-project)
-                                  ("Q" . ignore)
-                                  ("R" . ignore)
-                                  ("S" . ignore)
-                                  ;;("T" . bh/org-todo)
-                                  ;;("U" . bh/narrow-up-one-org-level)
-                                  ("V" . ignore)
-                                  ;;("W" . bh/widen)
-                                  ("X" . ignore)
-                                  ("Y" . ignore)
-                                  ("Z" . ignore))
-        require-final-newline t
-        org-remove-highlights-with-change t
-        org-read-date-prefer-future 'time
 
-        ;; automatically change list bullets
-        org-list-demote-modify-bullet '(("+" . "-")
-                                        ("*" . "-")
-                                        ("1." . "-")
-                                        ("1)" . "-")
-                                        ("A)" . "-")
-                                        ("B)" . "-")
-                                        ("a)" . "-")
-                                        ("b)" . "-")
-                                        ("A." . "-")
-                                        ("B." . "-")
-                                        ("a." . "-")
-                                        ("b." . "-"))
+   ;; Allow setting single tags without the menu
+   org-fast-tag-selection-single-key 'expert
+   ;; For tag searches ignore tasks with scheduled and deadline dates
+   org-agenda-tags-todo-honor-ignore-options t
+   org-agenda-span 'day
+   org-stuck-projects '("" nil nil "")
+   ;; archiving
+   org-archive-mark-done nil
+   org-archive-location "%s_archive::* Archived Tasks"
+   org-alphabetical-lists t
+   ;; ditaa & plantuml
+   org-ditaa-jar-path "~/Dropbpx/orgfiles/modules/ditaa.jar"
+   org-plantuml-jar-path "~/Dropbpx/orgfiles/modules/plantuml.jar"
+   ;; babel
+   org-babel-results-keyword "results"
+   org-babel-default-header-args '((:eval . "never-export"))
+   ;;org-startup-with-inline-images nil
+   ;; experimenting with docbook exports - not finished
+   org-export-docbook-xsl-fo-proc-command "fop %s %s"
+   org-export-docbook-xslt-proc-command "xsltproc --output %s /usr/share/xml/docbook/stylesheet/nwalsh/fo/docbook.xsl %s" ; ##TODO##
+   ;; Inline images in HTML instead of producting links to the image
+   org-html-inline-images t
+   ;; Do not use sub or superscripts - I currently don't need this functionality in my documents
+   org-export-with-sub-superscripts nil
+   ;; Use org.css from the norang website for export document stylesheets
+   ;; org-html-head-extra "<link rel=\"stylesheet\" href=\"http://doc.norang.ca/org.css\" type=\"text/css\" />"
+   org-html-head-include-default-style nil
+   ;; remove xml header line for html exports
+   org-html-xml-declaration '(("html" . "")
+                              ("was-html" . "<?xml version=\"1.0\" encoding=\"%s\"?>")
+                              ("php" . "<?php echo \"<?xml version=\\\"1.0\\\" encoding=\\\"%s\\\" ?>\"; ?>"))
 
-        ;; remove indentation on agenda tags view
-        org-tags-match-list-sublevels t
-        org-agenda-persistent-filter t
-        org-link-mailto-program '(compose-mail "%a" "%s")
-        org-agenda-skip-additional-timestamps-same-entry t
-        org-table-use-standard-references 'from
+   ;; Do not generate internal css formatting for HTML exports
+   org-export-htmlize-output-type 'css
+   ;; Export with LaTeX fragments
+   org-export-with-LaTeX-fragments t
+   ;; Increase default number of headings to export
+   org-export-headline-levels 6
+   ;; allow #+BIND: vars to be set on export w/o confirmation
+   org-export-allow-BIND t
+   ;; narrowing
+   org-show-entry-below '((default))
+   ;; Keep tasks with dates on the global todo lists
+   org-agenda-todo-ignore-with-date nil
+   ;; Keep tasks with deadlines on the global todo lists
+   org-agenda-todo-ignore-deadlines nil
+   ;; Keep tasks with scheduled dates on the global todo lists
+   org-agenda-todo-ignore-scheduled nil
+   ;; Keep tasks with timestamps on the global todo lists
+   org-agenda-todo-ignore-timestamp nil
+   ;; Remove completed deadline tasks from the agenda view
+   org-agenda-skip-deadline-if-done t
+   ;; Remove completed scheduled tasks from the agenda view
+   org-agenda-skip-scheduled-if-done t
+   ;; Remove completed items from search results
+   org-agenda-skip-timestamp-if-done t
+   ;; use diary for holidays and appointments
+   org-agenda-include-diary nil
+   org-agenda-diary-file "~/Dropbox/orgfiles/diary.org"
+   org-agenda-insert-diary-extract-time t
+   ;; Include agenda archive files when searching for things
+   org-agenda-text-search-extra-files '(agenda-archives)
+   ;; Show all future entries for repeating tasks
+   org-agenda-repeating-timestamp-show-all t
+   ;; Show all agenda dates - even if they are empty
+   org-agenda-show-all-dates t
+   ;; Sorting order for tasks on the agenda
+   org-agenda-sorting-strategy '((agenda habit-down time-up user-defined-up effort-up category-keep)
+                                 (todo category-up effort-up)
+                                 (tags category-up effort-up)
+                                 (search category-up))
+   ;; Start the weekly agenda on Monday
+   org-agenda-start-on-weekday 1
+   org-agenda-start-with-log-mode t
+   ;; Enable display of the time grid so we can see the marker for the current time
+   org-agenda-time-grid '((daily today remove-match)
+                          #("----------------" 0 16 (org-heading t))
+                          (0900 1100 1300 1500 1700))
+   ;; Display tags farther right
+   org-agenda-tags-column -102
+   ;; Agenda sorting functions
+   ;;org-agenda-cmp-user-defined 'bh/agenda-sort
+   ;; Use sticky agenda's so they persist
+   org-agenda-sticky t
+   ;; show leading stars
+   org-hide-leading-stars nil
+   ;; editing and special key Handling
+   org-special-ctrl-a/e t
+   org-special-ctrl-k t
+   org-yank-adjusted-subtrees t
+   ;; minimize emacs frames
+   org-link-frame-setup '((vm . vm-visit-folder)
+                          (gnus . org-gnus-no-new-news)
+                          (file . find-file))
+   ;; Use the current window for C-c ' source editing
+   org-src-window-setup 'current-window
+   ;; modules for habit tracking
+   org-modules '(ol-bbdb
+                 ol-bibtex
+                 org-crypt
+                 ol-gnus
+                 org-id
+                 ol-info
+                 org-habit
+                 org-inlinetask
+                 ol-irc
+                 ol-mhe
+                 org-protocol
+                 ol-rmail
+                 ol-w3m
+                 org-tempo)
+   ;; position the habit graph on the agenda to the right of the default
+   org-habit-graph-column 60
+   ;; speed commands
+   org-use-speed-commands t
+   org-speed-commands-user '(("0" . ignore)
+                             ("1" . ignore)
+                             ("2" . ignore)
+                             ("3" . ignore)
+                             ("4" . ignore)
+                             ("5" . ignore)
+                             ("6" . ignore)
+                             ("7" . ignore)
+                             ("8" . ignore)
+                             ("9" . ignore)
 
-        ;; Overwrite the current window with the agenda
-        org-agenda-window-setup 'current-window
-        org-clone-delete-id t
-        org-cycle-include-plain-lists t
+                             ("a" . ignore)
+                             ("d" . ignore)
+                             ;;("h" . bh/hide-other)
+                             ("i" progn
+                              (forward-char 1)
+                              (call-interactively 'org-insert-heading-respect-content))
+                             ("k" . org-kill-note-or-show-branches)
+                             ("l" . ignore)
+                             ("m" . ignore)
+                             ;;("q" . bh/show-org-agenda)
+                             ("r" . ignore)
+                             ("s" . org-save-all-org-buffers)
+                             ("w" . org-refile)
+                             ("x" . ignore)
+                             ("y" . ignore)
+                             ("z" . org-add-note)
 
-        ;; insert structure template blocks
-        org-structure-template-alist '(("s" "#+begin_src ?\n\n#+end_src" "<src lang=\"?\">\n\n</src>")
-                                       ("e" "#+begin_example\n?\n#+end_example" "<example>\n?\n</example>")
-                                       ("q" "#+begin_quote\n?\n#+end_quote" "<quote>\n?\n</quote>")
-                                       ("v" "#+begin_verse\n?\n#+end_verse" "<verse>\n?\n</verse>")
-                                       ("c" "#+begin_center\n?\n#+end_center" "<center>\n?\n</center>")
-                                       ("l" "#+begin_latex\n?\n#+end_latex" "<literal style=\"latex\">\n?\n</literal>")
-                                       ("L" "#+latex: " "<literal style=\"latex\">?</literal>")
-                                       ("h" "#+begin_html\n?\n#+end_html" "<literal style=\"html\">\n?\n</literal>")
-                                       ("H" "#+html: " "<literal style=\"html\">?</literal>")
-                                       ("a" "#+begin_ascii\n?\n#+end_ascii")
-                                       ("A" "#+ascii: ")
-                                       ("i" "#+index: ?" "#+index: ?")
-                                       ("I" "#+include %file ?" "<include file=%file markup=\"?\">"))
+                             ("A" . ignore)
+                             ("B" . ignore)
+                             ("E" . ignore)
+                             ;;("F" . bh/restrict-to-file-or-follow)
+                             ("G" . ignore)
+                             ("H" . ignore)
+                             ("J" . org-clock-goto)
+                             ("K" . ignore)
+                             ("L" . ignore)
+                             ("M" . ignore)
+                             ;;("N" . bh/narrow-to-org-subtree)
+                             ;;("P" . bh/narrow-to-org-project)
+                             ("Q" . ignore)
+                             ("R" . ignore)
+                             ("S" . ignore)
+                             ;;("T" . bh/org-todo)
+                             ;;("U" . bh/narrow-up-one-org-level)
+                             ("V" . ignore)
+                             ;;("W" . bh/widen)
+                             ("X" . ignore)
+                             ("Y" . ignore)
+                             ("Z" . ignore))
+   require-final-newline t
+   org-remove-highlights-with-change t
+   org-read-date-prefer-future 'time
 
-        org-startup-folded t
+   ;; automatically change list bullets
+   org-list-demote-modify-bullet '(("+" . "-")
+                                   ("*" . "-")
+                                   ("1." . "-")
+                                   ("1)" . "-")
+                                   ("A)" . "-")
+                                   ("B)" . "-")
+                                   ("a)" . "-")
+                                   ("b)" . "-")
+                                   ("A." . "-")
+                                   ("B." . "-")
+                                   ("a." . "-")
+                                   ("b." . "-"))
 
-        ;; preserve source block indentation
-        org-src-preserve-indentation nil
-        org-edit-src-content-indentation 0
+   ;; remove indentation on agenda tags view
+   org-tags-match-list-sublevels t
 
-        org-catch-invisible-edits 'error
+   org-link-mailto-program '(compose-mail "%a" "%s")
+   org-agenda-skip-additional-timestamps-same-entry t
+   org-table-use-standard-references 'from
 
-        ;; keep utf9 as default coding system
-        org-export-coding-system 'utf-8
-        default-process-coding-system '(utf-8-unix . utf-8-unix)
+   ;; Overwrite the current window with the agenda
+   org-agenda-window-setup 'current-window
+   org-clone-delete-id t
+   org-cycle-include-plain-lists t
 
-        org-time-clocksum-format '(:hours "%d" :require-hours t :minutes ":%02d" :require-minutes t)
-        org-id-link-to-org-use-id 'create-if-interactive-and-no-custom-id
+   ;; insert structure template blocks
+   org-structure-template-alist '(("s" "#+begin_src ?\n\n#+end_src" "<src lang=\"?\">\n\n</src>")
+                                  ("e" "#+begin_example\n?\n#+end_example" "<example>\n?\n</example>")
+                                  ("q" "#+begin_quote\n?\n#+end_quote" "<quote>\n?\n</quote>")
+                                  ("v" "#+begin_verse\n?\n#+end_verse" "<verse>\n?\n</verse>")
+                                  ("c" "#+begin_center\n?\n#+end_center" "<center>\n?\n</center>")
+                                  ("l" "#+begin_latex\n?\n#+end_latex" "<literal style=\"latex\">\n?\n</literal>")
+                                  ("L" "#+latex: " "<literal style=\"latex\">?</literal>")
+                                  ("h" "#+begin_html\n?\n#+end_html" "<literal style=\"html\">\n?\n</literal>")
+                                  ("H" "#+html: " "<literal style=\"html\">?</literal>")
+                                  ("a" "#+begin_ascii\n?\n#+end_ascii")
+                                  ("A" "#+ascii: ")
+                                  ("i" "#+index: ?" "#+index: ?")
+                                  ("I" "#+include %file ?" "<include file=%file markup=\"?\">"))
 
-        org-use-sub-superscripts t
-        )
+   org-startup-folded t
 
+   ;; preserve source block indentation
+   org-src-preserve-indentation nil
+   org-edit-src-content-indentation 0
+
+   org-catch-invisible-edits 'error
+
+   ;; keep utf9 as default coding system
+   org-export-coding-system 'utf-8
+   default-process-coding-system '(utf-8-unix . utf-8-unix)
+
+   org-time-clocksum-format '(:hours "%d" :require-hours t :minutes ":%02d" :require-minutes t)
+   org-id-link-to-org-use-id 'create-if-interactive-and-no-custom-id
+
+   org-use-sub-superscripts t
+   )
   ;; Resume clocking task when emacs is restarted
   (org-clock-persistence-insinuate)
+  (efs/org-font-setup)
 
   :init
   (prefer-coding-system 'utf-8)
   (set-charset-priority 'unicode)
   (run-at-time "00:59" 3600 'org-save-all-org-buffers)
   )
+
+(defun efs/org-mode-visual-fill ()
+  (setq visual-fill-column-width 100
+        visual-fill-column-center-text t)
+  (visual-fill-column-mode 1))
+
+(use-package visual-fill-column
+  :hook (org-mode . efs/org-mode-visual-fill))
+
+(with-eval-after-load 'org
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '((emacs-lisp . t)
+     (python . t)))
+
+  (push '("conf-unix" . conf-unix) org-src-lang-modes))
+
+(with-eval-after-load 'org-tempo
+  ;; This is needed as of Org 9.2
+  (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
+  (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
+  (add-to-list 'org-structure-template-alist '("py" . "src python")))
+
+;; Automatically tangle our Emacs.org config file when we save it
+(defun efs/org-babel-tangle-config ()
+  (when (string-equal (file-name-directory (buffer-file-name))
+                      (expand-file-name user-emacs-directory))
+    ;; Dynamic scoping to the rescue
+    (let ((org-confirm-babel-evaluate nil))
+      (org-babel-tangle))))
+
+(add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'efs/org-babel-tangle-config)))
+
 
 (eval-after-load "org"
   '(progn

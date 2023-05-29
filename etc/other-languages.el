@@ -23,8 +23,8 @@
   :defer t
   :mode ("\\.ya?ml$\\'" . yaml-mode)
   :hook (yaml-mode . (lambda ()
-                       (setq-local paragraph-separate ".*>-$\\|[   ]*$")
-                       (setq-local paragraph-start paragraph-separate))))
+		       (setq-local paragraph-separate ".*>-$\\|[   ]*$")
+		       (setq-local paragraph-start paragraph-separate))))
 
 (use-package terraform-mode
   :ensure t
@@ -40,31 +40,28 @@
 
 (use-package asm-mode
   :hook (asm-mode . (lambda () (setf indent-tabs-mode t
-                                tab-always-indent t))))
+				tab-always-indent t))))
 
-(use-package batch-mode
-  :defer t)
-
-(use-package lisp-mode
-  :defer t
-  :config
-  (defun ert-all ()
-    (interactive)
-    (ert t))
-  (defun ielm-repl ()
-    (interactive)
-    (pop-to-buffer (get-buffer-create "*ielm*"))
-    (ielm))
-  (define-key emacs-lisp-mode-map (kbd "C-c C-z") #'ielm-repl)
-  (defalias 'lisp-interaction-mode 'emacs-lisp-mode)
-  (font-lock-add-keywords
-   'emacs-lisp-mode
-   `((,(concat "(\\(\\(?:\\(?:\\sw\\|\\s_\\)+-\\)?"
-               "def\\(?:\\sw\\|\\s_\\)*\\)\\_>"
-               "\\s-*'?" "\\(\\(?:\\sw\\|\\s_\\)+\\)?")
-      (1 'font-lock-keyword-face)
-      (2 'font-lock-function-name-face nil t)))
-   :low-priority))
+;; (use-package lisp-mode
+;;   :defer t
+;;   :config
+;;   (defun ert-all ()
+;;     (interactive)
+;;     (ert t))
+;;   (defun ielm-repl ()
+;;     (interactive)
+;;     (pop-to-buffer (get-buffer-create "*ielm*"))
+;;     (ielm))
+;;   (define-key emacs-lisp-mode-map (kbd "C-c C-z") #'ielm-repl)
+;;   (defalias 'lisp-interaction-mode 'emacs-lisp-mode)
+;;   (font-lock-add-keywords
+;;    'emacs-lisp-mode
+;;    `((,(concat "(\\(\\(?:\\(?:\\sw\\|\\s_\\)+-\\)?"
+;;	       "def\\(?:\\sw\\|\\s_\\)*\\)\\_>"
+;;	       "\\s-*'?" "\\(\\(?:\\sw\\|\\s_\\)+\\)?")
+;;       (1 'font-lock-keyword-face)
+;;       (2 'font-lock-function-name-face nil t)))
+;;    :low-priority))
 
 
 (provide 'other-languages)

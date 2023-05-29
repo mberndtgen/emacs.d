@@ -137,6 +137,10 @@
 (if (eq system-type 'windows-nt)
     nil)
 
+;; shift <cursor> now just select text, super <cursor> moves between windows
+(windmove-default-keybindings 'super)
+
+(global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 (global-set-key (kbd "C-j") #'join-line)
 (global-set-key (kbd "C-x C-k") #'compile)
 (global-set-key (kbd "<f4>") (expose #'revert-buffer nil t))
@@ -389,6 +393,15 @@
 (electric-pair-mode +1) ;; automatically add a closing paren
 (desktop-save-mode 1) ;; save sessions
 
+;; bit of internet
+(defvar shr-use-external-browser)
+
+(use-package eww
+  :ensure t
+  :commands (eww)
+  :config
+  (setq shr-use-external-browser t))
+
 ;; make eww default browser
 (setq browse-url-browser-function 'eww-browse-url)
 
@@ -531,10 +544,10 @@
 
 ;;handle emptiness
 (use-package whitespace
-  :ensure nil
-  :config
-  (setq whitespace-line-column nil)
-  (add-hook 'before-save-hook 'whitespace-cleanup)
+  :hook
+  (before-save-hook . whitespace-cleanup)
+  :custom
+  (whitespace-line-column nil)
   :delight whitespace-mode)
 
 ;; beacon: highlight cursor
@@ -804,6 +817,27 @@
   :config
   (which-key-mode))
 
+;; bit of AI
+(setq epg-gpg-program "gpg")
+(setenv "GPG_AGENT_INFO" nil)
+(setq epg-pinentry-mode 'loopback) ; see https://colinxy.github.io/software-installation/2016/09/24/emacs25-easypg-issue.html
+
+(setq auth-sources '("~/.emacs.d/secrets/authinfo.gpg"))
+
+;;(load-library "~/.emacs.d/secrets/your-secrets.el.gpg")
+
+(use-package org-ai
+  :ensure t
+  :commands (org-ai-mode
+             org-ai-global-mode)
+  :init
+  (add-hook 'org-mode-hook #'org-ai-mode) ; enable org-ai in org-mode
+  (org-ai-global-mode) ; installs global keybindings on C-c M-a
+  :config
+  (setq org-ai-default-chat-model "gpt-3.5-turbo")
+  (org-ai-install-yasnippets) ; if you are using yasnippet and want `ai` snippets
+)
+
 ;; Set up before-save hooks to format buffer and add/delete imports.
 ;; Make sure you don't have other gofmt/goimports hooks enabled.
 (defun lsp-go-install-save-hooks ()
@@ -943,48 +977,14 @@
 ;; go hydra
 (use-package hydra
   :ensure t
-  :after dap-mode
-  :config
-  (require 'hydra)
-  (require 'dap-mode)
-  (require 'dap-ui)
-  :commands (ace-flyspell-setup)
-  :bind
-  ("M-s" . hydra-go/body)
-  :init
-  (add-hook 'dap-stopped-hook
-      (lambda (arg) (call-interactively #'hydra-go/body)))
-  :hydra (hydra-go (:color pink :hint nil :foreign-keys run)
-       "
-   _n_: Next       _c_: Continue _g_: goroutines      _i_: break log
-   _s_: Step in    _o_: Step out _k_: break condition _h_: break hit condition
-   _Q_: Disconnect _q_: quit     _l_: locals
-   "
-       ("n" dap-next)
-       ("c" dap-continue)
-       ("s" dap-step-in)
-       ("o" dap-step-out)
-       ("g" dap-ui-sessions)
-       ("l" dap-ui-locals)
-       ("e" dap-eval-thing-at-point)
-       ("h" dap-breakpoint-hit-condition)
-       ("k" dap-breakpoint-condition)
-       ("i" dap-breakpoint-log-message)
-       ("q" nil "quit" :color blue)
-       ("Q" dap-disconnect :color red)))
+  :defer t)
+
 
 ;; zap to char using avy
 (use-package avy-zap
   :ensure t
   :bind ("M-z" . avy-zap-to-char-dwim)
   ("M-Z" . avy-zap-up-to-char-dwim))
-
-;; The edit server talks to Chrome and uses emacs to edit any text areas.
-;; (use-package edit-server
-;;   :ensure t
-;;   :defer 10
-;;   :init
-;;   (edit-server-start))
 
 ;; regexp builder
 (defvar reb-re-syntax)
@@ -1039,7 +1039,8 @@
   (company-minimum-prefix-length 1)
   (company-begin-commands '(self-insert-command))
   (company-transformers '(company-sort-by-occurrence))
-  (company-tooltip-align-annotations t))
+  (company-tooltip-align-annotations t)
+  (company-show-numbers t))
 
 (use-package company-quickhelp
   :ensure t
@@ -1047,6 +1048,7 @@
   :config (company-quickhelp-mode 1))
 
 (use-package company-tabnine
+  :after company
   :custom
   (company-idle-delay 0) ;; Trigger completion immediately.
   (company-show-numbers t) ;; Number the candidates (use M-1, M-2 etc to select completions).
@@ -1114,84 +1116,25 @@
          ("C-c q" . vr/query-replace)
          ("C-c m" . vr/mc-mark)))
 
-;; (use-package projectile
-;;   :ensure t
-;;   :bind (("C-c p" . projectile-command-map)
-;;          ("C-x w" . hydra-projectile-other-window/body)
-;;          ("C-c C-p" . hydra-projectile/body))
-;;   :config
-;;   (use-package counsel-projectile
-;;     :after (projectile)
-;;     :ensure t
-;;     :bind
-;;     (:map projectile-command-map
-;;           ("s s" . counsel-projectile-rg)
-;;           ("p" . counsel-projectile-switch-project))
-;;     :config
-;;     (define-key projectile-mode-map (kbd "s-d") 'projectile-find-dir)
-;;     (define-key projectile-mode-map (kbd "s-e") 'er/expand-region)
-;;     (define-key projectile-mode-map (kbd "s-f") 'projectile-find-file)
-;;     (define-key projectile-mode-map (kbd "s-g") 'projectile-grep)
-;;     (define-key projectile-mode-map (kbd "s-j") 'prelude-top-join-line)
-;;     (define-key projectile-mode-map (kbd "s-k") 'prelude-kill-whole-line)
-;;     (define-key projectile-mode-map (kbd "s-l") 'goto-line)
-;;     (define-key projectile-mode-map (kbd "s-m") 'magit-status)
-;;     (define-key projectile-mode-map (kbd "s-o") 'prelude-open-line-above)
-;;     (define-key projectile-mode-map (kbd "s-p") 'projectile-command-map)
-;;     (define-key projectile-mode-map (kbd "s-w") 'delete-frame)
-;;     (define-key projectile-mode-map (kbd "s-x") 'exchange-point-and-mark))
-;;   (when (eq system-type 'windows-nt)
-;;     (setq projectile-indexing-method 'native))
-;;   (setq projectile-enable-caching t
-;;         projectile-require-project-root t
-;;         projectile-mode-line '(:eval (format " 🛠[%s]" (projectile-project-name)))
-;;         projectile-completion-system 'default)
-;;   (add-to-list 'projectile-globally-ignored-directories "node_modules")
-;;   (projectile-mode)
-;;   (defhydra hydra-projectile-other-window (:color teal)
-;;     "projectile-other-window"
-;;     ("f"  projectile-find-file-other-window        "file")
-;;     ("g"  projectile-find-file-dwim-other-window   "file dwim")
-;;     ("d"  projectile-find-dir-other-window         "dir")
-;;     ("b"  projectile-switch-to-buffer-other-window "buffer")
-;;     ("q"  nil                                      "cancel" :color blue))
-;;   (defhydra hydra-projectile (:color teal :hint nil)
-;;     "
-;;  PROJECTILE: %(projectile-project-root)
+(use-package projectile
+  :diminish projectile-mode
+  :config (projectile-mode)
+  :custom ((projectile-completion-system 'helm))
+  :bind-keymap
+  ("C-c p" . projectile-command-map)
+  :init
+  ;; NOTE: Set this to the folder where you keep your Git repos!
+  (setq projectile-project-search-path '("~/.emacs.d/" "~/Documents/src"))
+  (setq projectile-switch-project-action #'projectile-dired)
+  (setq projectile-enable-caching t))
 
-;;  Find File            Search/Tags          Buffers                Cache
-;;   ------------------------------------------------------------------------------------------
-;;   _C-f_: file            _r_: ag                _i_: Ibuffer           _c_: cache clear
-;;    _ff_: file dwim       _g_: update gtags      _b_: switch to buffer  _x_: remove known project
-;;    _fd_: file curr dir   _o_: multi-occur     _C-k_: Kill all buffers  _X_: cleanup non-existing
-;;     _r_: recent file                                               ^^^^_z_: cache current
-;;     _d_: dir
+(use-package ripgrep)
+(use-package rg)
 
-;;   "
-;;     ("r"   counsel-projectile-rg)
-;;     ("b"   projectile-switch-to-buffer)
-;;     ("c"   projectile-invalidate-cache)
-;;     ("d"   projectile-find-dir)
-;;     ("C-f" projectile-find-file)
-;;     ("ff"  projectile-find-file-dwim)
-;;     ("fd"  projectile-find-file-in-directory)
-;;     ("g"   ggtags-update-tags)
-;;     ("C-g" ggtags-update-tags)
-;;     ("i"   projectile-ibuffer)
-;;     ("K"   projectile-kill-buffers)
-;;     ("C-k" projectile-kill-buffers)
-;;     ("m"   projectile-multi-occur)
-;;     ("o"   projectile-multi-occur)
-;;     ("C-p" projectile-switch-project "switch project")
-;;     ("p"   projectile-switch-project)
-;;     ("s"   projectile-switch-project)
-;;     ("r"   projectile-recentf)
-;;     ("x"   projectile-remove-known-project)
-;;     ("X"   projectile-cleanup-known-projects)
-;;     ("z"   projectile-cache-current-file)
-;;     ("`"   hydra-projectile-other-window/body "other window")
-;;     ("q"   nil "cancel" :color blue)))
-
+(use-package helm-projectile
+  :after projectile
+  :ensure t
+  :config (helm-projectile-on))
 
 (defun centaur-tabs-hide-tab (x)
   "Do no to show buffer X in tabs."
@@ -1295,6 +1238,15 @@
          ("C-x c b" . my/helm-do-grep-book-notes)
          ("C-x c SPC" . helm-all-mark-rings)))
 
+(use-package counsel
+  :bind (("C-M-j" . 'counsel-switch-buffer)
+         :map minibuffer-local-map
+         ("C-r" . 'counsel-minibuffer-history))
+  :custom
+  (counsel-linux-app-format-function #'counsel-linux-app-format-function-name-only)
+  :config
+  (counsel-mode 1))
+
 (use-package zoom
   :ensure t)
 
@@ -1305,8 +1257,7 @@
          ("C-c S" . swiper)
          ("C-x C-r" . counsel-recentf)
          ("s-E" . counsel-colors-emacs)
-         ("s-W" . counsel-colors-web))
-  )
+         ("s-W" . counsel-colors-web)))
 
 ;; expand region: https://github.com/magnars/expand-region.el.
 (use-package expand-region
@@ -1486,22 +1437,25 @@
   imp-default-user-filters)
   (add-to-list 'imp-default-user-filters '(mhtml-mode . nil)))
 
-(use-package dired
-  :defer t
-  :config
-  (progn
-    (add-hook 'dired-mode-hook #'toggle-truncate-lines)
-    (setf dired-listing-switches "-alhG"
-    dired-guess-shell-alist-user
-    '(("\\.pdf\\'" "evince")
-      ("\\(\\.ods\\|\\.xlsx?\\|\\.docx?\\|\\.csv\\)\\'" "libreoffice")
-      ("\\(\\.png\\|\\.jpe?g\\)\\'" "qiv")
-      ("\\.gif\\'" "animate"))
-    dired-dwim-target t
-    dired-recursive-copies 'top
-    dired-listing-switches "-ahl"
-    dired-auto-revert-buffer t
-    dired-allow-to-change-permissions 'advanced)))
+
+
+;; (use-package dired
+;;   :ensure t
+;;   :defer t
+;;   :config
+;;   (progn
+;;     (add-hook 'dired-mode-hook #'toggle-truncate-lines)
+;;     (setf dired-listing-switches "-alhG"
+;;     dired-guess-shell-alist-user
+;;     '(("\\.pdf\\'" "evince")
+;;       ("\\(\\.ods\\|\\.xlsx?\\|\\.docx?\\|\\.csv\\)\\'" "libreoffice")
+;;       ("\\(\\.png\\|\\.jpe?g\\)\\'" "qiv")
+;;       ("\\.gif\\'" "animate"))
+;;     dired-dwim-target t
+;;     dired-recursive-copies 'top
+;;     dired-listing-switches "-ahl"
+;;     dired-auto-revert-buffer t
+;;     dired-allow-to-change-permissions 'advanced)))
 
 ;; (use-package dired+
 ;;   :ensure t
@@ -1584,12 +1538,11 @@
   :defer t
   :config (add-hook 'diff-mode-hook #'read-only-mode))
 
-
 (use-package doom-themes
   :ensure t
   :config
   ;; Global settings (defaults)
-  (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
+  (setq doom-themes-enable-bold t ; if nil, bold is universally disabled
         doom-themes-enable-italic t) ; if nil, italics is universally disabled
   (load-theme 'doom-one t)
 
@@ -1605,51 +1558,18 @@
   ;; Corrects (and improves) org-mode's native fontification.
   (doom-themes-org-config))
 
+;; NOTE: 1st time you load config on a new machine,
+;; remember to run 'M-x all-the-icons-install-fonts' first!
 (use-package all-the-icons)
 
 (use-package ghub
   :ensure t)
 
-;; remember to run 'M-x all-the-icons-install-fonts'
 (use-package doom-modeline
   :ensure t
-  :hook (after-init . doom-modeline-mode)
+  :init (doom-modeline-mode 1)
   :custom
-  ((doom-modeline-height 25)
-   (doom-modeline-bar-width 3)
-   (doom-modeline-project-detection 'project)
-   (doom-modeline-icon (display-graphic-p))
-   (doom-modeline-major-mode-icon t)
-   (doom-modeline-major-mode-color-icon t)
-   (doom-modeline-buffer-state-icon t)
-   (doom-modeline-buffer-modification-icon t)
-   (doom-modeline-unicode-fallback nil)
-   (doom-modeline-minor-modes nil)
-   (doom-modeline-enable-word-count nil)
-   (doom-modeline-continuous-word-count-modes '(markdown-mode gfm-mode org-mode))
-   (doom-modeline-buffer-encoding t)
-   (doom-modeline-indent-info nil)
-   (doom-modeline-checker-simple-format t)
-   (doom-modeline-number-limit 99)
-   (doom-modeline-vcs-max-length 12)
-   (doom-modeline-persp-name t)
-   (doom-modeline-display-default-persp-name nil)
-   (doom-modeline-lsp t)
-   (doom-modeline-github t)
-   (doom-modeline-github-interval (* 30 60))
-   (doom-modeline-modal-icon t)
-   (doom-modeline-mu4e nil)
-   (doom-modeline-gnus t)
-   (doom-modeline-gnus-timer 2)
-   (doom-modeline-irc t)
-   (doom-modeline-irc-stylize 'identity)
-   (doom-modeline-env-version t)
-   (doom-modeline-env-go-executable "go")
-   (doom-modeline-env-perl-executable "perl")
-   (doom-modeline-env-load-string "Check-check")
-   (doom-modeline-before-update-env-hook nil)
-   (doom-modeline-after-update-env-hook nil)
-   (global-hl-line-mode 1)))
+  ((doom-modeline-height 10)))
 
 ;; jump anywhere in buffer, see https://github.com/abo-abo/avy
 ;; highlight text an all shown buffers
@@ -1718,10 +1638,8 @@
          ("C-h z" . helpful-macro)))
 
 (use-package winner
-  :config
-  (progn
-    (winner-mode 1)
-    (windmove-default-keybindings)))
+  :init (winner-mode))
+
 
 ;; what keybindings were active in the current buffer for the current mode?
 (use-package discover-my-major
@@ -1819,38 +1737,13 @@
 (add-hook 'LaTeX-mode-hook 'turn-on-reftex)
 
 ;; magit support, see https://magit.vc/
-;; (use-package magit
-;;   :ensure t
-;;   :bind ("C-x g" . magit-status)
-;;   :init (setf magit-last-seen-setup-instructions "2.1.0")
-;;   :config
-;;   (setf vc-display-status nil
-;;   magit-push-always-verify nil)
-;;   (remove-hook 'git-commit-finish-query-functions
-;;          'git-commit-check-style-conventions)
-;;   (global-set-key (kbd "C-x M-g") 'magit-dispatch-popup))
+(use-package magit
+  :custom (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
 
-(use-package forge
-  :ensure t
-  :commands (forge-pull))
-
-;; (use-package magit-todos
-;;   :ensure t
-;;   :after magit
-;;   :hook (magit-mode-hook . magit-todos-mode))
-
-;; git timemachine
-;; (use-package git-timemachine
-;;   :disabled
-;;   :ensure t
-;;   :bind ("C-x C-g" . git-timemachine-toggle)
-;;   :config
-;;   (bind-keys
-;;    :map git-timemachine-mode-map
-;;    ("<M-up>" . git-timemachine-show-previous-revision)
-;;    ("<M-down>" . git-timemachine-show-next-revision)
-;;    ("<S-wheel-up>" . git-timemachine-show-previous-revision)
-;;    ("<S-wheel-down>" . git-timemachine-show-next-revision)))
+  (use-package forge
+    :ensure t
+    :after magit
+    :commands (forge-pull))
 
 ;; smerge
 (add-hook
@@ -1874,35 +1767,11 @@
   :ensure t
   :defer 10)
 
-;; (use-package gitconfig-mode
-;;   :ensure t
-;;   :defer t
-;;   :config (add-hook 'gitconfig-mode-hook
-;;         (lambda ()
-;;           (setf indent-tabs-mode nil
-;;           tab-width 4))))
-
 (use-package octave
   :defer t
   :config
   (add-to-list 'auto-mode-alist '("\\.m$" . octave-mode))
   (setf octave-block-offset 4))
-
-(use-package simple-httpd
-  :ensure t
-  :defer t
-  :functions httpd-send-header
-  :config
-  (progn
-    (defservlet uptime "text/plain" ()
-      (princ (emacs-uptime)))
-    (defun httpd-here ()
-      (interactive)
-      (setf httpd-root default-directory))
-    (defadvice httpd-start (after httpd-query-on-exit-flag activate)
-      (let ((httpd-process (get-process "httpd")))
-  (when httpd-process
-    (set-process-query-on-exit-flag httpd-process nil))))))
 
 (use-package ielm
   :defer t
