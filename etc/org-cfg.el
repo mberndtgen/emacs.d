@@ -47,7 +47,9 @@
 (defun efs/org-mode-setup ()
   (org-indent-mode)
   (variable-pitch-mode 1)
-  (visual-line-mode 1))
+  (auto-fill-mode 0)
+  (visual-line-mode 1)
+  (diminish org-indent-mode))
 
 (use-package org-bullets
   :hook (org-mode . org-bullets-mode)
@@ -508,30 +510,12 @@
 
    ;; remove indentation on agenda tags view
    org-tags-match-list-sublevels t
-
-   org-link-mailto-program '(compose-mail "%a" "%s")
-   org-agenda-skip-additional-timestamps-same-entry t
    org-table-use-standard-references 'from
 
    ;; Overwrite the current window with the agenda
    org-agenda-window-setup 'current-window
    org-clone-delete-id t
    org-cycle-include-plain-lists t
-
-   ;; insert structure template blocks
-   org-structure-template-alist '(("s" "#+begin_src ?\n\n#+end_src" "<src lang=\"?\">\n\n</src>")
-                                  ("e" "#+begin_example\n?\n#+end_example" "<example>\n?\n</example>")
-                                  ("q" "#+begin_quote\n?\n#+end_quote" "<quote>\n?\n</quote>")
-                                  ("v" "#+begin_verse\n?\n#+end_verse" "<verse>\n?\n</verse>")
-                                  ("c" "#+begin_center\n?\n#+end_center" "<center>\n?\n</center>")
-                                  ("l" "#+begin_latex\n?\n#+end_latex" "<literal style=\"latex\">\n?\n</literal>")
-                                  ("L" "#+latex: " "<literal style=\"latex\">?</literal>")
-                                  ("h" "#+begin_html\n?\n#+end_html" "<literal style=\"html\">\n?\n</literal>")
-                                  ("H" "#+html: " "<literal style=\"html\">?</literal>")
-                                  ("a" "#+begin_ascii\n?\n#+end_ascii")
-                                  ("A" "#+ascii: ")
-                                  ("i" "#+index: ?" "#+index: ?")
-                                  ("I" "#+include %file ?" "<include file=%file markup=\"?\">"))
 
    org-startup-folded t
 
@@ -569,18 +553,31 @@
   :hook (org-mode . efs/org-mode-visual-fill))
 
 (with-eval-after-load 'org
+  (require 'ob-js)
   (org-babel-do-load-languages
    'org-babel-load-languages
    '((emacs-lisp . t)
-     (python . t)))
+     (python . t)
+     (js . t)
+     (lisp . t)
+     (perl . t)))
 
   (push '("conf-unix" . conf-unix) org-src-lang-modes))
 
-(with-eval-after-load 'org-tempo
+;; insert structure template blocks
+(with-eval-after-load 'org
+
   ;; This is needed as of Org 9.2
   (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
   (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
-  (add-to-list 'org-structure-template-alist '("py" . "src python")))
+  (add-to-list 'org-structure-template-alist '("py" . "src python"))
+  (add-to-list 'org-structure-template-alist '("pl" . "src perl"))
+  (add-to-list 'org-structure-template-alist '("li" . "src lisp"))
+  (add-to-list 'org-structure-template-alist '("js" . "src javascript"))
+  (add-to-list 'org-structure-template-alist '("ts" . "src typescript"))
+  (add-to-list 'org-structure-template-alist '("go" . "src go"))
+  (add-to-list 'org-structure-template-alist '("yaml" . "src yaml"))
+  (add-to-list 'org-structure-template-alist '("json" . "src json")))
 
 ;; Automatically tangle our Emacs.org config file when we save it
 (defun efs/org-babel-tangle-config ()

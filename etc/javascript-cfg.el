@@ -6,8 +6,22 @@
 ;;; Code:
 
 ;;----------------------------------------------------------------------------
+;; typescript settings
+;;----------------------------------------------------------------------------
+
+(use-package typescript-mode
+  :mode "\\.ts\\'"
+  :hook (typescript-mode . lsp-deferred)
+  :config
+  (setq typescript-indent-level 2))
+
+;;----------------------------------------------------------------------------
 ;; javascript settings
 ;;----------------------------------------------------------------------------
+
+(defun dw/set-js-indentation ()
+  (setq-default js-indent-level 2)
+  (setq-default tab-width 2))
 
 (use-package js2-mode
   :ensure t
@@ -25,9 +39,10 @@
                            (my-tide-setup-hook)
                            (company-mode))))
   :custom
+  (js2- )
   (js2-include-node-externs t)
   (js2-global-externs '("customElements"))
-  (js2-highlight-level 3) ;;; Try to highlight most ECMA built-ins
+  (js2--level 3) ;;; Try to highlight most ECMA built-ins
   (js2r-prefer-let-over-var t)
   (js2r-prefered-quote-type 2)
   (js-indent-align-list-continuation t)

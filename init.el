@@ -421,7 +421,7 @@
 
 ;; pretty mode
 (use-package pretty-mode
-  :disabled
+  :hook (org-mode . prettify-symbols-mode)
   :config
   (global-pretty-mode t)
   (pretty-activate-groups
@@ -1038,7 +1038,8 @@
   (company-idle-delay 0.0)
   (company-minimum-prefix-length 1)
   (company-begin-commands '(self-insert-command))
-  (company-transformers '(company-sort-by-occurrence))
+  (company-transformers '(company-sort-by-
+                          occurrence))
   (company-tooltip-align-annotations t)
   (company-show-numbers t))
 
@@ -1115,6 +1116,8 @@
   :bind (("C-c r" . vr/replace)
          ("C-c q" . vr/query-replace)
          ("C-c m" . vr/mc-mark)))
+
+(use-package diminish)
 
 (use-package projectile
   :diminish projectile-mode
@@ -1378,7 +1381,7 @@
   (add-hydra-mc-funcs))
 
 (defun add-hydra-mc-funcs ()
-  "Add my hydra-mc funcs to the proper whitelist"
+  "Add my hydra-mc funcs to the proper whitelist."
   (let* ((hydra-mc-funcs
     (cl-remove-if-not
      'functionp
