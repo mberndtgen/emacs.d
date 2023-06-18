@@ -991,36 +991,45 @@
 (setq reb-re-syntax 'string)
 
 ;; DAP
-(use-package dap-mode
-  :defer t
-  :ensure t
-  :functions dap-hydra/nil
-  :bind (:map lsp-mode-map
-              ("<f5>" . dap-debug)
-              ("C-<f5>" . dap-hydra))
-  :hook ((after-init . dap-mode)
-         (dap-mode . dap-ui-mode)
-         (dap-session-created . (lambda (&_rest) (dap-hydra)))
-         (dap-stopped . (lambda (&_rest) (call-interactively #'dap-hydra)))
-         (dap-terminated . (lambda (&_rest) (dap-hydra/nil)))
-         (go-mode . (lambda ()
-                      (require 'dap-go)
-                      (dap-go-setup)
-                      (defvar dap-go-delve-path)
-                      (setq dap-go-delve-path (concat (getenv "HOME") "/go/bin/dlv"))))
-         (js2-mode . (lambda ()
-                       (require 'dap-node)
-                       (dap-node-setup))))
-  :init
-  (setq dap-auto-configure-features '(sessions locals controls tooltip)
-        dap-print-io t)
-  (require 'dap-hydra)
-  (require 'dap-chrome)
-  (dap-chrome-setup)
-  (use-package dap-ui
-    :ensure nil
-    :config
-    (dap-ui-mode 1)))
+;; (use-package dap-mode
+;;   :custom
+;;   (lsp-enable-dap-auto-configure nil)
+;;   :config
+;;   (dap-ui-mode 1)
+;;   (dap-tooltip-mode 1)
+;;   (require 'dap-node)
+;;   (dap-node-setup))
+
+;; (use-package dap-mode
+;;   :defer t
+;;   :ensure t
+;;   :functions dap-hydra/nil
+;;   :bind (:map lsp-mode-map
+;;               ("<f5>" . dap-debug)
+;;               ("C-<f5>" . dap-hydra))
+;;   :hook ((after-init . dap-mode)
+;;          (dap-mode . dap-ui-mode)
+;;          (dap-session-created . (lambda (&_rest) (dap-hydra)))
+;;          (dap-stopped . (lambda (&_rest) (call-interactively #'dap-hydra)))
+;;          (dap-terminated . (lambda (&_rest) (dap-hydra/nil)))
+;;          (go-mode . (lambda ()
+;;                       (require 'dap-go)
+;;                       (dap-go-setup)
+;;                       (defvar dap-go-delve-path)
+;;                       (setq dap-go-delve-path (concat (getenv "HOME") "/go/bin/dlv"))))
+;;          (js2-mode . (lambda ()
+;;                        (require 'dap-node)
+;;                        (dap-node-setup))))
+;;   :init
+;;   (setq dap-auto-configure-features '(sessions locals controls tooltip)
+;;         dap-print-io t)
+;;   (require 'dap-hydra)
+;;   (require 'dap-chrome)
+;;   (dap-chrome-setup)
+;;   (use-package dap-ui
+;;     :ensure nil
+;;     :config
+;;     (dap-ui-mode 1)))
 
 
 (use-package company
