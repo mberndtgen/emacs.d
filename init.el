@@ -58,50 +58,142 @@
       use-package-compute-statistics t
       use-package-minimum-reported-time 0)
 
+
+(defun efs/display-startup-time ()
+  (message "Emacs loaded in %s with %d garbage collections."
+           (format "%.2f seconds"
+                   (float-time (time-subtract after-init-time before-init-time)))
+           gcs-done))
+
+(add-hook 'emacs-startup-hook #'efs/display-startup-time)
+
 ;; initialise use-packages on non-Linux platforms
 (unless (package-installed-p 'use-package)
   (package-install 'use-package))
 
+;; keep config folders clean, see https://github.com/emacscollective/no-littering
+;; For moving everything out of ~/.emacs.d reliably, set 'user-emacs-directory' before
+;; loading no-littering!
+
+(use-package no-littering)
+
+;; no-littering doesn't set this by default so we must place aut-save files in the
+;; same path as it uses for sessions
+(setq auto-save-file-name-transforms `((".*" ,(no-littering-expand-var-file-name "auto-save/") t)))
+
 (require 'use-package)
 (setq use-package-always-ensure t)
 
-(use-package command-log-mode
-  :commands command-log-mode
-  :config (global-command-log-mode t))
+;;
+;; basic UI configuration
+;;
+(setf backup-inhibited nil
+      auto-save-default nil
+      auto-save-list-file-prefix (locate-user-emacs-file "local/saves")
+      inhibit-startup-message t
+      inhibit-startup-screen t
+      inhibit-splash-screen t
+      initial-scratch-message nil
+      echo-keystrokes 0.1
+      delete-active-region nil
+      disabled-command-function nil
+      custom-file (make-temp-file "emacs-custom")
+      large-file-warning-threshold 536870911
+      gc-cons-threshold (* 1024 1024 32)
+      ring-bell-function 'ignore
+      auto-save-default nil
+      auto-save-list-file-prefix "~/.emacs.d/auto-save/save-"
+      backup-directory-alist (quote (("." . "~/.emacs.d/saves")))
+      backup-inhibited nil
+      set-fringe-mode 10)
 
-;; https://github.com/waymondo/use-package-ensure-system-package
-(use-package use-package-ensure-system-package
-  :ensure t)
+;; set up visible bell
+(setq visible-bell t)
 
-;; Quelpa grabs and builds packages from source (e.h. github)
-(use-package quelpa)
-(use-package quelpa-use-package :ensure t)
+;; Write backup files to own directory
+(setq backup-directory-alist
+      `(("." . ,(expand-file-name
+                 (concat user-emacs-directory "backups")))))
 
-;; Handle the `use-package-always-ensure' setting
-(quelpa-use-package-activate-advice)
+;; Make backups of files, even when they're in version control
+(setq vc-make-backup-files t)
+
+(setq-default dired-allow-to-change-permissions t)
 
 ;; always pick latest version of the library to load
 (setq load-prefer-newer t)
 
-;; add github stars in package listing, autoremove packs, install packs parallel
-(use-package paradox
-  :ensure t
-  :delight " ፨"
-  :commands (paradox-list-packages))
+;; GUIs are for newbs
+(dolist (mode'(menu-bar-mode tool-bar-mode tooltip-mode scroll-bar-mode))
+  (when (fboundp mode) (funcall mode -1)))
 
-;; binding keys
-(use-package bind-key
-  :bind ("C-h B" . describe-personal-keybindings))
+;; Too distracting
+(blink-cursor-mode -1)
 
-;; path
-(use-package exec-path-from-shell
-  :ensure t
-  :config
-  (exec-path-from-shell-initialize)
-  (exec-path-from-shell-copy-env "PATH"))
+;; overwrite text when highlighted
+(delete-selection-mode +1)
 
-(when (memq window-system '(mac ns x)) (exec-path-from-shell-initialize))
+;; I never want to use this
+(when (fboundp 'set-horizontal-scroll-bar-mode)
+  (set-horizontal-scroll-bar-mode nil))
 
+;; I hate typing
+(defalias 'yes-or-no-p 'y-or-n-p)
+
+;; Always use the one true encoding
+(prefer-coding-system 'utf-8-unix)
+
+;; Insert key is stupid
+(define-key global-map [(insert)] nil)
+(define-key global-map [(control insert)] 'overwrite-mode)
+
+;; Magit is the only front-end I care about
+(setf vc-handled-backends nil
+      vc-follow-symlinks t)
+
+;; Stop scrolling by huge leaps
+(setq mouse-wheel-scroll-amount '(1 ((shift) . 1))
+      scroll-conservatively most-positive-fixnum
+      scroll-preserve-screen-position t)
+
+(global-linum-mode 1)
+(column-number-mode 1)
+(global-auto-revert-mode t)
+(setq-default comment-column 70) ; Set the default comment column to 70
+(setq-default line-spacing 0.24)
+(setq-default indicate-buffer-boundaries 'right)
+(setq-default indicate-empty-lines t)
+(setq-default frame-title-format '("%b - %f - %I")) ;; buffer name, full file name and size
+
+;;; S - shift key
+;;; M - Cmd key
+;;; C - Ctrl key
+;;; s - Option key
+
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(ansi-color-faces-vector
+   [default bold shadow italic underline bold bold-italic bold])
+ '(ansi-color-names-vector
+   ["#242424" "#e5786d" "#95e454" "#cae682" "#8ac6f2" "#333366" "#ccaa8f" "#f6f3e8"])
+ '(custom-safe-themes
+   '("5ee12d8250b0952deefc88814cf0672327d7ee70b16344372db9460e9a0e3ffc" "52588047a0fe3727e3cd8a90e76d7f078c9bd62c0b246324e557dfa5112e0d0c" "cf08ae4c26cacce2eebff39d129ea0a21c9d7bf70ea9b945588c1c66392578d1" "1157a4055504672be1df1232bed784ba575c60ab44d8e6c7b3800ae76b42f8bd" "9e54a6ac0051987b4296e9276eecc5dfb67fdcd620191ee553f40a9b6d943e78" "1e7e097ec8cb1f8c3a912d7e1e0331caeed49fef6cff220be63bd2a6ba4cc365" "fc5fcb6f1f1c1bc01305694c59a1a861b008c534cae8d0e48e4d5e81ad718bc6" default))
+ '(fci-rule-color "#2a2a2a")
+ '(package-selected-packages
+   '(no-littering zoom yascroll yaml-mode xref-js2 writegood-mode whitespace-cleanup-mode which-key visual-regexp-steroids visual-fill-column use-package-hydra use-package-ensure-system-package unicode-fonts undo-tree typescript-mode transwin terraform-mode tern-auto-complete sunrise-commander smooth-scrolling smart-tabs-mode sly-quicklisp ripgrep rg reveal-in-osx-finder rainbow-mode rainbow-delimiters quelpa-use-package pug-mode prog-fill pretty-mode pov-mode pfuture pdf-tools paxedit paradox ox-reveal origami org-ref org-bullets org-ai npm notmuch neotree nasm-mode move-text lsp-ui linum-relative kurecolor kubernetes json-mode js2-refactor javadoc-lookup indent-guide impatient-mode highlight-symbol highlight-parentheses helpful helm-projectile helm-org helm-lsp graphviz-dot-mode goto-line-preview go-guru gnuplot-mode general forge font-lock-profiler focus flymake-eslint flymake-diagnostic-at-point flycheck find-file-in-project filladapt expand-region exec-path-from-shell evil-nerd-commenter eval-in-repl eslintd-fix elfeed eglot doom-themes doom-modeline discover-my-major dired-rainbow dired-narrow dired-filter dired-collapse diminish delight dap-mode crux counsel-projectile company-tabnine company-quickhelp company-box command-log-mode clojure-mode-extra-font-locking chatgpt-shell cfrs centaur-tabs buffer-move browse-kill-ring beacon avy-zap auctex arduino-mode anakondo all-the-icons-dired aggressive-indent ace-link ace-isearch ace-flyspell ac-js2 ac-cider))
+ '(scroll-preserve-screen-position 'always)
+ '(which-key-mode t))
+
+(electric-indent-mode +1) ;; indent after entering RET
+(electric-pair-mode +1) ;; automatically add a closing paren
+(desktop-save-mode 1) ;; save sessions
+
+;;
+;; font configguration
+;;
 ;; backup settings
 (setq backup-by-copying t
       create-lockfiles nil
@@ -137,8 +229,16 @@
 (if (eq system-type 'windows-nt)
     nil)
 
+;;
+;; keybindings
+;;
+
 ;; shift <cursor> now just select text, super <cursor> moves between windows
 (windmove-default-keybindings 'super)
+
+;; I hate hitting this by accident
+(global-set-key (kbd "C-<up>") #'previous-line)
+(global-set-key (kbd "C-<down>") #'next-line)
 
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 (global-set-key (kbd "C-j") #'join-line)
@@ -315,95 +415,8 @@
             ("[^\\+<>]\\(\\+\\)[^\\+<>]"   #Xe16d)
             ("[^\\*/<>]\\(\\*\\)[^\\*/<>]" #Xe16f))))
 
-(defun add-fira-code-symbol-keywords ()
-  (font-lock-add-keywords nil fira-code-font-lock-keywords-alist))
-
-(use-package unicode-fonts
-  :ensure t
-  :defer 10
-  :init
-  (unicode-fonts-setup))
-
-;; dynamic font sizes
-;; (defun bnb/change-frame-font-size (fn)
-;;   "Change the frame font size according to function FN."
-;;   (let* ((font-name (frame-parameter nil 'font))
-;;    (decomposed-font-name (x-decompose-font-name font-name))
-;;    (font-size (string-to-number (aref decomposed-font-name 5))))
-;;     (aset decomposed-font-name 5 (int-to-string (funcall fn font-size)))
-;;     (set-frame-font (x-compose-font-name decomposed-font-name))))
-
-;; (defun bnb/frame-text-scale-increase ()
-;;   "Increase the frame font size by 1."
-;;   (interactive)
-;;   (bnb/change-frame-font-size '1+))
-
-;; (defun bnb/frame-text-scale-decrease ()
-;;   "Decrease the frame font size by 1."
-;;   (interactive)
-;;   (bnb/change-frame-font-size '1-))
-
-(bind-keys
- ("C-+" . text-scale-increase)
- ("C--" . text-scale-decrease)
- ;; ("s--" . bnb/frame-text-scale-decrease)
- ;; ("s-+" . bnb/frame-text-scale-increase)
- ;; ("s-=" . bnb/frame-text-scale-increase)
- )
-
-;; If I ever use a font with a missing glyph, this will let Emacs check the Symbola font for the missing data.
-(set-fontset-font "fontset-default" nil
-                  (font-spec :size 20 :name "Symbola"))
-
-;; Make the cursor the full width of the character at point.
-(setq x-stretch-cursor t)
-
-;; Allow for profiling of font-locking.
-(use-package font-lock-profiler
-  :commands (font-lock-profiler-start
-       font-lock-profiler-buffer
-       font-lock-profiler-region))
-
-
-;;; convenience settings
-
-(global-linum-mode 1)
-(column-number-mode 1)
-(global-auto-revert-mode t)
-(setq-default comment-column 70) ; Set the default comment column to 70
-(setq-default line-spacing 0.24)
-(setq-default indicate-buffer-boundaries 'right)
-(setq-default indicate-empty-lines t)
-(setq-default frame-title-format '("%b - %f - %I")) ;; buffer name, full file name and size
-
-;;; S - shift key
-;;; M - Cmd key
-;;; C - Ctrl key
-;;; s - Option key
-
-(custom-set-variables
- '(ansi-color-faces-vector [default bold shadow italic underline bold bold-italic bold])
- '(ansi-color-names-vector ["#242424" "#e5786d" "#95e454" "#cae682" "#8ac6f2" "#333366" "#ccaa8f" "#f6f3e8"])
- '(custom-safe-themes (quote ("5ee12d8250b0952deefc88814cf0672327d7ee70b16344372db9460e9a0e3ffc" "52588047a0fe3727e3cd8a90e76d7f078c9bd62c0b246324e557dfa5112e0d0c" "cf08ae4c26cacce2eebff39d129ea0a21c9d7bf70ea9b945588c1c66392578d1" "1157a4055504672be1df1232bed784ba575c60ab44d8e6c7b3800ae76b42f8bd" "9e54a6ac0051987b4296e9276eecc5dfb67fdcd620191ee553f40a9b6d943e78" "1e7e097ec8cb1f8c3a912d7e1e0331caeed49fef6cff220be63bd2a6ba4cc365" "fc5fcb6f1f1c1bc01305694c59a1a861b008c534cae8d0e48e4d5e81ad718bc6" default)))
- '(fci-rule-color "#2a2a2a")
- '(scroll-preserve-screen-position 'always)
- '(which-key-mode t))
-
-(electric-indent-mode +1) ;; indent after entering RET
-(electric-pair-mode +1) ;; automatically add a closing paren
-(desktop-save-mode 1) ;; save sessions
-
-;; bit of internet
-(defvar shr-use-external-browser)
-
-(use-package eww
-  :ensure t
-  :commands (eww)
-  :config
-  (setq shr-use-external-browser t))
-
-;; make eww default browser
-(setq browse-url-browser-function 'eww-browse-url)
+;; (defun add-fira-code-symbol-keywords ()
+;;   (font-lock-add-keywords nil fira-code-font-lock-keywords-alist))
 
 (defun find-user-init-file () ;; instant access to init file
   "Edit the `user-init-file', in another window."
@@ -419,70 +432,129 @@
 (set-face-attribute 'mode-line-inactive nil :box nil)
 (set-face-attribute 'mode-line-highlight nil :box nil)
 
-;; pretty mode
-(use-package pretty-mode
-  :hook (org-mode . prettify-symbols-mode)
+;;
+;; load packages
+;;
+
+(use-package command-log-mode
+  :commands command-log-mode
+  :config (global-command-log-mode t))
+
+(use-package doom-themes
+  :custom
+  (doom-themes-enable-bold t)   ; if nil, bold is universally disabled
+  (doom-themes-enable-italic t) ; if nil, italics is universally disabled
   :config
-  (global-pretty-mode t)
-  (pretty-activate-groups
-   '(:sub-and-superscripts :greek :arithmetic-nary)))
+  (doom-themes-visual-bell-config) ; Enable flashing mode-line on errors
+  (doom-themes-neotree-config)     ; Enable custom neotree theme (all-the-icons must be installed!)
+  :init
+  (load-theme 'doom-one t)
+  ;; for treemacs users (setq doom-themes-treemacs-theme "doom-colors") ; use the colorful treemacs theme
+  (doom-themes-treemacs-config)
+  ;; Corrects (and improves) org-mode's native fontification.
+  (doom-themes-org-config))
 
-;; (use-package prog-mode ; Contains pretty-symbols-mode
-;;   :config
-;;   (setq prettify-symbols-unprettify-at-point 'right-edge)
-;;   (global-prettify-symbols-mode t)
-;;   (add-hook
-;;    'python-mode-hook
-;;    (lambda ()
-;;      (mapc (lambda (pair) (push pair prettify-symbols-alist))
-;;      '(;; Syntax
-;;        ("def" .      ?ℱ)
-;;        ("not" .      ?❗)
-;;        ("in" .       ?∈)
-;;        ("not in" .   ?∉)
-;;        ("return" .   ?⟼)
-;;        ("yield" .    ?⟻)
-;;        ("for" .      ?∀)
-;;        ;; Base Types
-;;        ("int" .      ?ℤ)
-;;        ("float" .    ?ℝ)
-;;        ("str" .      ?𝕊)
-;;        ("True" .     ?𝕋)
-;;        ("False" .    ?𝔽)
-;;        ;; Mypy
-;;        ("Dict" .     ?𝔇)
-;;        ("List" .     ?ℒ)
-() ;;        ("Tuple" .    ?⨂)
-;;        ("Set" .      ?Ω)
-;;        ("Iterable" . ?𝔊)
-;;        ("Any" .      ?❔)
-;;        ("Union" .    ?∪))))))
+;; NOTE: 1st time you load config on a new machine,
+;; remember to run 'M-x all-the-icons-install-fonts' first!
+(use-package all-the-icons)
 
-;; color treatment
+(use-package doom-modeline
+  :init (doom-modeline-mode 1)
+  :custom
+  (doom-modeline-height 10))
 
-(use-package rainbow-mode
-  :commands (rainbow-mode)
-  :ensure t)
+(use-package unicode-fonts
+  :defer 10
+  :init
+  (unicode-fonts-setup))
 
-;; (use-package kurecolor
-;;   :bind (("H-k" . kurecolor-increase-hue-by-step)
-;;          ("H-j" . kurecolor-decrease-hue-by-step)
-;;          ("s-k" . kurecolor-increase-saturation-by-step)
-;;          ("s-j" . kurecolor-decrease-saturation-by-step)
-;;          ("s-l" . kurecolor-increase-brightness-by-step)
-;;          ("s-h" . kurecolor-decrease-brightness-by-step))
-;;   :ensure t)
+;; If I ever use a font with a missing glyph, this will let Emacs check the Symbola font for the missing data.
+(set-fontset-font "fontset-default" nil
+                  (font-spec :size 20 :name "Symbola"))
+
+;; Make the cursor the full width of the character at point.
+(setq x-stretch-cursor t)
+
+;; Allow for profiling of font-locking.
+;; (use-package font-lock-profiler
+;;   :commands (font-lock-profiler-start font-lock-profiler-buffer font-lock-profiler-region))
+
+;; optional if you want which-key integration
+(use-package which-key
+  :defer 0
+  :diminish which-key-mode
+  :custom
+  (which-key-idle-delay 1)
+  :config
+  (which-key-mode))
+
+(use-package helm
+  :diminish helm-mode
+  :custom
+  (helm-candidate-number-limit 100)
+  (helm-input-idle-delay 0.01)      ; this actually updates things reeeelatively quickly.
+  (helm-ff-skip-boring-files t)
+  :init
+  ;; From https://gist.github.com/antifuchs/9238468
+  (defvar helm-idle-delay)
+  (defvar helm-yas-display-key-on-candidate)
+  (defvar helm-quick-update)
+  (defvar helm-M-x-requires-pattern)
+  (defvar helm-M-x-fuzzy-match)
+  (defvar helm-grep-default-command)
+  (defvar helm-grep-default-recurse-command)
+
+  (setq helm-idle-delay 0.0 ; update fast sources immediately (doesn't)
+        helm-yas-display-key-on-candidate t
+        helm-quick-update t
+        helm-M-x-requires-pattern nil
+        helm-autoresize-mode t
+        helm-M-x-fuzzy-match t)
+  (ido-mode -1) ;; Turn off ido mode in case I enabled it accidentally
+  (helm-mode 1)
+  (when (executable-find "ack-grep")
+    (setq helm-grep-default-command "ack-grep -Hn --no-group --no-color %e %p %f"
+          helm-grep-default-recurse-command "ack-grep -H --no-group --no-color %e %p %f"))
+  (add-to-list 'helm-sources-using-default-as-input 'helm-source-man-pages)
+  :bind (("C-c h" . helm-mini)
+         ("C-h a" . helm-apropos)
+         ("C-x C-b" . helm-buffers-list)
+         ("C-x b" . helm-buffers-list)
+         ("M-y" . helm-show-kill-ring)
+         ("M-x" . helm-M-x)
+         ("C-x C-f" . helm-find-files)
+         ("C-x c o" . helm-occur)
+         ("C-x c s" . helm-swoop)
+         ("C-x c y" . helm-yas-complete)
+         ("C-x c Y" . helm-yas-create-snippet-on-region)
+         ("C-x c b" . my/helm-do-grep-book-notes)
+         ("C-x c SPC" . helm-all-mark-rings)))
+
+(use-package counsel
+  :bind (("C-M-j" . 'counsel-switch-buffer)
+         :map minibuffer-local-map
+         ("C-r" . 'counsel-minibuffer-history))
+  :custom
+  (counsel-linux-app-format-function #'counsel-linux-app-format-function-name-only)
+  :config
+  (counsel-mode 1))
+
+(use-package helpful
+  :commands (helpful-callable helpful-variable helpful-at-point helpful-function helpful-key helpful-command helpful-macro)
+  :custom
+  (counsel-describe-function-function #'helpful-callable)
+  (counsel-describe-variable-function #'helpful-variable)
+  :bind (("C-c C-d" . helpful-at-point)
+         ("C-h f" . helpful-callable)
+         ("C-h F" . helpful-function)
+         ("C-h k" . helpful-key)
+         ("C-h v" . helpful-variable)
+         ("C-h C" . helpful-command)
+         ("C-h z" . helpful-macro)))
 
 ;; hydra
 (use-package hydra
-  :ensure t)
-
-;; relaxed handling of mode line
-(use-package delight
-  :ensure t
-  :commands delight)
-
-;; toggle map: show toggleable settings until pressing 'q'
+  :defer t)
 
 (defmacro toggle-setting-string (setting)
   `(if (and (boundp ',setting) ,setting) '[x] '[_]))
@@ -542,29 +614,245 @@
    ("q" nil))
  emacs-lisp-mode-map)
 
-;;handle emptiness
-(use-package whitespace
-  :hook
-  (before-save-hook . whitespace-cleanup)
+(require 'org-cfg)
+
+(defun dw/minibuffer-backward-kill (arg)
+  "When minibuffer is completing a file name delete up to parent
+folder, otherwise delete a word"
+  (interactive "p")
+  (if minibuffer-completing-file-name
+      ;; Borrowed from https://github.com/raxod502/selectrum/issues/498#issuecomment-803283608
+      (if (string-match-p "/." (minibuffer-contents))
+          (zap-up-to-char (- arg) ?/)
+        (delete-minibuffer-contents))
+      (delete-word (- arg))))
+
+;; Enable vertico
+;; see https://github.com/minad/vertico
+(use-package vertico
+  :bind (:map vertico-map
+         ("C-j" . vertico-next)
+         ("C-k" . vertico-previous)
+         ("C-f" . vertico-exit)
+         :map minibuffer-local-map
+         ("M-h" . dw/minibuffer-backward-kill))
   :custom
-  (whitespace-line-column nil)
-  :delight whitespace-mode)
+  (vertico-cycle t)
+  :custom-face
+  (vertico-current ((t (:background "#3a3f5a"))))
+  :init
+  (vertico-mode)
+
+  ;; Different scroll margin
+  (setq vertico-scroll-margin 0)
+
+  ;; Show more candidates
+  (setq vertico-count 20)
+
+  ;; Grow and shrink the Vertico minibuffer
+  (setq vertico-resize t)
+
+  ;; Optionally enable cycling for `vertico-next' and `vertico-previous'.
+  (setq vertico-cycle t))
+
+;; Persist history over Emacs restarts. Vertico sorts by history position.
+(use-package savehist
+  :init
+  (savehist-mode))
+
+(use-package corfu
+  :bind (:map corfu-map
+         ("C-j" . corfu-next)
+         ("C-k" . corfu-previous)
+         ("C-f" . corfu-insert))
+  ;; Optional customizations
+  :custom
+  (corfu-cycle t)                ;; Enable cycling for `corfu-next/previous'
+  ;; (corfu-auto t)                 ;; Enable auto completion
+  ;; (corfu-separator ?\s)          ;; Orderless field separator
+  ;; (corfu-quit-at-boundary nil)   ;; Never quit at completion boundary
+  ;; (corfu-quit-no-match nil)      ;; Never quit, even if there is no match
+  ;; (corfu-preview-current nil)    ;; Disable current candidate preview
+  ;; (corfu-preselect 'prompt)      ;; Preselect the prompt
+  ;; (corfu-on-exact-match nil)     ;; Configure handling of exact matches
+  ;; (corfu-scroll-margin 5)        ;; Use scroll margin
+
+  ;; Enable Corfu only for certain modes.
+  ;; :hook ((prog-mode . corfu-mode)
+  ;;        (shell-mode . corfu-mode)
+  ;;        (eshell-mode . corfu-mode))
+
+  ;; Recommended: Enable Corfu globally.
+  ;; This is recommended since Dabbrev can be used globally (M-/).
+  ;; See also `corfu-exclude-modes'.
+  :init
+  (global-corfu-mode))
+
+
+;; A few more useful configurations...
+(use-package emacs
+  :init
+  ;; Add prompt indicator to `completing-read-multiple'.
+  ;; We display [CRM<separator>], e.g., [CRM,] if the separator is a comma.
+  (defun crm-indicator (args)
+    (cons (format "[CRM%s] %s"
+                  (replace-regexp-in-string
+                   "\\`\\[.*?]\\*\\|\\[.*?]\\*\\'" ""
+                   crm-separator)
+                  (car args))
+          (cdr args)))
+  (advice-add #'completing-read-multiple :filter-args #'crm-indicator)
+
+  ;; Do not allow the cursor in the minibuffer prompt
+  (setq minibuffer-prompt-properties
+        '(read-only t cursor-intangible t face minibuffer-prompt))
+  (add-hook 'minibuffer-setup-hook #'cursor-intangible-mode)
+
+  ;; Emacs 28: Hide commands in M-x which do not work in the current mode.
+  ;; Vertico commands are hidden in normal buffers.
+  ;; (setq read-extended-command-predicate
+  ;;       #'command-completion-default-include-p)
+
+  ;; Enable recursive minibuffers
+  (setq enable-recursive-minibuffers t)
+
+  ;; TAB cycle if there are only few candidates
+  (setq completion-cycle-threshold 3)
+
+  ;; Emacs 28: Hide commands in M-x which do not apply to the current mode.
+  ;; Corfu commands are hidden, since they are not supposed to be used via M-x.
+  ;; (setq read-extended-command-predicate
+  ;;       #'command-completion-default-include-p)
+
+  ;; Enable indentation+completion using the TAB key.
+  ;; `completion-at-point' is often bound to M-TAB.
+  (setq tab-always-indent 'complete))
+
+;; Optionally use the `orderless' completion style.
+(use-package orderless
+  :custom
+  (completion-styles '(orderless basic))
+  (completion-category-overrides '((file (styles partial-completion))))
+  :init
+  ;; Configure a custom style dispatcher (see the Consult wiki)
+  ;; (setq orderless-style-dispatchers '(+orderless-consult-dispatch orderless-affix-dispatch)
+  ;;       orderless-component-separator #'orderless-escapable-split-on-space)
+  (setq completion-category-defaults nil))
+
+
+(use-package consult-dir
+  :bind (("C-x C-d" . consult-dir)
+         :map vertico-map
+         ("C-x C-d" . consult-dir)
+         ("C-x C-j" . consult-dir-jump-file))
+  :custom
+  (consult-dir-project-list-function nil))
+
+;; Thanks Karthik!
+(with-eval-after-load 'eshell-mode
+  (defun eshell/z (&optional regexp)
+    "Navigate to a previously visited directory in eshell."
+    (let ((eshell-dirs (delete-dups (mapcar 'abbreviate-file-name
+                                            (ring-elements eshell-last-dir-ring)))))
+      (cond
+       ((and (not regexp) (featurep 'consult-dir))
+        (let* ((consult-dir--source-eshell `(:name "Eshell"
+                                                   :narrow ?e
+                                                   :category file
+                                                   :face consult-file
+                                                   :items ,eshell-dirs))
+               (consult-dir-sources (cons consult-dir--source-eshell consult-dir-sources)))
+          (eshell/cd (substring-no-properties (consult-dir--pick "Switch directory: ")))))
+       (t (eshell/cd (if regexp (eshell-find-previous-directory regexp)
+                       (completing-read "cd: " eshell-dirs))))))))
+
+
+;; Enable rich annotations using the Marginalia package
+;; see https://github.com/minad/marginalia
+(use-package marginalia
+  ;; Bind `marginalia-cycle' locally in the minibuffer.  To make the binding
+  ;; available in the *Completions* buffer, add it to the
+  ;; `completion-list-mode-map'.
+  :bind (:map minibuffer-local-map
+              ("M-A" . marginalia-cycle))
+
+  ;; The :init section is always executed.
+  :init
+  ;; Marginalia must be actived in the :init section of use-package such that
+  ;; the mode gets enabled right away. Note that this forces loading the
+  ;; package.
+  (marginalia-mode))
+
+;; see https://github.com/oantolin/embark
+(use-package embark
+  :bind
+  (("C-." . embark-act)         ;; pick some comfortable binding
+   ("C-;" . embark-dwim)        ;; good alternative: M-.
+   ("C-h B" . embark-bindings)) ;; alternative for `describe-bindings'
+  :init
+  ;; Optionally replace the key help with a completing-read interface
+  (setq prefix-help-command #'embark-prefix-help-command)
+  ;; Show the Embark target at point via Eldoc.  You may adjust the Eldoc
+  ;; strategy, if you want to see the documentation from multiple providers.
+  (add-hook 'eldoc-documentation-functions #'embark-eldoc-first-target)
+  ;; (setq eldoc-documentation-strategy #'eldoc-documentation-compose-eagerly)
+  :config
+  ;; Hide the mode line of the Embark live/completions buffers
+  (add-to-list 'display-buffer-alist
+               '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
+                 nil
+                 (window-parameters (mode-line-format . none)))))
+
+;; Consult users will also want the embark-consult package.
+(use-package embark-consult
+  :hook
+  (embark-collect-mode . consult-preview-at-point-mode))
+
+;; https://github.com/waymondo/use-package-ensure-system-package
+(use-package use-package-ensure-system-package)
+
+;; Quelpa grabs and builds packages from source (e.h. github)
+;; (use-package quelpa)
+;; (use-package quelpa-use-package)
+
+;; Handle the `use-package-always-ensure' setting
+;; (quelpa-use-package-activate-advice)
+
+;; add github stars in package listing, autoremove packs, install packs parallel
+(use-package paradox
+  :delight " ፨"
+  :commands (paradox-list-packages))
+
+;; pretty mode
+(use-package pretty-mode
+  :hook (org-mode . prettify-symbols-mode)
+  :config
+  (global-pretty-mode t)
+  (pretty-activate-groups '(:sub-and-superscripts :greek :arithmetic-nary)))
+
+;; color treatment
+
+(use-package rainbow-mode
+  :commands (rainbow-mode))
+
+;; relaxed handling of mode line
+(use-package delight
+  :commands delight)
 
 ;; beacon: highlight cursor
 ;; https://github.com/Malabarba/beacon
 (use-package beacon
-  :ensure t
-  :hook (after.init . 'beacon-mode)
-  :config (progn (setq beacon-push-mark 35)
-                 (setq beacon-color "#666600")))
+  :hook (after-init . beacon-mode)
+  :custom
+  (beacon-push-mark 35)
+  (beacon-color "#666600"))
 
 ;; (With-eval-after-load "beacon"
 ;;                       (beacon-mode 1))
 
 ;; goto-line-preview
 ;; https://github.com/jcs-elpa/goto-line-preview
-(use-package goto-line-preview
-  :ensure t)
+(use-package goto-line-preview)
 
 (with-eval-after-load "goto-line-preview"
   (global-set-key [remap goto-line] 'goto-line-preview))
@@ -572,7 +860,6 @@
 ;; highlight-parentheses
 ;; https://github.com/tsdh/highlight-parentheses.el
 (use-package highlight-parentheses
-  :ensure t
   :hook (after-init . highlight-parentheses-mode))
 
 ;; ensure proper lisping
@@ -586,7 +873,7 @@
 (add-hook 'doc-view-mode-hook 'auto-revert-mode)
 (add-hook 'image-mode 'auto-revert-mode)
 
-(bind-key "M-k" 'fixup-whitespace)
+
 
 ;; auto-revert buffer
 ;; Source: http://www.emacswiki.org/emacs-en/download/misc-cmds.el
@@ -595,17 +882,17 @@
   (interactive)
   (revert-buffer :ignore-auto :noconfirm))
 
-;; align text by regexp
-(bind-key "C-c TAB" 'align-regexp)
-
 ;; kill current buffer (instead of asking which one)
 (defun bnb/kill-this-buffer ()
   "Kill the current buffer."
   (interactive)
   (kill-buffer (current-buffer)))
 
-(bind-keys
- ("C-x C-k" . bnb/kill-this-buffer))
+(bind-keys ("C-+" . text-scale-increase)
+           ("C--" . text-scale-decrease)
+           ("C-x C-k" . bnb/kill-this-buffer)
+           ("M-k" . fixup-whitespace)
+           ("C-c TAB" align-regexp))
 
 ;; no duplicates in minibuffer history
 (defvar savehist-additional-variables)
@@ -615,42 +902,17 @@
       savehist-file "~/.emacs.d/savehist")
 (savehist-mode t)
 
-;; abbrev - now crux
-;;(bind-key "C-x C-i" 'bnb/ispell-word-then-abbrev)
-
-;; (defun bnb/ispell-word-then-abbrev (p)
-;;   "Call `ispell-word'. Then create an abbrev for the correction
-;;     made. With prefix P, create local abbrev. Otherwise, it will be
-;;     global."
-;;   (interactive "P")
-;;   (let ((bef (downcase (or (thing-at-point 'word) ""))) aft)
-;;     (call-interactively 'ispell-word)
-;;     (setq aft (downcase (or (thing-at-point 'word) "")))
-;;     (unless (string= aft bef)
-;;       (message "\"%s\" now expands to \"%s\" %sally"
-;;          bef aft (if p "loc" "glob"))
-;;       (define-abbrev
-;;   (if p global-abbrev-table local-abbrev-table)
-;;   bef aft))))
-
-;; (use-package abbrev
-;;   :delight " ⚆"
-;;   :config
-;;   (setq save-abbrevs t)
-;;   (setq-default abbrev-mode t))
-
 ;; try to expand text before point in an intelligent way
 (bind-key "M-/" 'hippie-expand)
 
 ;; shortcut for editing init.el - now crux
-;; (bind-key "<f4>" (lambda ()
-;;        (interactive)
-;;        (find-file "~/.emacs.d/init.el")))
+(bind-key "<f4>" (lambda ()
+       (interactive)
+       (find-file "~/.emacs.d/init.el")))
 
 ;; find-file-in-project
 ;; https://github.com/technomancy/find-file-in-project
 (use-package find-file-in-project
-  :ensure t
   :bind
   (("H-x f" . find-file-in-project)
    ("H-x ." . find-file-in-project-at-point)))
@@ -666,7 +928,6 @@
 
 ;; writegood
 (use-package writegood-mode
-  :ensure t
   :bind (("C-c g" . writegood-mode)
          ("C-c C-g g" . writegood-grade-level)
          ("C-c C-g e" . writegood-reading-ease)))
@@ -737,20 +998,6 @@
 (when (eq system-type 'windows-nt)
   (set-clipboard-coding-system 'utf-16le-dos))
 
-;; vimrc generic mode
-(define-generic-mode 'vimrc-generic-mode
-  '()
-  '()
-  '(("^[\t ]*:?\\(!\\|ab\\|map\\|unmap\\)[^\r\n\"]*\"[^\r\n\"]*\\(\"[^\r\n\"]*\"[^\r\n\"]*\\)*$"
-     (0 font-lock-warning-face))
-    ("\\(^\\|[\t ]\\)\\(\".*\\)$"
-     (2 font-lock-comment-face))
-    ("\"\\([^\n\r\"\\]\\|\\.\\)*\""
-     (0 font-lock-string-face)))
-  '("/vimrc\\'" "\\.vim\\(rc\\)?\\'")
-  '((lambda ()
-      (modify-syntax-entry ?\" ".")))
-  "Generic mode for Vim configuration files.")
 
 ;; ediff single frame
 (defvar ediff-window-setup-function)
@@ -758,7 +1005,6 @@
 
 ;; see https://github.com/bbatsov/crux
 (use-package crux
-  :ensure t
   :bind (("C-c o" . crux-open-with)
          ("M-o" . crux-smart-open-line)
          ("C-c n" . crux-cleanup-buffer-or-region)
@@ -788,7 +1034,6 @@
 
 
 (use-package move-text
-  :ensure t
   :bind
   (("M-<up>" . move-text-up)
    ("M-<down>" . move-text-down))
@@ -800,7 +1045,6 @@
   (lsp-headerline-breadcrumb-mode))
 
 (use-package lsp-mode
-  :ensure t
   :init
   (setq lsp-keymap-prefix "C-c l") ; set prefix for lsp-command-keymap (few alternatives - "C-l", "C-c l")
   :commands (lsp lsp-deferred)
@@ -809,13 +1053,10 @@
   (lsp-enable-which-key-integration t))
 
 ;; optionally if you want to use debugger
-(use-package dap-mode)
+(use-package dap-mode
+  :after lsp)
 ;; (use-package dap-LANGUAGE) to load the dap adapter for your language
 
-;; optional if you want which-key integration
-(use-package which-key
-  :config
-  (which-key-mode))
 
 ;; bit of AI
 (setq epg-gpg-program "gpg")
@@ -827,11 +1068,11 @@
 ;;(load-library "~/.emacs.d/secrets/your-secrets.el.gpg")
 
 (use-package org-ai
-  :ensure t
+  :after org
+  :hook (org-mode . org-ai-mode) ; enable org-ai in org-mode
   :commands (org-ai-mode
              org-ai-global-mode)
   :init
-  (add-hook 'org-mode-hook #'org-ai-mode) ; enable org-ai in org-mode
   (org-ai-global-mode) ; installs global keybindings on C-c M-a
   :config
   (setq org-ai-default-chat-model "gpt-3.5-turbo")
@@ -847,7 +1088,6 @@
 
 ;; provides fancier overlays.
 (use-package lsp-ui
-  :after lsp-mode
   :hook (lsp-mode . lsp-ui-mode)
   :custom
   (lsp-ui-imenu-enable t)
@@ -872,26 +1112,20 @@
 
 ;; if you are helm user
 (use-package helm-lsp
-  :commands helm-lsp-workspace-symbol
-  :after lsp)
+  :commands helm-lsp-workspace-symbol)
 
 ;; if you are ivy user
 ;; (use-package lsp-ivy :commands lsp-ivy-workspace-symbol)
 
 (use-package lsp-treemacs
-  :after lsp
   :commands (lsp-treemacs-errors-list helm-lsp-global-workspace-symbol helm-lsp-code-actions helm-lsp-switch-project)
   :config
   (lsp-treemacs-sync-mode 1)
   (define-key lsp-mode-map [remap xref-find-apropos] #'helm-lsp-workspace-symbol))
 
-(use-package use-package-hydra
-  :ensure t)
-
 ;; eglot
 ;; https://github.com/joaotavora/eglot
 (use-package eglot
-  :ensure t
   :bind
   ("H-p ." . eglot-help-at-point)
   :hook
@@ -899,10 +1133,8 @@
 
 ;; ace-flyspell (https://github.com/cute-jumper/ace-flyspell)
 (use-package ace-flyspell
-  :ensure t
   :commands (ace-flyspell-setup)
-  :bind
-  ("H-s" . hydra-fly/body)
+  :bind ("H-s" . hydra-fly/body)
   :init
   (add-hook 'flyspell-mode-hook 'ace-flyspell-setup)
   (defhydra hydra-fly (:color pink)
@@ -914,7 +1146,6 @@
 
 ;;  The C-' key let's me jump to the isearch match easily with the ace-jump methods.
 (use-package ace-isearch
-  :ensure t
   :bind (:map isearch-mode-map
               ("C-'" . ace-isearch-jump-during-isearch))
   :delight ace-isearch-mode
@@ -926,14 +1157,12 @@
 (defvar org-mode-map)
 
 (use-package ace-link
-  :ensure t
   :bind (:map org-mode-map
               ("M-o" . ace-link-org))
   :config (ace-link-setup-default))
 
 ;; provide numbers for quick window access
 (use-package ace-window
-  :ensure t
   :bind (("H-a"    . ace-window)
          ("<f9> a" . ace-window))
   :config
@@ -974,17 +1203,11 @@
 
   (set-face-attribute 'aw-leading-char-face nil :height 2.0))
 
-;; go hydra
-(use-package hydra
-  :ensure t
-  :defer t)
-
-
 ;; zap to char using avy
 (use-package avy-zap
-  :ensure t
-  :bind ("M-z" . avy-zap-to-char-dwim)
-  ("M-Z" . avy-zap-up-to-char-dwim))
+  :bind
+  (("M-z" . avy-zap-to-char-dwim)
+   ("M-Z" . avy-zap-up-to-char-dwim)))
 
 ;; regexp builder
 (defvar reb-re-syntax)
@@ -1033,13 +1256,10 @@
 
 
 (use-package company
-  :after lsp-mode
   :hook (lsp-mode . company-mode)
   :bind
-  (:map company-active-map
-        ("<tab>" . company-complete-selection))
-  (:map lsp-mode-map
-        ("<tab>" . company-indent-or-complete-common))
+  ((:map company-active-map ("<tab>" . company-complete-selection))
+   (:map lsp-mode-map ("<tab>" . company-indent-or-complete-common)))
   :custom
   (company-dabbrev-ignore-case nil)
   (company-dabbrev-code-ignore-case nil)
@@ -1047,13 +1267,11 @@
   (company-idle-delay 0.0)
   (company-minimum-prefix-length 1)
   (company-begin-commands '(self-insert-command))
-  (company-transformers '(company-sort-by-
-                          occurrence))
+  (company-transformers '(company-sort-by-occurrence))
   (company-tooltip-align-annotations t)
   (company-show-numbers t))
 
 (use-package company-quickhelp
-  :ensure t
   :after company
   :config (company-quickhelp-mode 1))
 
@@ -1070,12 +1288,10 @@
 
 ;; Optional - provides snippet support.
 (use-package yasnippet
-  :ensure t
   :commands yas-minor-mode
   :hook (go-mode . yas-minor-mode))
 
 (use-package undo-tree
-  :ensure t
   :delight "¬"
   :config
   (global-undo-tree-mode)
@@ -1092,7 +1308,7 @@
 
 (use-package filladapt
   :delight " ▦"
-  :ensure t
+  :defer t
   :commands filladapt-mode
   :init (setq-default filladapt-mode t)
   :hook ((text-mode . filladapt-mode)
@@ -1102,29 +1318,22 @@
 (use-package buffer-move
   :defer t)
 
-(use-package rainbow-delimiters
-  :config
-  (add-hook 'prog-mode-hook #'rainbow-delimiters-mode))  ; set rainbow-delimiters mode for most programming modes
+;; folding, see https://github.com/zenozeng/yafolding.el
+(use-package yafolding
+  :hook (prog-mode . yafolding-mode)
+  :bind (("C-S-<return>" . yafolding-hide-parent-element)
+         ("C-M-<return>" . yafolding-toggle-all)
+         ("C-<return>" . yafolding-toggle-element))
+  :commands yafolding-mode)
 
 (use-package highlight-symbol
-  :ensure t
   :bind (("<C-f3>" . highlight-symbol)
          ("<f3>" . highlight-symbol-next)
          ("<S-f3>" . highlight-symbol-prev)
          ("<M-f3>" . highlight-symbol-query-replace)))
 
 (use-package evil-nerd-commenter
-  :ensure t
   :bind ("M-/" . evilnc-comment-or-uncomment-lines))
-
-(use-package smooth-scrolling
-  :ensure t)
-
-(use-package visual-regexp-steroids
-  :ensure t
-  :bind (("C-c r" . vr/replace)
-         ("C-c q" . vr/query-replace)
-         ("C-c m" . vr/mc-mark)))
 
 (use-package diminish)
 
@@ -1144,8 +1353,7 @@
 (use-package rg)
 
 (use-package helm-projectile
-  :after projectile
-  :ensure t
+  :after (helm projectile)
   :config (helm-projectile-on))
 
 (defun centaur-tabs-hide-tab (x)
@@ -1178,8 +1386,7 @@
      )))
 
 (use-package centaur-tabs
-  :ensure t
-  :demand
+  :demand t
   :hook ((dired-mode . centaur-tabs-local-mode)
          ;;(dashboard-mode . centaur-tabs-local-mode)
          (term-mode . centaur-tabs-local-mode)
@@ -1187,16 +1394,17 @@
          (org-agenda-mode . centaur-tabs-local-mode)
          ;;(helpful-mode . centaur-tabs-local-mode)
          )
+  :custom
+  (centaur-tabs-style "box")
+  (centaur-tabs-height 32)
+  (centaur-tabs-set-icons t)
+  (centaur-tabs-plain-icons t)
+  (centaur-tabs-gray-out-icons 'buffer)
+  (centaur-tabs-set-bar 'over)
+  (centaur-tabs-set-modified-marker t)
+  (centaur-tabs-modified-marker "*")
   :config
   (centaur-tabs-hide-tab "TAGS*")
-  (setq centaur-tabs-style "box"
-        centaur-tabs-height 32
-        centaur-tabs-set-icons t
-        centaur-tabs-plain-icons t
-        centaur-tabs-gray-out-icons 'buffer
-        centaur-tabs-set-bar 'over
-        centaur-tabs-set-modified-marker t
-        centaur-tabs-modified-marker "*")
   (centaur-tabs-headline-match)
   (centaur-tabs-change-fonts "fira code" 120)
   (centaur-tabs-mode t)
@@ -1207,63 +1415,10 @@
          ;;("C-c t g" . centaur-tabs-group-buffer-groups)
          ))
 
-(use-package helm
-  :ensure t
-  :diminish helm-mode
-  :init
-  ;; From https://gist.github.com/antifuchs/9238468
-  (defvar helm-idle-delay)
-  (defvar helm-yas-display-key-on-candidate)
-  (defvar helm-quick-update)
-  (defvar helm-M-x-requires-pattern)
-  (defvar helm-M-x-fuzzy-match)
-  (defvar helm-ff-skip-boring-files)
-  (defvar helm-grep-default-command)
-  (defvar helm-grep-default-recurse-command)
-
-  (setq helm-idle-delay 0.0 ; update fast sources immediately (doesn't)
-        helm-candidate-number-limit 100
-        helm-input-idle-delay 0.01 ; this actually updates things reeeelatively quickly.
-        helm-yas-display-key-on-candidate t
-        helm-quick-update t
-        helm-M-x-requires-pattern nil
-        helm-autoresize-mode t
-        helm-M-x-fuzzy-match t
-        helm-ff-skip-boring-files t)
-  (ido-mode -1) ;; Turn off ido mode in case I enabled it accidentally
-  (helm-mode 1)
-  (when (executable-find "ack-grep")
-    (setq helm-grep-default-command "ack-grep -Hn --no-group --no-color %e %p %f"
-          helm-grep-default-recurse-command "ack-grep -H --no-group --no-color %e %p %f"))
-  (add-to-list 'helm-sources-using-default-as-input 'helm-source-man-pages)
-  :bind (("C-c h" . helm-mini)
-         ("C-h a" . helm-apropos)
-         ("C-x C-b" . helm-buffers-list)
-         ("C-x b" . helm-buffers-list)
-         ("M-y" . helm-show-kill-ring)
-         ("M-x" . helm-M-x)
-         ("C-x C-f" . helm-find-files)
-         ("C-x c o" . helm-occur)
-         ("C-x c s" . helm-swoop)
-         ("C-x c y" . helm-yas-complete)
-         ("C-x c Y" . helm-yas-create-snippet-on-region)
-         ("C-x c b" . my/helm-do-grep-book-notes)
-         ("C-x c SPC" . helm-all-mark-rings)))
-
-(use-package counsel
-  :bind (("C-M-j" . 'counsel-switch-buffer)
-         :map minibuffer-local-map
-         ("C-r" . 'counsel-minibuffer-history))
-  :custom
-  (counsel-linux-app-format-function #'counsel-linux-app-format-function-name-only)
-  :config
-  (counsel-mode 1))
-
 (use-package zoom
-  :ensure t)
+  :defer t)
 
 (use-package swiper
-  :ensure t
   :diminish
   :bind (("C-s" . swiper)
          ("C-c S" . swiper)
@@ -1273,11 +1428,9 @@
 
 ;; expand region: https://github.com/magnars/expand-region.el.
 (use-package expand-region
-  :ensure t
   :bind (("C-=" . er/expand-region)))
 
 (use-package buffer-move
-  :ensure t
   :bind (("<M-S-up>" . buf-move-up)
          ("<M-S-down>" . buf-move-down)
          ("<M-S-left>" . buf-move-left)
@@ -1285,12 +1438,11 @@
 
 ;;; Save point position between sessions
 (use-package saveplace
-  :ensure t
-  :init (setq-default save-place t)
-  :config (setq save-place-file (expand-file-name ".places" user-emacs-directory)))
+  :custom
+  (save-place-file (expand-file-name ".places" user-emacs-directory))
+  :init (setq-default save-place t))
 
 (use-package flycheck
-  :ensure t
   :defer 10
   :init (global-flycheck-mode)
   :custom
@@ -1316,8 +1468,8 @@
         ("?" flycheck-describe-checker)
         ("q" nil))))
 
+;; smart line formatter, https://github.com/ahungry/prog-fill
 (use-package prog-fill
-  :ensure t
   :commands (prog-fill)
   :config
   (defvar prog-fill-break-method-immediate-p)
@@ -1325,44 +1477,25 @@
    prog-fill-floating-close-paren-p nil
    prog-fill-break-method-immediate-p t))
 
-(use-package auto-complete-config
-  :ensure auto-complete
-  :bind ("M-<tab>" . my--auto-complete)
-  :init
-  (defun my--auto-complete ()
-    (interactive)
-    (unless (boundp 'auto-complete-mode)
-      (global-auto-complete-mode 1))
-    (auto-complete)))
 
 ;; Load local "packages"
-(require 'init-utils)
-(require 'unannoy)
+;;(require 'init-utils)
+;;(require 'unannoy)
 ;; (require 'slime-cfg) ; --deprecated
-(require 'sly-cfg)
+;;(require 'sly-cfg)
 ;;(require 'clojure-cfg)
 ;;(require 'haskell-cfg)
 ;;(require 'python-cfg)
 ;;(require 'perl5-cfg)
 ;;(require 'golang-cfg)
-(require 'javascript-cfg)
-(require 'other-languages)
-(require 'org-cfg)
-(require 'misc)
+;;(require 'javascript-cfg)
+;;(require 'other-languages)
+;;
+;;(require 'misc)
 
-
-;;; which-key for help with key bindings - https://github.com/justbur/emacs-which-key
-(use-package which-key
-  :ensure t
-  :delight which-key-mode
-  :init
-  (which-key-mode)
-  (which-key-setup-side-window-right-bottom)
-  (setq which-key-max-description-length 60))
 
 ;; multiple cursors - https://github.com/magnars/multiple-cursors.el
 (use-package multiple-cursors
-  :ensure t
   :bind (("H-m"   . hydra-mc/body)
          ("C-x m" . hydra-mc/body)
          ("s-<mouse-1>" . mc/add-cursor-on-click)
@@ -1408,37 +1541,34 @@
 
 ;; remember recently opened files.
 (use-package recentf
-  :ensure t
+  :custom
+  (recentf-max-menu-items 25)
+  :bind ("C-x C-r" . recentf-open-files)
   :config
-  (progn
-    (recentf-mode 1)
-    (setq recentf-max-menu-items 25)
-    (global-set-key (kbd "C-x C-r") 'recentf-open-files)))
+  (recentf-mode 1))
 
 (use-package dabbrev
   :defer t
-  :init (setf abbrev-file-name (locate-user-emacs-file "local/abbrev_defs"))
+  :custom
+  (abbrev-file-name (locate-user-emacs-file "local/abbrev_defs"))
   :config (setf dabbrev-case-fold-search nil))
 
 (use-package markdown-mode
-  :ensure t
   :mode ("\\.md$" "\\.markdown$" "vimperator-.+\\.tmp$")
   :commands (markdown-mode gfm-mode)
+  :custom
+  (sentence-end-double-space nil)
+  (markdown-indent-on-enter nil)
+  (markdown-command "pandoc -f markdown -t html5 -s --self-contained --smart")
   :config
   (add-hook 'markdown-mode-hook
       (lambda ()
         (remove-hook 'fill-nobreak-predicate
          'markdown-inside-link-p t)))
-  (setf sentence-end-double-space nil
-  markdown-indent-on-enter nil
-  markdown-command
-  "pandoc -f markdown -t html5 -s --self-contained --smart")
   :init (setq markdown-command "multimarkdown"))
 
 ;; for html
 (use-package impatient-mode
-  :ensure t
-  :defer t
   :mode "\\.html\\'"
   :config
   (defun imp-markdown-filter (in)
@@ -1450,24 +1580,24 @@
   (add-to-list 'imp-default-user-filters '(mhtml-mode . nil)))
 
 
-
-;; (use-package dired
-;;   :ensure t
-;;   :defer t
-;;   :config
-;;   (progn
-;;     (add-hook 'dired-mode-hook #'toggle-truncate-lines)
-;;     (setf dired-listing-switches "-alhG"
-;;     dired-guess-shell-alist-user
-;;     '(("\\.pdf\\'" "evince")
-;;       ("\\(\\.ods\\|\\.xlsx?\\|\\.docx?\\|\\.csv\\)\\'" "libreoffice")
-;;       ("\\(\\.png\\|\\.jpe?g\\)\\'" "qiv")
-;;       ("\\.gif\\'" "animate"))
-;;     dired-dwim-target t
-;;     dired-recursive-copies 'top
-;;     dired-listing-switches "-ahl"
-;;     dired-auto-revert-buffer t
-;;     dired-allow-to-change-permissions 'advanced)))
+(use-package dired
+  :ensure nil
+  :commands (dired dired-jump)
+  :bind ("C-x C-j" . dired-jump)
+  :custom
+  (dired-listing-switches "-alhG")
+  (dired-dwim-target t)
+  (dired-recursive-copies 'top)
+  (dired-listing-switches "-ahl")
+  (dired-auto-revert-buffer t)
+  :config
+  (add-hook 'dired-mode-hook #'toggle-truncate-lines)
+  (setf dired-guess-shell-alist-user
+        '(("\\.pdf\\'" "evince")
+          ("\\(\\.ods\\|\\.xlsx?\\|\\.docx?\\|\\.csv\\)\\'" "libreoffice")
+          ("\\(\\.png\\|\\.jpe?g\\)\\'" "qiv")
+          ("\\.gif\\'" "animate"))
+        dired-allow-to-change-permissions 'advanced))
 
 ;; (use-package dired+
 ;;   :ensure t
@@ -1475,64 +1605,19 @@
 ;;   (global-dired-hide-details-mode 1))
 
 (use-package dired-narrow
-  :ensure t
+  :after dired
   :config
   (define-key dired-mode-map (kbd "C-x /") 'dired-narrow))
 
-(use-package notmuch
-  :ensure t
-  :bind ("C-x m" . notmuch)
-  :config
-  (progn
-    (require 'email-setup)
-    (require 'notmuch-address)
-    (define-key notmuch-common-keymap "q" (expose #'kill-buffer))
-    (define-key notmuch-message-mode-map (kbd "C-x C-s") nil)
-    (define-key notmuch-message-mode-map (kbd "C-c C-s") nil) ; super annoying
-    (setf notmuch-command "notmuch-remote"
-          message-send-mail-function 'smtpmail-send-it
-          message-kill-buffer-on-exit t
-          smtpmail-smtp-server "localhost"
-          smtpmail-smtp-service 2525
-          notmuch-address-command "addrlookup-remote"
-          notmuch-fcc-dirs nil
-          notmuch-search-oldest-first nil
-          notmuch-archive-tags '("-inbox" "-unread" "+archive")
-          hashcash-path (executable-find "hashcash"))
-    (custom-set-faces
-     '(notmuch-search-subject ((t :foreground "#afa")))
-     '(notmuch-search-date    ((t :foreground "#aaf")))
-     '(notmuch-search-count   ((t :foreground "#777"))))
-    (setq notmuch-hello-sections
-          '(notmuch-hello-insert-header
-            notmuch-hello-insert-saved-searches
-            notmuch-hello-insert-search))))
-
-(use-package elfeed
-  :ensure t
-  :bind ("C-x w" . elfeed)
-  :init (setf url-queue-timeout 30)
-  :config
-  (require 'feed-setup)
-  (setf bookmark-default-file (locate-user-emacs-file "local/bookmarks")))
 
 (use-package time
+  :custom
+  (display-time-default-load-average nil)
+  (display-time-use-mail-icon t)
+  (display-time-24hr-format t)
   :config
-  (setf display-time-default-load-average nil
-        display-time-use-mail-icon t
-        display-time-24hr-format t)
   (display-time-mode t))
 
-;; (use-package comint
-;;   :defer t
-;;   :config
-;;   (define-key comint-mode-map (kbd "<down>") #'comint-next-input)
-;;   (define-key comint-mode-map (kbd "<up>") #'comint-previous-input)
-;;   (define-key comint-mode-map (kbd "C-n") #'comint-next-input)
-;;   (define-key comint-mode-map (kbd "C-p") #'comint-previous-input)
-;;   (define-key comint-mode-map (kbd "C-r") #'comint-history-isearch-backward)
-;;   (setf comint-prompt-read-only t
-;;         comint-history-isearch t))
 
 (use-package tramp
   :defer t
@@ -1541,52 +1626,20 @@
         (concat temporary-file-directory "tramp-" (user-login-name))))
 
 (use-package whitespace-cleanup-mode
-  :ensure t
   :init
   (setq-default indent-tabs-mode nil)
   (global-whitespace-cleanup-mode))
 
 (use-package diff-mode
   :defer t
-  :config (add-hook 'diff-mode-hook #'read-only-mode))
-
-(use-package doom-themes
-  :ensure t
-  :config
-  ;; Global settings (defaults)
-  (setq doom-themes-enable-bold t ; if nil, bold is universally disabled
-        doom-themes-enable-italic t) ; if nil, italics is universally disabled
-  (load-theme 'doom-one t)
-
-  ;; Enable flashing mode-line on errors
-  (doom-themes-visual-bell-config)
-
-  ;; Enable custom neotree theme (all-the-icons must be installed!)
-  (doom-themes-neotree-config)
-  ;; or for treemacs users
-  (setq doom-themes-treemacs-theme "doom-colors") ; use the colorful treemacs theme
-  (doom-themes-treemacs-config)
-
-  ;; Corrects (and improves) org-mode's native fontification.
-  (doom-themes-org-config))
-
-;; NOTE: 1st time you load config on a new machine,
-;; remember to run 'M-x all-the-icons-install-fonts' first!
-(use-package all-the-icons)
+  :hook (diff-mode . read-only-mode))
 
 (use-package ghub
-  :ensure t)
-
-(use-package doom-modeline
-  :ensure t
-  :init (doom-modeline-mode 1)
-  :custom
-  ((doom-modeline-height 10)))
+  :defer t)
 
 ;; jump anywhere in buffer, see https://github.com/abo-abo/avy
 ;; highlight text an all shown buffers
 (use-package avy
-  :ensure t
   :bind (("H-SPC" . avy-goto-char-timer)
          ("H-w"   . avy-goto-word-1)
          ("H-c"   . avy-goto-char-2)
@@ -1598,40 +1651,21 @@
          ("M-g c" . avy-goto-char-2)
          ("M-g w" . avy-goto-word-0)))
 
-;; (use-package simple
-;;   :defer t
-;;   :config
-;;   (progn
-;;     ;; disable so I don't use it by accident
-;;     (define-key visual-line-mode-map (kbd "M-q") (expose (lambda ())))
-;;     (add-hook 'tabulated-list-mode-hook #'hl-line-mode)))
-
-;; When editing files with the same name, but different location, a unique identifier (based on path) is preferred over a number.
-;; (use-package uniquify
-;;   :defer 10
-;;   :config
-;;   (setf uniquify-buffer-name-style 'post-forward-angle-brackets
-;;         uniquify-separator ":"))
-
 ;; Dim everything except for the thing-at-point.
 (use-package focus
-  :ensure t
   :bind (("C-c f" . focus-mode)
          ("C-c F" . focus-read-only-mode)))
 
 (use-package linum-relative
-  :defer 10
-  :ensure t)
+  :defer 10)
 
 (when (fboundp 'imagemagick-register-types)
   (imagemagick-register-types))
 
 (use-package pdf-tools
   :defer t
-  :ensure t
-  :init (add-hook 'pdf-view-mode-hook
-      (lambda ()
-        (nlinum-mode 0)))
+  :hook (pdf-view-mode . (lambda ()
+                           (nlinum-mode 0)))
   :config
   (custom-set-variables '(pdf-tools-handle-upgrades nil))
   (setq-default pdf-view-display-size 'fit-page)
@@ -1639,23 +1673,11 @@
   (pdf-loader-install)
   (pdf-tools-install))
 
-(use-package helpful
-  :ensure t
-  :bind (("C-c C-d" . helpful-at-point)
-         ("C-h f" . helpful-callable)
-         ("C-h F" . helpful-function)
-         ("C-h k" . helpful-key)
-         ("C-h v" . helpful-variable)
-         ("C-h C" . helpful-command)
-         ("C-h z" . helpful-macro)))
-
 (use-package winner
   :init (winner-mode))
 
-
 ;; what keybindings were active in the current buffer for the current mode?
 (use-package discover-my-major
-  :ensure t
   :bind (("C-h C-m" . discover-my-major)
          ("C-h C-d" . discover-my-mode)))
 
@@ -1665,12 +1687,11 @@
 
 (use-package eshell
   :bind ("<f1>" . eshell-as)
+  :hook (eshell-mode . (lambda ()
+                         (define-key eshell-mode-map (kbd "<f1>") #'quit-window)))
   :init
-  (setf eshell-directory-name (locate-user-emacs-file "local/eshell"))
-  :config
-  (add-hook 'eshell-mode-hook ; Bad, eshell, bad!
-            (lambda ()
-              (define-key eshell-mode-map (kbd "<f1>") #'quit-window))))
+  (setf eshell-directory-name (locate-user-emacs-file "local/eshell")))
+
 ;; no need for a pager when running eshell
 (setenv "PAGER" "cat")
 
@@ -1693,33 +1714,14 @@
        (find-file-other-window f)))
    (mapcar #'expand-file-name (eshell-flatten-list (reverse args)))))
 
-;; some aliases for eshell
-;; (with-eval-after-load "em-alias"
-;;   '(progn
-;;      (eshell/alias "em" "emacs")
-;;      (eshell/alias "ll" "ls -Aloh")
-;;      (eshell/alias "llc" "*ls -AlohG --color=always")))
-
-;; (defun eshell/gst (&rest args)
-;;   (magit-status-internal (pop args) nil)
-;;   (eshell/echo))
-
-;; (defun eshell/gd (&rest args)
-;;   (magit-diff-unstaged)
-;;   (eshell/echo))
-
-;; (defun eshell/gds (&rest args)
-;;   (magit-diff-staged)
-;;   (eshell/echo))
-
 (use-package tex-site
   :defer 10
   :ensure auctex
+  :hook ((LaTeX-mode . flyspell-mode)
+         (LaTeX-mode . LaTeX-math-mode)
+         (LaTeX-mode . auto-fill-mode)
+         (LaTeX-mode . orgtbl-mode))
   :config
-  (add-hook 'LaTeX-mode-hook 'flyspell-mode)
-  (add-hook 'LaTeX-mode-hook 'LaTeX-math-mode)
-  (add-hook 'LaTeX-mode-hook 'auto-fill-mode)
-  (add-hook 'LaTeX-mode-hook 'orgtbl-mode)
   (setq TeX-auto-untabify t
         TeX-auto-save t
         TeX-save-query nil
@@ -1750,12 +1752,12 @@
 
 ;; magit support, see https://magit.vc/
 (use-package magit
+  :commands magit-status
   :custom (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
 
-  (use-package forge
-    :ensure t
-    :after magit
-    :commands (forge-pull))
+(use-package forge
+  :after magit
+  :commands (forge-pull))
 
 ;; smerge
 (add-hook
@@ -1776,7 +1778,6 @@
 
 ;; kill inactive buffers after 3 days
 (use-package midnight
-  :ensure t
   :defer 10)
 
 (use-package octave
@@ -1788,25 +1789,21 @@
 (use-package ielm
   :defer t
   :config
-  (progn
-    (define-key ielm-map (kbd "C-c C-z") #'quit-window)
-    (defadvice ielm-eval-input (after ielm-paredit activate)
-      "Begin each ielm prompt with a paredit pair."
-      (paredit-open-round))))
+  (define-key ielm-map (kbd "C-c C-z") #'quit-window)
+  (defadvice ielm-eval-input (after ielm-paredit activate)
+    "Begin each ielm prompt with a paredit pair."
+    (paredit-open-round)))
 
 (use-package paredit
-  :ensure t
   :defer t
   :delight " 🍐"
   :hook ((emacs-lisp-mode . paredit-mode)
          (lisp-mode-hook . paredit-mode)
          (scheme-mode-hook . paredit-mode)
          (ielm-mode-hook . paredit-mode))
-  :init
   :config (define-key paredit-mode-map (kbd "C-j") #'join-line))
 
 (use-package paxedit
-  :ensure t
   :delight " ꁀ"
   :commands (paxedit-mode)
   :bind (("M-<right>" . paxedit-transpose-forward)
@@ -1827,19 +1824,16 @@
   :config (show-paren-mode))
 
 (use-package rainbow-delimiters
-  :ensure t
-  :defer t
-  :init
-  (add-hook 'emacs-lisp-mode-hook #'rainbow-delimiters-mode)
-  (add-hook 'ielm-mode-hook #'rainbow-delimiters-mode)
+  :hook ((emacs-lisp-mode . rainbow-delimiters-mode)
+         (ielm-mode . rainbow-delimiters-mode))
+  :custom
+  (rainbow-delimiters-max-face-count 1)
   :config
-  (progn
-    (set-face-foreground 'rainbow-delimiters-depth-1-face "snow4")
-    (setf rainbow-delimiters-max-face-count 1)
-    (set-face-attribute 'rainbow-delimiters-unmatched-face nil
-                        :foreground 'unspecified
-                        :inherit 'error)
-    (set-face-foreground 'rainbow-delimiters-depth-1-face "snow4")))
+  (set-face-foreground 'rainbow-delimiters-depth-1-face "snow4")
+  (set-face-attribute 'rainbow-delimiters-unmatched-face nil
+                      :foreground 'unspecified
+                      :inherit 'error)
+  (set-face-foreground 'rainbow-delimiters-depth-1-face "snow4"))
 
 (use-package icomplete
   :init (icomplete-mode)
@@ -1868,35 +1862,21 @@
       (let ((default-directory directory))
   (apply #'call-process "etags" nil nil nil results)))))
 
-(use-package javadoc-lookup
-  :ensure t
-  :defer t
-  :bind ("C-h j" . javadoc-lookup)
-  :config
-  (ignore-errors
-    (setf javadoc-lookup-cache-dir (locate-user-emacs-file "local/javadoc"))))
-
 (use-package gnuplot-mode
-  :ensure t
   :defer t)
 
 (use-package graphviz-dot-mode
-  :ensure t
   :defer t
   :config
   (setf graphviz-dot-indent-width 2
         graphviz-dot-auto-indent-on-semi nil))
 
-;; (use-package uuid-simple
-;;   :demand t
-;;   :bind ("C-x !" . uuid-insert)
-;;   :config (random (make-uuid)))
-
 (use-package yascroll
-  :ensure t
   :config
   (global-yascroll-bar-mode 1))
 
+;; Make gc pauses faster by decreasing the threshold.
+(setq gc-cons-threshold (* 2 1000 1000))
 
 (provide 'init)
 ;;; init.el ends here
