@@ -4,6 +4,29 @@
 
 ;;; Code:
 
+;; Make startup faster by reducing the frequency of garbage collection and then use a hook to measure Emacs startup time.
+;; Also, turn on lexical-binding for the init file!
+
+;; -*- lexical-binding: t; -*-
+
+(setq debug-on-error  t)
+
+;; default is 800 kilobytes.  Measured in bytes.
+(setq gc-cons-threshold (* 1024 1024 32))
+
+(add-hook 'emacs-startup-hook (lambda ()
+                                (message "Emacs loaded in %s with %d garbage collections."
+                                         (format "%.2f seconds"
+                                                 (float-time (time-subtract after-init-time before-init-time)))
+                                         gcs-done)))
+
+;; could be bad, will not let you save at all, until you correct the error
+ (add-hook 'emacs-lisp-mode-hook
+  (lambda ()
+   (add-hook 'local-write-file-hooks 'check-parens)))
+
+;; directories
+
 (make-directory (locate-user-emacs-file "local") :no-error)
 (let ((default-directory  "~/.emacs.d/"))
   (normal-top-level-add-to-load-path '("lisp" "etc" "elpa/emacs-reveal")))
@@ -59,14 +82,6 @@
       use-package-minimum-reported-time 0)
 
 
-(defun efs/display-startup-time ()
-  (message "Emacs loaded in %s with %d garbage collections."
-           (format "%.2f seconds"
-                   (float-time (time-subtract after-init-time before-init-time)))
-           gcs-done))
-
-(add-hook 'emacs-startup-hook #'efs/display-startup-time)
-
 ;; initialise use-packages on non-Linux platforms
 (unless (package-installed-p 'use-package)
   (package-install 'use-package))
@@ -82,7 +97,33 @@
 (setq auto-save-file-name-transforms `((".*" ,(no-littering-expand-var-file-name "auto-save/") t)))
 
 (require 'use-package)
+
+;; Uncomment this to get a reading on packages that get loaded at startup
+(setq use-package-verbose t)
+
 (setq use-package-always-ensure t)
+
+;; Bootstrap straight.el
+(defvar bootstrap-version)
+(let ((bootstrap-file
+      (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+      (bootstrap-version 5))
+  (unless (file-exists-p bootstrap-file)
+    (with-current-buffer
+        (url-retrieve-synchronously
+        "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+        'silent 'inhibit-cookies)
+      (goto-char (point-max))
+      (eval-print-last-sexp)))
+  (load bootstrap-file nil 'nomessage))
+
+;; Always use straight to install on systems other than Linux
+(setq straight-use-package-by-default (not (eq system-type 'gnu/linux)))
+
+;; Use straight.el for use-package expressions
+(straight-use-package 'use-package)
+
+;; Clean up unused repos with `straight-remove-unused-repos'
 
 ;;
 ;; basic UI configuration
@@ -98,22 +139,17 @@
       delete-active-region nil
       disabled-command-function nil
       custom-file (make-temp-file "emacs-custom")
-      large-file-warning-threshold 536870911
-      gc-cons-threshold (* 1024 1024 32)
+      large-file-warning-threshold nil
       ring-bell-function 'ignore
       auto-save-default nil
       auto-save-list-file-prefix "~/.emacs.d/auto-save/save-"
-      backup-directory-alist (quote (("." . "~/.emacs.d/saves")))
+      backup-directory-alist `("." . ,(expand-file-name
+                                       (concat user-emacs-directory "backups")))
       backup-inhibited nil
       set-fringe-mode 10)
 
 ;; set up visible bell
 (setq visible-bell t)
-
-;; Write backup files to own directory
-(setq backup-directory-alist
-      `(("." . ,(expand-file-name
-                 (concat user-emacs-directory "backups")))))
 
 ;; Make backups of files, even when they're in version control
 (setq vc-make-backup-files t)
@@ -140,16 +176,10 @@
 ;; I hate typing
 (defalias 'yes-or-no-p 'y-or-n-p)
 
-;; Always use the one true encoding
-(prefer-coding-system 'utf-8-unix)
-
-;; Insert key is stupid
-(define-key global-map [(insert)] nil)
-(define-key global-map [(control insert)] 'overwrite-mode)
-
 ;; Magit is the only front-end I care about
 (setf vc-handled-backends nil
-      vc-follow-symlinks t)
+      ad-redefinition-action 'accept ; Don’t warn when advice is added for functions
+      vc-follow-symlinks t)          ; Don’t warn for following symlinked files
 
 ;; Stop scrolling by huge leaps
 (setq mouse-wheel-scroll-amount '(1 ((shift) . 1))
@@ -183,7 +213,7 @@
    '("5ee12d8250b0952deefc88814cf0672327d7ee70b16344372db9460e9a0e3ffc" "52588047a0fe3727e3cd8a90e76d7f078c9bd62c0b246324e557dfa5112e0d0c" "cf08ae4c26cacce2eebff39d129ea0a21c9d7bf70ea9b945588c1c66392578d1" "1157a4055504672be1df1232bed784ba575c60ab44d8e6c7b3800ae76b42f8bd" "9e54a6ac0051987b4296e9276eecc5dfb67fdcd620191ee553f40a9b6d943e78" "1e7e097ec8cb1f8c3a912d7e1e0331caeed49fef6cff220be63bd2a6ba4cc365" "fc5fcb6f1f1c1bc01305694c59a1a861b008c534cae8d0e48e4d5e81ad718bc6" default))
  '(fci-rule-color "#2a2a2a")
  '(package-selected-packages
-   '(no-littering zoom yascroll yaml-mode xref-js2 writegood-mode whitespace-cleanup-mode which-key visual-regexp-steroids visual-fill-column use-package-hydra use-package-ensure-system-package unicode-fonts undo-tree typescript-mode transwin terraform-mode tern-auto-complete sunrise-commander smooth-scrolling smart-tabs-mode sly-quicklisp ripgrep rg reveal-in-osx-finder rainbow-mode rainbow-delimiters quelpa-use-package pug-mode prog-fill pretty-mode pov-mode pfuture pdf-tools paxedit paradox ox-reveal origami org-ref org-bullets org-ai npm notmuch neotree nasm-mode move-text lsp-ui linum-relative kurecolor kubernetes json-mode js2-refactor javadoc-lookup indent-guide impatient-mode highlight-symbol highlight-parentheses helpful helm-projectile helm-org helm-lsp graphviz-dot-mode goto-line-preview go-guru gnuplot-mode general forge font-lock-profiler focus flymake-eslint flymake-diagnostic-at-point flycheck find-file-in-project filladapt expand-region exec-path-from-shell evil-nerd-commenter eval-in-repl eslintd-fix elfeed eglot doom-themes doom-modeline discover-my-major dired-rainbow dired-narrow dired-filter dired-collapse diminish delight dap-mode crux counsel-projectile company-tabnine company-quickhelp company-box command-log-mode clojure-mode-extra-font-locking chatgpt-shell cfrs centaur-tabs buffer-move browse-kill-ring beacon avy-zap auctex arduino-mode anakondo all-the-icons-dired aggressive-indent ace-link ace-isearch ace-flyspell ac-js2 ac-cider))
+   '(no-littering zoom yascroll yaml-mode xref-js2 writegood-mode whitespace-cleanup-mode which-key visual-regexp-steroids visual-fill-column use-package-hydra use-package-ensure-system-package unicode-fonts undo-tree typescript-mode transwin terraform-mode tern-auto-complete sunrise-commander smooth-scrolling smar-tabs-mode sly-quicklisp ripgrep rg reveal-in-osx-finder rainbow-mode rainbow-delimiters quelpa-use-package pug-mode prog-fill pretty-mode pov-mode pfuture pdf-tools paxedit paradox ox-reveal origami org-ref org-bullets org-ai npm notmuch neotree nasm-mode move-text lsp-ui linum-relative kurecolor kubernetes json-mode js2-refactor javadoc-lookup indent-guide impatient-mode highlight-symbol highlight-parentheses helpful helm-projectile helm-org helm-lsp graphviz-dot-mode goto-line-preview go-guru gnuplot-mode general forge font-lock-profiler focus flymake-eslint flymake-diagnostic-at-point flycheck find-file-in-project filladapt expand-region exec-path-from-shell evil-nerd-commenter eval-in-repl eslintd-fix elfeed eglot doom-themes doom-modeline discover-my-major dired-rainbow dired-narrow dired-filter dired-collapse diminish delight dap-mode crux counsel-projectile company-tabnine company-quickhelp company-box command-log-mode clojure-mode-extra-font-locking chatgpt-shell cfrs centaur-tabs buffer-move browse-kill-ring beacon avy-zap auctex arduino-mode anakondo all-the-icons-dired aggressive-indent ace-link ace-isearch ace-flyspell ac-js2 ac-cider))
  '(scroll-preserve-screen-position 'always)
  '(which-key-mode t))
 
@@ -437,6 +467,7 @@
 ;;
 
 (use-package command-log-mode
+  :straight t
   :commands command-log-mode
   :config (global-command-log-mode t))
 
@@ -458,10 +489,27 @@
 ;; remember to run 'M-x all-the-icons-install-fonts' first!
 (use-package all-the-icons)
 
+(use-package minions
+  :hook (doom-modeline-mode . minions-mode))
+
 (use-package doom-modeline
+  :after eshell     ;; Make sure it gets hooked after eshell
+  :hook (after-init . doom-modeline-init)
+  :custom-face
+  (mode-line ((t (:height 0.85))))
+  (mode-line-inactive ((t (:height 0.85))))
   :init (doom-modeline-mode 1)
   :custom
-  (doom-modeline-height 10))
+  (doom-modeline-height 10)
+  (doom-modeline-bar-width 6)
+  (doom-modeline-lsp t)
+  (doom-modeline-github nil)
+  (doom-modeline-mu4e nil)
+  (doom-modeline-irc t)
+  (doom-modeline-minor-modes t)
+  (doom-modeline-persp-name nil)
+  (doom-modeline-buffer-file-name-style 'truncate-except-project)
+  (doom-modeline-major-mode-icon nil))
 
 (use-package unicode-fonts
   :defer 10
@@ -474,6 +522,31 @@
 
 ;; Make the cursor the full width of the character at point.
 (setq x-stretch-cursor t)
+
+;; Auto-Saving Changed Files
+(use-package super-save
+  :defer 1
+  :diminish super-save-mode
+  :config
+  (super-save-mode +1)
+  (setq super-save-auto-save-when-idle t))
+
+;; Revert Dired and other buffers
+(setq global-auto-revert-non-file-buffers t)
+
+;; Revert buffers when the underlying file has changed
+(global-auto-revert-mode 1)
+
+;; Persist history over Emacs restarts. Vertico sorts by history position.
+; Individual history elements can be configured separately
+  ;;(put 'minibuffer-history 'history-length 25)
+  ;;(put 'evil-ex-history 'history-length 50)
+  ;;(put 'kill-ring 'history-length 25))
+(use-package savehist
+  :config
+  (setq history-length 25)
+  (savehist-mode 1))
+
 
 ;; Allow for profiling of font-locking.
 ;; (use-package font-lock-profiler
@@ -510,12 +583,10 @@
         helm-M-x-requires-pattern nil
         helm-autoresize-mode t
         helm-M-x-fuzzy-match t)
-  (ido-mode -1) ;; Turn off ido mode in case I enabled it accidentally
-  (helm-mode 1)
   (when (executable-find "ack-grep")
     (setq helm-grep-default-command "ack-grep -Hn --no-group --no-color %e %p %f"
           helm-grep-default-recurse-command "ack-grep -H --no-group --no-color %e %p %f"))
-  (add-to-list 'helm-sources-using-default-as-input 'helm-source-man-pages)
+  ;;(add-to-list 'helm-sources-using-default-as-input 'helm-source-man-pages)
   :bind (("C-c h" . helm-mini)
          ("C-h a" . helm-apropos)
          ("C-x C-b" . helm-buffers-list)
@@ -528,7 +599,10 @@
          ("C-x c y" . helm-yas-complete)
          ("C-x c Y" . helm-yas-create-snippet-on-region)
          ("C-x c b" . my/helm-do-grep-book-notes)
-         ("C-x c SPC" . helm-all-mark-rings)))
+         ("C-x c SPC" . helm-all-mark-rings))
+  :config
+    (ido-mode -1) ;; Turn off ido mode in case I enabled it accidentally
+    (helm-mode))
 
 (use-package counsel
   :bind (("C-M-j" . 'counsel-switch-buffer)
@@ -552,7 +626,7 @@
          ("C-h C" . helpful-command)
          ("C-h z" . helpful-macro)))
 
-;; hydra
+;; Stateful Keymaps with Hydra
 (use-package hydra
   :defer t)
 
@@ -614,60 +688,587 @@
    ("q" nil))
  emacs-lisp-mode-map)
 
-(require 'org-cfg)
+;; org mode
+
+(defun efs/org-font-setup ()
+  ;; Replace list hyphen with dot
+  (font-lock-add-keywords 'org-mode
+                          '(("^ *\\([-]\\) "
+                             (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
+
+  ;; Set faces for heading levels
+  (dolist (face '((org-level-1 . 1.2)
+                  (org-level-2 . 1.1)
+                  (org-level-3 . 1.05)
+                  (org-level-4 . 1.0)
+                  (org-level-5 . 1.1)
+                  (org-level-6 . 1.1)
+                  (org-level-7 . 1.1)
+                  (org-level-8 . 1.1)))
+    (set-face-attribute (car face) nil :font "Cantarell" :weight 'regular :height (cdr face)))
+
+  ;; Ensure that anything that should be fixed-pitch in Org files appears that way
+  (set-face-attribute 'org-block nil    :foreground nil :inherit 'fixed-pitch)
+  (set-face-attribute 'org-table nil    :inherit 'fixed-pitch)
+  (set-face-attribute 'org-formula nil  :inherit 'fixed-pitch)
+  (set-face-attribute 'org-code nil     :inherit '(shadow fixed-pitch))
+  (set-face-attribute 'org-table nil    :inherit '(shadow fixed-pitch))
+  (set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
+  (set-face-attribute 'org-special-keyword nil :inherit '(font-lock-comment-face fixed-pitch))
+  (set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch))
+  (set-face-attribute 'org-checkbox nil  :inherit 'fixed-pitch)
+  (set-face-attribute 'line-number nil :inherit 'fixed-pitch)
+  (set-face-attribute 'line-number-current-line nil :inherit 'fixed-pitch))
+
+(defun efs/org-mode-setup ()
+  (org-indent-mode)
+  (variable-pitch-mode 1)
+  (auto-fill-mode 0)
+  (visual-line-mode 1)
+  (diminish org-indent-mode))
+
+(use-package org-bullets
+  :hook (org-mode . org-bullets-mode)
+  :custom
+  (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●")))
+
+(use-package org
+  :straight nil
+  :commands (org-capture org-agenda)
+  :hook ((org-mode . efs/org-mode-setup)
+         (org-agenda-mode . (lambda () (hl-line-mode 1))))
+  :mode (("\\.org$'" . org-mode)
+         ("\\.org_archive$'" . org-mode)
+         ("\\.txt$'" . org-mode))
+  :bind (("C-c l" . org-store-link)
+         ("C-c c" . org-capture)
+         ("C-c a" . org-agenda)
+         ("C-c b" . org-iswitchb)
+         ("C-c C-w" . org-refile)
+         ("C-c j" . org-clock-goto)
+         ("C-c C-x C-o" . org-clock-out)
+         ("M-C-g" . org-plot/gnuplot)
+         ("M-q" . toggle-truncate-lines)
+         ("<f12>" . org-agenda)
+         ;;("<f5>" . bh/org-todo)
+         ;;("<S-f5>" . bh/widen)
+         ("<C-f6>" . (lambda () (interactive) (bookmark-set "SAVED")))
+         ("<f6>" . (lambda () (interactive) (bookmark-jump "SAVED")))
+         ;;("<f7>" . bn/set-truncate-lines)
+         ;;("<f7>" . bh/set-truncate-lines)
+         ("<f8>" . org-cycle-agenda-files)
+         ;;("<f9> <f9>" . bh/show-org-agenda)
+         ("<f9> b" . bbdb)
+         ("<f9> c" . calendar)
+         ("<f9> f" . boxquote-insert-file)
+         ("<f9> g" . gnus)
+         ;;("<f9> h" . bh/hide-other)
+         ;;("<f9> n" . bh/toggle-next-task-display)
+         ;;("<f9> I" . bh/punch-in)
+         ;;("<f9> O" . bh/punch-out)
+         ;;("<f9> o" . bh/make-org-scratch)
+         ("<f9> r" . boxquote-region)
+         ;;("<f9> s" . bh/switch-to-scratch)
+         ;;("<f9> t" . bh/insert-inactive-timestamp)
+         ;;("<f9> T" . bh/toggle-insert-inactive-timestamp)
+         ("<f9> v" . visible-mode)
+         ("<f9> l" . org-toggle-link-display)
+         ;;("<f9> SPC" . bh/clock-in-last-task)
+         ("C-<f9>" . previous-buffer)
+         ("M-<f9>" . org-toggle-inline-images)
+         ("C-x n r" . narrow-to-region)
+         ("C-<f10>" . next-buffer)
+         ("<f11>" . org-clock-goto)
+         ("C-<f11>" . org-clock-in)
+         ;;("C-s-<f12>" . bh/save-then-publish)
+         )
+  :custom
+  (org-directory "~/Dropbox/orgfiles")
+  ;; Compact the block agenda view
+  (org-agenda-compact-blocks t)
+  (org-agenda-custom-commands '(("d" "Dashboard"
+                                 ((agenda "" ((org-deadline-warning-days 7)))
+                                  (todo "NEXT"
+                                        ((org-agenda-overriding-header "Next Tasks")))
+                                  (tags-todo "agenda/ACTIVE" ((org-agenda-overriding-header "Active Projects")))))
+
+                                ("n" "Next Tasks"
+                                 ((todo "NEXT"
+                                        ((org-agenda-overriding-header "Next Tasks")))))
+
+                                ("W" "Work Tasks" tags-todo "+work-email")
+
+                                ;; Low-effort next actions
+                                ("e" tags-todo "+TODO=\"NEXT\"+Effort<15&+Effort>0"
+                                 ((org-agenda-overriding-header "Low Effort Tasks")
+                                  (org-agenda-max-todos 20)
+                                  (org-agenda-files org-agenda-files)))
+
+                                ("w" "Workflow Status"
+                                 ((todo "WAIT"
+                                        ((org-agenda-overriding-header "Waiting on External")
+                                         (org-agenda-files org-agenda-files)))
+                                  (todo "REVIEW"
+                                        ((org-agenda-overriding-header "In Review")
+                                         (org-agenda-files org-agenda-files)))
+                                  (todo "PLAN"
+                                        ((org-agenda-overriding-header "In Planning")
+                                         (org-agenda-todo-list-sublevels nil)
+                                         (org-agenda-files org-agenda-files)))
+                                  (todo "BACKLOG"
+                                        ((org-agenda-overriding-header "Project Backlog")
+                                         (org-agenda-todo-list-sublevels nil)
+                                         (org-agenda-files org-agenda-files)))
+                                  (todo "READY"
+                                        ((org-agenda-overriding-header "Ready for Work")
+                                         (org-agenda-files org-agenda-files)))
+                                  (todo "ACTIVE"
+                                        ((org-agenda-overriding-header "Active Projects")
+                                         (org-agenda-files org-agenda-files)))
+                                  (todo "COMPLETED"
+                                        ((org-agenda-overriding-header "Completed Projects")
+                                         (org-agenda-files org-agenda-files)))
+                                  (todo "CANC"
+                                        ((org-agenda-overriding-header "Cancelled Projects")
+                                         (org-agenda-files org-agenda-files)))))))
+  (org-agenda-files (mapcar (lambda (path) (concat org-directory path))
+                            '("/work.org"
+                              "/home.org")))
+  (org-agenda-persistent-filter t)
+  (org-ascii-links-to-notes nil)
+  (org-ascii-headline-spacing (quote (1 . 1)))
+  ;; (org-blank-before-new-entry '((heading)
+  ;;                               (plain-list-item . auto)))
+  (org-capture-templates '(("t" "todo" entry (file org-default-notes-file)
+                            "* TODO %?\n%U\n%a\n" :clock-in t :clock-resume t)
+                           ("r" "respond" entry (file org-default-notes-file)
+                            "* NEXT Respond to %:from on %:subject\nSCHEDULED: %t\n%U\n%a\n" :clock-in t :clock-resume t :immediate-finish t)
+                           ("n" "note" entry (file org-default-notes-file)
+                            "* %? :NOTE:\n%U\n%a\n" :clock-in t :clock-resume t)
+                           ("j" "Journal" entry (file+datetree "~/Dropbox/orgfiles/diary.org")
+                            "* %?\n%U\n" :clock-in t :clock-resume t)
+                           ("w" "org-protocol" entry (file org-default-notes-file)
+                            "* TODO Review %c\n%U\n" :immediate-finish t)
+                           ("m" "Meeting" entry (file org-default-notes-file)
+                            "* MEETING with %? :MEETING:\n%U" :clock-in t :clock-resume t)
+                           ("p" "Phone call" entry (file org-default-notes-file)
+                            "* PHONE %? :PHONE:\n%U" :clock-in t :clock-resume t)
+                           ("h" "Habit" entry (file org-default-notes-file)
+                            "* NEXT %?\n%U\n%a\nSCHEDULED: %(format-time-string \"%<<%Y-%m-%d %a .+1d/3d>>\")\n:PROPERTIES:\n:STYLE: habit\n:REPEAT_TO_STATE: NEXT\n:END:\n")))
+  ;; Do not prompt to resume an active clock
+  (org-clone-delete-id t)
+  (org-cycle-include-plain-lists t)
+  ;; handling blank lines
+  (org-cycle-separator-lines 0)
+  ;; agenda visibility
+  (org-default-notes-file "~/Dropbox/orgfiles/refile.org")
+  ;; Separate drawers for clocking and logs
+  (org-drawers '("PROPERTIES" "LOGBOOK"))
+  ;; enable task blocking - prevents tasks from changing to DONE if any subtasks are still open
+  (org-enforce-todo-dependencies t )
+  (org-ellipsis " ▾")
+  (org-export-with-smart-quotes t)
+  (org-hide-emphasis-markers t)
+  (org-html-table-default-attributes '(:border "0" :cellspacing "0" :cellpadding "6" :rules "none" :frame "none"))
+  ;; attachments
+  (org-id-method 'uuidgen)
+  ;; See https://lists.gnu.org/archive/html/emacs-orgmode/2012-08/msg01388.html
+  (org-image-actual-width nil)
+  ;; Use the current window for indirect buffer display
+  (org-indirect-buffer-display 'current-window)
+  (org-insert-heading-respect-content nil)
+  ;; logging
+  (org-log-done 'time)
+  (org-log-into-drawer t)
+  (org-log-state-notes-insert-after-drawers nil)
+  ;; Targets complete directly with IDO
+  (org-outline-path-complete-in-steps nil)
+  ;; Allow refile to create parent tasks with confirmation
+  (org-refile-allow-creating-parent-nodes (quote confirm))
+  ;; Targets include this file and any file contributing to the agenda - up to 9 levels deep
+  (org-refile-targets '((nil :maxlevel . 9)
+                        (org-agenda-files :maxlevel . 9)))
+  ;; Use full outline paths for refile targets - we file directly with IDO
+  (org-refile-use-outline-path t)
+  ;; RET follows hyperlinks in org-mode:
+  (org-return-follows-link t)
+  ;; notes at the top
+  (org-reverse-note-order nil)
+  ;; searching and showing results
+  (org-show-following-heading t)
+  (org-show-hierarchy-above t)
+  (org-show-siblings '((default)))
+  (org-src-fontify-natively t)
+  (org-src-tab-acts-natively t)
+  (org-src-window-setup 'other-window)
+  ;; Can be set per file basis with: #+STARTUP: noalign (or align). Same as doing C-c C-c in a table.
+  (org-startup-align-all-tables t)
+  (org-startup-indented t)
+  (org-startup-truncated t)
+  ;; tags with fast selection keys
+  (org-tag-alist '((:startgroup) ;; put mutually exclusive tasks here
+                   ("@errand" . ?e)
+                   ("@office" . ?o)
+                   ("@home" . ?H)
+                   ("@farm" . ?f)
+                   (:endgroup)
+                   ("AGENDA" . ?a)
+                   ("PLANNING" . ?p)
+                   ("WAITING" . ?w)
+                   ("HOLD" . ?h)
+                   ("PERSONAL" . ?P)
+                   ("WORK" . ?W)
+                   ("FARM" . ?F)
+                   ("ORG" . ?O)
+                   ("NORANG" . ?N)
+                   ("crypt" . ?E)
+                   ("NOTE" . ?n)
+                   ("IDEA" . ?i)
+                   ("CANCELLED" . ?c)
+                   ("FLAGGED" . ??)))
+  (org-todo-state-tags-triggers '(("CANCELLED" ("CANCELLED" . t))
+                                  ("WAITING" ("WAITING" . t))
+                                  ("HOLD" ("WAITING") ("HOLD" . t))
+                                  (done ("WAITING") ("HOLD"))
+                                  ("TODO" ("WAITING") ("CANCELLED") ("HOLD"))
+                                  ("NEXT" ("WAITING") ("CANCELLED") ("HOLD"))
+                                  ("DONE" ("WAITING") ("CANCELLED") ("HOLD"))))
+  ;; exporting tables to csv
+  (org-table-export-default-format "orgtbl-to-csv")
+  (org-todo-keywords '((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d)")
+                       (sequence "BACKLOG(b)" "PLAN(p)" "ACTIVE(a)" "REVIEW(v)" "MEETING(m)" "WAITING(w@/!)" "HOLD(h@/!)" "|" "CANCELLED(k@)" "COMPLETED(c)")))
+  (org-todo-keyword-faces '(("TODO" :foreground "red" :weight bold)
+                            ("NEXT" :foreground "blue" :weight bold)
+                            ("DONE" :foreground "forest green" :weight bold)
+                            ("WAITING" :foreground "orange" :weight bold)
+                            ("HOLD" :foreground "magenta" :weight bold)
+                            ("CANCELLED" :foreground "forest green" :weight bold)
+                            ("MEETING" :foreground "forest green" :weight bold)
+                            ("PHONE" :foreground "forest green" :weight bold)))
+  (org-treat-S-cursor-todo-selection-as-state-change nil)
+  (org-use-fast-todo-selection t)
+  (org-use-speed-commands t)
+  (org-time-stamp-rounding-minutes '(1 1)) ;bh/keep-clock-running nil
+  (org-columns-default-format "%80ITEM(Task) %10Effort(Effort){:} %10CLOCKSUM") ; Set default column view headings: Task Effort Clock_Summary
+  ;; global Effort estimate values
+  ;; global STYLE property values for completion
+  (org-global-properties '(("Effort_ALL" . "0:15 0:30 0:45 1:00 2:00 3:00 4:00 5:00 6:00 0:00")
+                           ("STYLE_ALL" . "habit")))
+  (org-fast-tag-selection-single-key 'expert) ; Allow setting single tags without the menu
+  (org-archive-location "%s_archive::* Archived Tasks") ; archiving
+  (org-babel-results-keyword "results") ; babel
+  (org-babel-default-header-args '((:eval . "never-export")))
+  (org-agenda-text-search-extra-files '(agenda-archives)) ; Include agenda archive files when searching for things
+  (org-special-ctrl-a/e t) ; editing and special key Handling
+  (org-special-ctrl-k t)
+  (org-yank-adjusted-subtrees t)
+  (org-hide-leading-stars nil) ; show leading stars
+  ;; minimize emacs frames
+  (org-link-frame-setup '((vm . vm-visit-folder)
+                          (gnus . org-gnus-no-new-news)
+                          (file . find-file)))
+  (org-src-window-setup 'current-window) ; Use the current window for C-c ' source editing
+  ;; modules for habit tracking
+  (org-modules '(ol-bbdb
+                 ol-bibtex
+                 org-crypt
+                 ol-gnus
+                 org-id
+                 ol-info
+                 org-habit
+                 org-inlinetask
+                 ol-irc
+                 ol-mhe
+                 org-protocol
+                 ol-rmail
+                 ol-w3m
+                 org-tempo))
+  (require-final-newline t)
+
+  :config
+  ;; Global
+  (advice-add 'org-refile :after 'org-save-all-org-buffers)
+  (setq
+   ;; Inline images in HTML instead of producting links to the image
+   org-html-inline-images t
+   ;; Do not use sub or superscripts - I currently don't need this functionality in my documents
+   org-export-with-sub-superscripts nil
+   ;; Use org.css from the norang website for export document stylesheets
+   ;; org-html-head-extra "<link rel=\"stylesheet\" href=\"http://doc.norang.ca/org.css\" type=\"text/css\" />"
+   org-html-head-include-default-style nil
+   ;; remove xml header line for html exports
+   org-html-xml-declaration '(("html" . "")
+                              ("was-html" . "<?xml version=\"1.0\" encoding=\"%s\"?>")
+                              ("php" . "<?php echo \"<?xml version=\\\"1.0\\\" encoding=\\\"%s\\\" ?>\"; ?>"))
+
+   ;; Do not generate internal css formatting for HTML exports
+   org-export-htmlize-output-type 'css
+   ;; Export with LaTeX fragments
+   org-export-with-LaTeX-fragments t
+   ;; Increase default number of headings to export
+   org-export-headline-levels 6
+   ;; allow #+BIND: vars to be set on export w/o confirmation
+   org-export-allow-BIND t
+   ;; narrowing
+   org-show-entry-below '((default))
+   org-agenda-include-diary nil
+   org-agenda-diary-file "~/Dropbox/orgfiles/diary.org"
+   org-agenda-insert-diary-extract-time t
+   ;; Show all future entries for repeating tasks
+   org-agenda-repeating-timestamp-show-all t
+   ;; Show all agenda dates - even if they are empty
+   org-agenda-show-all-dates t
+   ;; Sorting order for tasks on the agenda
+   org-agenda-sorting-strategy '((agenda habit-down time-up user-defined-up effort-up category-keep)
+                                 (todo category-up effort-up)
+                                 (tags category-up effort-up)
+                                 (search category-up))
+   ;; Start the weekly agenda on Monday
+   org-agenda-start-on-weekday 1
+   org-agenda-start-with-log-mode t
+   ;; Enable display of the time grid so we can see the marker for the current time
+   org-agenda-time-grid '((daily today remove-match)
+                          #("----------------" 0 16 (org-heading t))
+                          (0900 1100 1300 1500 1700))
+   ;; Display tags farther right
+   org-agenda-tags-column -102
+   ;; Agenda sorting functions
+   ;;org-agenda-cmp-user-defined 'bh/agenda-sort
+   ;; Use sticky agenda's so they persist
+   org-agenda-sticky t
+   ;; position the habit graph on the agenda to the right of the default
+   org-habit-graph-column 60
+   ;; speed commands
+   org-use-speed-commands t
+   org-speed-commands-user '(("0" . ignore)
+                             ("1" . ignore)
+                             ("2" . ignore)
+                             ("3" . ignore)
+                             ("4" . ignore)
+                             ("5" . ignore)
+                             ("6" . ignore)
+                             ("7" . ignore)
+                             ("8" . ignore)
+                             ("9" . ignore)
+
+                             ("a" . ignore)
+                             ("d" . ignore)
+                             ;;("h" . bh/hide-other)
+                             ("i" progn
+                              (forward-char 1)
+                              (call-interactively 'org-insert-heading-respect-content))
+                             ("k" . org-kill-note-or-show-branches)
+                             ("l" . ignore)
+                             ("m" . ignore)
+                             ;;("q" . bh/show-org-agenda)
+                             ("r" . ignore)
+                             ("s" . org-save-all-org-buffers)
+                             ("w" . org-refile)
+                             ("x" . ignore)
+                             ("y" . ignore)
+                             ("z" . org-add-note)
+
+                             ("A" . ignore)
+                             ("B" . ignore)
+                             ("E" . ignore)
+                             ;;("F" . bh/restrict-to-file-or-follow)
+                             ("G" . ignore)
+                             ("H" . ignore)
+                             ("J" . org-clock-goto)
+                             ("K" . ignore)
+                             ("L" . ignore)
+                             ("M" . ignore)
+                             ;;("N" . bh/narrow-to-org-subtree)
+                             ;;("P" . bh/narrow-to-org-project)
+                             ("Q" . ignore)
+                             ("R" . ignore)
+                             ("S" . ignore)
+                             ;;("T" . bh/org-todo)
+                             ;;("U" . bh/narrow-up-one-org-level)
+                             ("V" . ignore)
+                             ;;("W" . bh/widen)
+                             ("X" . ignore)
+                             ("Y" . ignore)
+                             ("Z" . ignore))
+   org-remove-highlights-with-change t
+   org-read-date-prefer-future 'time
+   ;; automatically change list bullets
+   org-list-demote-modify-bullet '(("+" . "-")
+                                   ("*" . "-")
+                                   ("1." . "-")
+                                   ("1)" . "-")
+                                   ("A)" . "-")
+                                   ("B)" . "-")
+                                   ("a)" . "-")
+                                   ("b)" . "-")
+                                   ("A." . "-")
+                                   ("B." . "-")
+                                   ("a." . "-")
+                                   ("b." . "-"))
+
+   ;; remove indentation on agenda tags view
+   org-tags-match-list-sublevels t
+   org-table-use-standard-references 'from
+   ;; Overwrite the current window with the agenda
+   org-agenda-window-setup 'current-window
+   org-clone-delete-id t
+   org-startup-folded t
+   ;; preserve source block indentation
+   org-src-preserve-indentation nil
+   org-edit-src-content-indentation 0
+   org-catch-invisible-edits 'error
+   ;; keep utf9 as default coding system
+   org-export-coding-system 'utf-8
+   default-process-coding-system '(utf-8-unix . utf-8-unix)
+   org-time-clocksum-format '(:hours "%d" :require-hours t :minutes ":%02d" :require-minutes t)
+   org-id-link-to-org-use-id 'create-if-interactive-and-no-custom-id
+   org-use-sub-superscripts t)
+  ;; Resume clocking task when emacs is restarted
+  (org-clock-persistence-insinuate)
+  (efs/org-font-setup)
+  :init
+  (prefer-coding-system 'utf-8)
+  (set-charset-priority 'unicode)
+  (run-at-time "00:59" 3600 'org-save-all-org-buffers)
+  )
+
+(defun efs/org-mode-visual-fill ()
+  (setq visual-fill-column-width 100
+        visual-fill-column-center-text t)
+  (visual-fill-column-mode 1))
+
+(use-package visual-fill-column
+  :hook (org-mode . efs/org-mode-visual-fill))
+
+(with-eval-after-load 'org
+  (require 'ob-js)
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '((emacs-lisp . t)
+     (python . t)
+     (js . t)
+     (lisp . t)
+     (perl . t)))
+
+  (push '("conf-unix" . conf-unix) org-src-lang-modes))
+
+;; insert structure template blocks
+(with-eval-after-load 'org
+  ;; This is needed as of Org 9.2
+  (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
+  (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
+  (add-to-list 'org-structure-template-alist '("py" . "src python"))
+  (add-to-list 'org-structure-template-alist '("pl" . "src perl"))
+  (add-to-list 'org-structure-template-alist '("li" . "src lisp"))
+  (add-to-list 'org-structure-template-alist '("js" . "src javascript"))
+  (add-to-list 'org-structure-template-alist '("ts" . "src typescript"))
+  (add-to-list 'org-structure-template-alist '("go" . "src go"))
+  (add-to-list 'org-structure-template-alist '("yaml" . "src yaml"))
+  (add-to-list 'org-structure-template-alist '("json" . "src json")))
+
+;; Automatically tangle our Emacs.org config file when we save it
+(defun efs/org-babel-tangle-config ()
+  (when (string-equal (file-name-directory (buffer-file-name))
+                      (expand-file-name user-emacs-directory))
+    ;; Dynamic scoping to the rescue
+    (let ((org-confirm-babel-evaluate nil))
+      (org-babel-tangle))))
+
+(add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'efs/org-babel-tangle-config)))
+
+(with-eval-after-load 'org
+  ;; reveal support
+  (require 'emacs-reveal)
+  ;; manual see https://github.com/yjwen/org-reveal
+  ;; reveal.js home: https://github.com/hakimel/reveal.js/
+  (use-package helm-org
+    :config
+    (add-to-list 'helm-completing-read-handlers-alist '(org-capture . helm-org-completing-read-tags))
+    (add-to-list 'helm-completing-read-handlers-alist '(org-set-tags . helm-org-completing-read-tags)))
+  ;; The following custom-set-faces create the highlights
+  (custom-set-faces
+   ;; custom-set-faces was added by Custom.
+   ;; If you edit it by hand, you could mess it up, so be careful.
+   ;; Your init file should contain only one such instance.
+   ;; If there is more than one, they won't work right.
+   '(org-mode-line-clock ((t (:background "grey75" :foreground "red" :box (:line-width -1 :style released-button)))) t)))
+
+(if (eq system-type 'gnu/linux)
+    (setq org-reveal-root "file:///home/mberndtgen/Documents/src/emacs/reveal.js/"))
+(if (eq system-type 'darwin)
+    (setq org-reveal-root "file:///Users/v236177/Dropbox/orgfiles/reveal.js/"))
+;;(setq org-reveal-mathjax t)
+
+;;Org-export to LaTeX
+(with-eval-after-load 'ox-latex
+  (message "Now loading org-latex export settings")
+  ;; page break after toc
+  (setq org-latex-toc-command "\\tableofcontents \\clearpage"
+  org-latex-listings t)
+  ;; use with: #+LATEX_CLASS: myclass
+  ;;#+LaTeX_CLASS_OPTIONS: [a4paper,twoside,twocolumn]
+  (add-to-list 'org-latex-classes
+         '("myclass" "\\documentclass[11pt,a4paper]{article}
+         [NO-DEFAULT-PACKAGES]
+         [NO-PACKAGES]"
+     ("\\usepackage[utf8]{inputenc}")
+     ("\\usepackage[T1]{fontenc}")
+     ("\\usepackage{graphicx}")
+     ("\\usepackage{longtable}")
+     ("\\usepackage{amssymb}")
+     ("\\usepackage[colorlinks=true,urlcolor=SteelBlue4,linkcolor=Firebrick4]{hyperref}")
+     ("\\usepackage[hyperref,x11names]{xcolor}")
+     ("\\section{%s}" . "\\section*{%s}")
+     ("\\subsection{%s}" . "\\subsection*{%s}")
+     ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+     ("\\paragraph{%s}" . "\\paragraph*{%s}")
+     ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))))
+
 
 (defun dw/minibuffer-backward-kill (arg)
-  "When minibuffer is completing a file name delete up to parent
-folder, otherwise delete a word"
+  "When minibuffer is completing a file name delete up to parent folder, otherwise delete a word"
   (interactive "p")
   (if minibuffer-completing-file-name
       ;; Borrowed from https://github.com/raxod502/selectrum/issues/498#issuecomment-803283608
       (if (string-match-p "/." (minibuffer-contents))
           (zap-up-to-char (- arg) ?/)
         (delete-minibuffer-contents))
-      (delete-word (- arg))))
+    (delete-word (- arg))))
 
 ;; Enable vertico
 ;; see https://github.com/minad/vertico
 (use-package vertico
+  ;; :straight '(vertico :host github
+  ;;                     :repo "minad/vertico"
+  ;;                     :branch "main")
+  :ensure t
   :bind (:map vertico-map
-         ("C-j" . vertico-next)
-         ("C-k" . vertico-previous)
-         ("C-f" . vertico-exit)
-         :map minibuffer-local-map
-         ("M-h" . dw/minibuffer-backward-kill))
+              ("C-j" . vertico-next)
+              ("C-k" . vertico-previous)
+              ("C-f" . vertico-exit)
+              :map minibuffer-local-map
+              ("M-h" . dw/minibuffer-backward-kill))
   :custom
-  (vertico-cycle t)
+  (vertico-cycle t) ; Optionally enable cycling for `vertico-next' and `vertico-previous'.
+  (vertico-scroll-margin 0) ; Different scroll margin
+  (vertico-count 20) ; Show more candidates
+  (vertico-resize t) ; Grow and shrink the Vertico minibuffer
   :custom-face
   (vertico-current ((t (:background "#3a3f5a"))))
   :init
-  (vertico-mode)
+  (vertico-mode))
 
-  ;; Different scroll margin
-  (setq vertico-scroll-margin 0)
-
-  ;; Show more candidates
-  (setq vertico-count 20)
-
-  ;; Grow and shrink the Vertico minibuffer
-  (setq vertico-resize t)
-
-  ;; Optionally enable cycling for `vertico-next' and `vertico-previous'.
-  (setq vertico-cycle t))
-
-;; Persist history over Emacs restarts. Vertico sorts by history position.
-(use-package savehist
-  :init
-  (savehist-mode))
-
+;; Completions in Regions with Corfu
 (use-package corfu
+  :straight t
+  :ensure t
   :bind (:map corfu-map
-         ("C-j" . corfu-next)
-         ("C-k" . corfu-previous)
-         ("C-f" . corfu-insert))
+              ("C-j" . corfu-next)
+              ("C-k" . corfu-previous)
+              ("C-f" . corfu-insert))
   ;; Optional customizations
   :custom
-  (corfu-cycle t)                ;; Enable cycling for `corfu-next/previous'
+  (corfu-cycle t) ;; Enable cycling for `corfu-next/previous'
   ;; (corfu-auto t)                 ;; Enable auto completion
   ;; (corfu-separator ?\s)          ;; Orderless field separator
   ;; (corfu-quit-at-boundary nil)   ;; Never quit at completion boundary
@@ -678,9 +1279,9 @@ folder, otherwise delete a word"
   ;; (corfu-scroll-margin 5)        ;; Use scroll margin
 
   ;; Enable Corfu only for certain modes.
-  ;; :hook ((prog-mode . corfu-mode)
-  ;;        (shell-mode . corfu-mode)
-  ;;        (eshell-mode . corfu-mode))
+  :hook ((prog-mode . corfu-mode)
+         (shell-mode . corfu-mode)
+         (eshell-mode . corfu-mode))
 
   ;; Recommended: Enable Corfu globally.
   ;; This is recommended since Dabbrev can be used globally (M-/).
@@ -728,8 +1329,14 @@ folder, otherwise delete a word"
   ;; `completion-at-point' is often bound to M-TAB.
   (setq tab-always-indent 'complete))
 
+;; tab widths
+(setq-default tab-width 2) ; Default to an indentation size of 2 spaces
+(setq-default evil-shift-width tab-width)
+(setq-default indent-tabs-mode nil) ; Use spaces instead of tabs for indentation
+
 ;; Optionally use the `orderless' completion style.
 (use-package orderless
+  :ensure t
   :custom
   (completion-styles '(orderless basic))
   (completion-category-overrides '((file (styles partial-completion))))
@@ -740,7 +1347,25 @@ folder, otherwise delete a word"
   (setq completion-category-defaults nil))
 
 
+(defun dw/get-project-root ()
+  (when (fboundp 'projectile-project-root)
+    (projectile-project-root)))
+
+;;Consult provides a lot of useful completion commands similar to Ivy’s Counsel.
+(use-package consult
+  :demand t
+  :bind (("C-s" . consult-line)
+         ("C-M-l" . consult-imenu)
+         ("C-M-j" . persp-switch-to-buffer*)
+         :map minibuffer-local-map
+         ("C-r" . consult-history))
+  :custom
+  (consult-project-root-function #'dw/get-project-root)
+  (completion-in-region-function #'consult-completion-in-region))
+
+;; Switching Directories with consult-dir
 (use-package consult-dir
+  :ensure t
   :bind (("C-x C-d" . consult-dir)
          :map vertico-map
          ("C-x C-d" . consult-dir)
@@ -770,21 +1395,24 @@ folder, otherwise delete a word"
 ;; Enable rich annotations using the Marginalia package
 ;; see https://github.com/minad/marginalia
 (use-package marginalia
+  :ensure t
+  :after vertico
   ;; Bind `marginalia-cycle' locally in the minibuffer.  To make the binding
-  ;; available in the *Completions* buffer, add it to the
-  ;; `completion-list-mode-map'.
+  ;; available in the *Completions* buffer, add it to the `completion-list-mode-map'.
   :bind (:map minibuffer-local-map
               ("M-A" . marginalia-cycle))
-
-  ;; The :init section is always executed.
+  :custom
+  (marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light nil))
   :init
   ;; Marginalia must be actived in the :init section of use-package such that
   ;; the mode gets enabled right away. Note that this forces loading the
   ;; package.
   (marginalia-mode))
 
+;; Completion Actions with Embark
 ;; see https://github.com/oantolin/embark
 (use-package embark
+  :ensure t
   :bind
   (("C-." . embark-act)         ;; pick some comfortable binding
    ("C-;" . embark-dwim)        ;; good alternative: M-.
@@ -805,18 +1433,10 @@ folder, otherwise delete a word"
 
 ;; Consult users will also want the embark-consult package.
 (use-package embark-consult
-  :hook
-  (embark-collect-mode . consult-preview-at-point-mode))
+  :after embark)
 
 ;; https://github.com/waymondo/use-package-ensure-system-package
 (use-package use-package-ensure-system-package)
-
-;; Quelpa grabs and builds packages from source (e.h. github)
-;; (use-package quelpa)
-;; (use-package quelpa-use-package)
-
-;; Handle the `use-package-always-ensure' setting
-;; (quelpa-use-package-activate-advice)
 
 ;; add github stars in package listing, autoremove packs, install packs parallel
 (use-package paradox
@@ -831,13 +1451,13 @@ folder, otherwise delete a word"
   (pretty-activate-groups '(:sub-and-superscripts :greek :arithmetic-nary)))
 
 ;; color treatment
-
 (use-package rainbow-mode
   :commands (rainbow-mode))
 
 ;; relaxed handling of mode line
 (use-package delight
   :commands delight)
+
 
 ;; beacon: highlight cursor
 ;; https://github.com/Malabarba/beacon
@@ -1045,10 +1665,12 @@ folder, otherwise delete a word"
   (lsp-headerline-breadcrumb-mode))
 
 (use-package lsp-mode
+  :straight t
   :init
   (setq lsp-keymap-prefix "C-c l") ; set prefix for lsp-command-keymap (few alternatives - "C-l", "C-c l")
   :commands (lsp lsp-deferred)
-  :hook (lsp-mode . efs/lsp-mode-setup)
+  :hook ((lsp-mode . efs/lsp-mode-setup)
+         (lsp-mode . company-mode))
   :config
   (lsp-enable-which-key-integration t))
 
@@ -1088,6 +1710,7 @@ folder, otherwise delete a word"
 
 ;; provides fancier overlays.
 (use-package lsp-ui
+  :straight t
   :hook (lsp-mode . lsp-ui-mode)
   :custom
   (lsp-ui-imenu-enable t)
@@ -1112,7 +1735,10 @@ folder, otherwise delete a word"
 
 ;; if you are helm user
 (use-package helm-lsp
-  :commands helm-lsp-workspace-symbol)
+  :after helm
+  :bind
+  (:map lsp-mode-map
+   ([remap xref-find-apropos] . helm-lsp-workspace-symbol)))
 
 ;; if you are ivy user
 ;; (use-package lsp-ivy :commands lsp-ivy-workspace-symbol)
@@ -1203,11 +1829,11 @@ folder, otherwise delete a word"
 
   (set-face-attribute 'aw-leading-char-face nil :height 2.0))
 
-;; zap to char using avy
-(use-package avy-zap
-  :bind
-  (("M-z" . avy-zap-to-char-dwim)
-   ("M-Z" . avy-zap-up-to-char-dwim)))
+
+;; Sharing Files with 0x0
+(use-package 0x0
+  :straight '(0x0 :host gitlab
+                  :repo "willvaughn/emacs-0x0"))
 
 ;; regexp builder
 (defvar reb-re-syntax)
@@ -1215,6 +1841,7 @@ folder, otherwise delete a word"
 
 ;; DAP
 ;; (use-package dap-mode
+;;   :straight t
 ;;   :custom
 ;;   (lsp-enable-dap-auto-configure nil)
 ;;   :config
@@ -1256,20 +1883,24 @@ folder, otherwise delete a word"
 
 
 (use-package company
-  :hook (lsp-mode . company-mode)
+  :after company
   :bind
   ((:map company-active-map ("<tab>" . company-complete-selection))
-   (:map lsp-mode-map ("<tab>" . company-indent-or-complete-common)))
+                                        ;(:map lsp-mode-map ("<tab>" . company-indent-or-complete-common))
+   )
   :custom
   (company-dabbrev-ignore-case nil)
   (company-dabbrev-code-ignore-case nil)
-  (company-dabbrev-downcase nil)
+  (company-dabbrev-downcase nil) ()
   (company-idle-delay 0.0)
   (company-minimum-prefix-length 1)
   (company-begin-commands '(self-insert-command))
   (company-transformers '(company-sort-by-occurrence))
   (company-tooltip-align-annotations t)
   (company-show-numbers t))
+
+(with-eval-after-load 'lsp-mode
+  (add-hook 'lsp-mode-hook #'lsp-enable-which-key-integration))
 
 (use-package company-quickhelp
   :after company
@@ -1320,6 +1951,7 @@ folder, otherwise delete a word"
 
 ;; folding, see https://github.com/zenozeng/yafolding.el
 (use-package yafolding
+  :ensure t
   :hook (prog-mode . yafolding-mode)
   :bind (("C-S-<return>" . yafolding-hide-parent-element)
          ("C-M-<return>" . yafolding-toggle-all)
@@ -1335,6 +1967,7 @@ folder, otherwise delete a word"
 (use-package evil-nerd-commenter
   :bind ("M-/" . evilnc-comment-or-uncomment-lines))
 
+;; The diminish package hides pesky minor modes from the modelines.
 (use-package diminish)
 
 (use-package projectile
@@ -1479,20 +2112,372 @@ folder, otherwise delete a word"
 
 
 ;; Load local "packages"
-;;(require 'init-utils)
-;;(require 'unannoy)
-;; (require 'slime-cfg) ; --deprecated
-;;(require 'sly-cfg)
 ;;(require 'clojure-cfg)
 ;;(require 'haskell-cfg)
 ;;(require 'python-cfg)
-;;(require 'perl5-cfg)
 ;;(require 'golang-cfg)
 ;;(require 'javascript-cfg)
-;;(require 'other-languages)
-;;
-;;(require 'misc)
 
+(use-package sql
+  :init
+  (setf sql-product 'sqlite))
+
+
+;; depends on slime and other modes
+;; see https://github.com/kaz-yos/eval-in-repl
+(use-package eval-in-repl
+  :hook ((cider-repl-mode . company-mode)
+         (cider-mode . company-mode)
+         (lisp-mode . (lambda ()
+                        (local-set-key (kbd "<C-return>") 'eir-eval-in-sly))))
+  :config
+  ;; ielm support (for emacs lisp)
+  (require 'eval-in-repl-ielm)
+  ;; for .el files
+  (define-key emacs-lisp-mode-map (kbd "<C-return>") 'eir-eval-in-ielm)
+  ;; for *scratch*
+  (define-key lisp-interaction-mode-map (kbd "<C-return>") 'eir-eval-in-ielm)
+  ;; for M-x info
+  (define-key Info-mode-map (kbd "<C-return>") 'eir-eval-in-ielm)
+
+  ;;(require 'eval-in-repl-hy)
+  ;;(define-key hy-mode-map (kbd "<C-return>") 'eir-eval-in-hy)
+  )
+
+
+;; for interactively building regular expressions
+(use-package re-builder
+  :config
+  (setf reb-re-syntax 'read))
+
+;; enable aggressive-indenting for some modes
+;; see https://github.com/Malabarba/aggressive-indent-mode
+(use-package aggressive-indent
+  :ensure t
+  :hook (prog-mode . aggressive-indent-mode))
+
+;; visually display kill ring
+;; see https://github.com/browse-kill-ring/browse-kill-ring
+(use-package browse-kill-ring
+  :ensure t
+  :config
+  (global-set-key "\C-cy" 'browse-kill-ring))
+
+;; show vertical lines to guide indentation
+;; see https://github.com/zk-phi/indent-guide
+(use-package indent-guide
+  :hook (prog-mode . indent-guide-mode))
+
+;; activate FiraCode font
+(when (window-system)
+  (set-frame-font "Fira Code"))
+
+(let ((alist '((33 . ".\\(?:\\(?:==\\|!!\\)\\|[!=]\\)")
+               (35 . ".\\(?:###\\|##\\|_(\\|[#(?[_{]\\)")
+               (36 . ".\\(?:>\\)")
+               (37 . ".\\(?:\\(?:%%\\)\\|%\\)")
+               (38 . ".\\(?:\\(?:&&\\)\\|&\\)")
+               (42 . ".\\(?:\\(?:\\*\\*/\\)\\|\\(?:\\*[*/]\\)\\|[*/>]\\)")
+               (43 . ".\\(?:\\(?:\\+\\+\\)\\|[+>]\\)")
+               (45 . ".\\(?:\\(?:-[>-]\\|<<\\|>>\\)\\|[<>}~-]\\)")
+               ;; (46 . ".\\(?:\\(?:\\.[.<]\\)\\|[.=-]\\)")
+               (47 . ".\\(?:\\(?:\\*\\*\\|//\\|==\\)\\|[*/=>]\\)")
+               (48 . ".\\(?:x[a-zA-Z]\\)")
+               (58 . ".\\(?:::\\|[:=]\\)")
+               (59 . ".\\(?:;;\\|;\\)")
+               (60 . ".\\(?:\\(?:!--\\)\\|\\(?:~~\\|->\\|\\$>\\|\\*>\\|\\+>\\|--\\|<[<=-]\\|=[<=>]\\||>\\)\\|[*$+~/<=>|-]\\)")
+               (61 . ".\\(?:\\(?:/=\\|:=\\|<<\\|=[=>]\\|>>\\)\\|[<=>~]\\)")
+               (62 . ".\\(?:\\(?:=>\\|>[=>-]\\)\\|[=>-]\\)")
+               (63 . ".\\(?:\\(\\?\\?\\)\\|[:=?]\\)")
+               (91 . ".\\(?:]\\)")
+               (92 . ".\\(?:\\(?:\\\\\\\\\\)\\|\\\\\\)")
+               (94 . ".\\(?:=\\)")
+               (119 . ".\\(?:ww\\)")
+               (123 . ".\\(?:-\\)")
+               (124 . ".\\(?:\\(?:|[=|]\\)\\|[=>|]\\)")
+               (126 . ".\\(?:~>\\|~~\\|[>=@~-]\\)")
+               )
+             ))
+
+  (dolist (char-regexp alist)
+    (set-char-table-range composition-function-table (car char-regexp)
+                          `([,(cdr char-regexp) 0 font-shape-gstring]))))
+;;; Fira code
+;; This works when using emacs --daemon + emacsclient
+(add-hook 'after-make-frame-functions
+          (lambda (frame) (set-fontset-font t '(#Xe100 . #Xe16f) "Fira Code Symbol")))
+;; This works when using emacs without server/client
+(set-fontset-font t '(#Xe100 . #Xe16f) "Fira Code Symbol")
+;; I haven't found one statement that makes both of the above situations work, so I use both for now
+
+;; disable Fira Code for helm
+(add-hook 'helm-major-mode-hook
+          (lambda ()
+            (setq auto-composition-mode nil)))
+
+(defconst fira-code-font-lock-keywords-alist
+  (mapcar (lambda (regex-char-pair)
+            `(,(car regex-char-pair)
+              (0 (prog1 ()
+                   (compose-region (match-beginning 1)
+                                   (match-end 1)
+                                   ;; The first argument to concat is a string containing a literal tab
+                                   ,(concat "	" (list (decode-char 'ucs (cadr regex-char-pair)))))))))
+          '(("\\(www\\)"                   #Xe100)
+            ("[^/]\\(\\*\\*\\)[^/]"        #Xe101)
+            ("\\(\\*\\*\\*\\)"             #Xe102)
+            ("\\(\\*\\*/\\)"               #Xe103)
+            ("\\(\\*>\\)"                  #Xe104)
+            ("[^*]\\(\\*/\\)"              #Xe105)
+            ("\\(\\\\\\\\\\)"              #Xe106)
+            ("\\(\\\\\\\\\\\\\\)"          #Xe107)
+            ("\\({-\\)"                    #Xe108)
+            ("\\(\\[\\]\\)"                #Xe109)
+            ("\\(::\\)"                    #Xe10a)
+            ("\\(:::\\)"                   #Xe10b)
+            ("[^=]\\(:=\\)"                #Xe10c)
+            ("\\(!!\\)"                    #Xe10d)
+            ("\\(!=\\)"                    #Xe10e)
+            ("\\(!==\\)"                   #Xe10f)
+            ("\\(-}\\)"                    #Xe110)
+            ("\\(--\\)"                    #Xe111)
+            ("\\(---\\)"                   #Xe112)
+            ("\\(-->\\)"                   #Xe113)
+            ("[^-]\\(->\\)"                #Xe114)
+            ("\\(->>\\)"                   #Xe115)
+            ("\\(-<\\)"                    #Xe116)
+            ("\\(-<<\\)"                   #Xe117)
+            ("\\(-~\\)"                    #Xe118)
+            ("\\(#{\\)"                    #Xe119)
+            ("\\(#\\[\\)"                  #Xe11a)
+            ("\\(##\\)"                    #Xe11b)
+            ("\\(###\\)"                   #Xe11c)
+            ("\\(####\\)"                  #Xe11d)
+            ("\\(#(\\)"                    #Xe11e)
+            ("\\(#\\?\\)"                  #Xe11f)
+            ("\\(#_\\)"                    #Xe120)
+            ("\\(#_(\\)"                   #Xe121)
+            ("\\(\\.-\\)"                  #Xe122)
+            ("\\(\\.=\\)"                  #Xe123)
+            ("\\(\\.\\.\\)"                #Xe124)
+            ("\\(\\.\\.<\\)"               #Xe125)
+            ("\\(\\.\\.\\.\\)"             #Xe126)
+            ("\\(\\?=\\)"                  #Xe127)
+            ("\\(\\?\\?\\)"                #Xe128)
+            ("\\(;;\\)"                    #Xe129)
+            ("\\(/\\*\\)"                  #Xe12a)
+            ("\\(/\\*\\*\\)"               #Xe12b)
+            ("\\(/=\\)"                    #Xe12c)
+            ("\\(/==\\)"                   #Xe12d)
+            ("\\(/>\\)"                    #Xe12e)
+            ("\\(//\\)"                    #Xe12f)
+            ("\\(///\\)"                   #Xe130)
+            ("\\(&&\\)"                    #Xe131)
+            ("\\(||\\)"                    #Xe132)
+            ("\\(||=\\)"                   #Xe133)
+            ("[^|]\\(|=\\)"                #Xe134)
+            ("\\(|>\\)"                    #Xe135)
+            ("\\(\\^=\\)"                  #Xe136)
+            ("\\(\\$>\\)"                  #Xe137)
+            ("\\(\\+\\+\\)"                #Xe138)
+            ("\\(\\+\\+\\+\\)"             #Xe139)
+            ("\\(\\+>\\)"                  #Xe13a)
+            ("\\(=:=\\)"                   #Xe13b)
+            ("[^!/]\\(==\\)[^>]"           #Xe13c)
+            ("\\(===\\)"                   #Xe13d)
+            ("\\(==>\\)"                   #Xe13e)
+            ("[^=]\\(=>\\)"                #Xe13f)
+            ("\\(=>>\\)"                   #Xe140)
+            ("\\(<=\\)"                    #Xe141)
+            ("\\(=<<\\)"                   #Xe142)
+            ("\\(=/=\\)"                   #Xe143)
+            ("\\(>-\\)"                    #Xe144)
+            ("\\(>=\\)"                    #Xe145)
+            ("\\(>=>\\)"                   #Xe146)
+            ("[^-=]\\(>>\\)"               #Xe147)
+            ("\\(>>-\\)"                   #Xe148)
+            ("\\(>>=\\)"                   #Xe149)
+            ("\\(>>>\\)"                   #Xe14a)
+            ("\\(<\\*\\)"                  #Xe14b)
+            ("\\(<\\*>\\)"                 #Xe14c)
+            ("\\(<|\\)"                    #Xe14d)
+            ("\\(<|>\\)"                   #Xe14e)
+            ("\\(<\\$\\)"                  #Xe14f)
+            ("\\(<\\$>\\)"                 #Xe150)
+            ("\\(<!--\\)"                  #Xe151)
+            ("\\(<-\\)"                    #Xe152)
+            ("\\(<--\\)"                   #Xe153)
+            ("\\(<->\\)"                   #Xe154)
+            ("\\(<\\+\\)"                  #Xe155)
+            ("\\(<\\+>\\)"                 #Xe156)
+            ("\\(<=\\)"                    #Xe157)
+            ("\\(<==\\)"                   #Xe158)
+            ("\\(<=>\\)"                   #Xe159)
+            ("\\(<=<\\)"                   #Xe15a)
+            ("\\(<>\\)"                    #Xe15b)
+            ("[^-=]\\(<<\\)"               #Xe15c)
+            ("\\(<<-\\)"                   #Xe15d)
+            ("\\(<<=\\)"                   #Xe15e)
+            ("\\(<<<\\)"                   #Xe15f)
+            ("\\(<~\\)"                    #Xe160)
+            ("\\(<~~\\)"                   #Xe161)
+            ("\\(</\\)"                    #Xe162)
+            ("\\(</>\\)"                   #Xe163)
+            ("\\(~@\\)"                    #Xe164)
+            ("\\(~-\\)"                    #Xe165)
+            ("\\(~=\\)"                    #Xe166)
+            ("\\(~>\\)"                    #Xe167)
+            ("[^<]\\(~~\\)"                #Xe168)
+            ("\\(~~>\\)"                   #Xe169)
+            ("\\(%%\\)"                    #Xe16a)
+            ;; ("\\(x\\)"                   #Xe16b) This ended up being hard to do properly so i'm leaving it out.
+            ("[^:=]\\(:\\)[^:=]"           #Xe16c)
+            ("[^\\+<>]\\(\\+\\)[^\\+<>]"   #Xe16d)
+            ("[^\\*/<>]\\(\\*\\)[^\\*/<>]" #Xe16f))))
+
+(defun add-fira-code-symbol-keywords ()
+  (font-lock-add-keywords nil fira-code-font-lock-keywords-alist))
+
+;; diable ligatures in helm
+(add-hook 'helm-major-mode-hook
+          (lambda ()
+            (setq auto-composition-mode nil)))
+
+;; On some systems, == will appear incorrectly as a blank space in certain modes
+;; unless you add the following lines:
+
+(set-language-environment "UTF-8")
+(set-default-coding-systems 'utf-8)
+
+;; prettify symbols for various modes
+(add-hook 'haskell-mode-hook 'my-add-pretty-lambda)
+(add-hook 'shen-mode-hook 'my-add-pretty-lambda)
+(add-hook 'tex-mode-hook 'my-add-pretty-lambda)
+(global-prettify-symbols-mode 1) ; display “lambda” as “λ”
+
+;; make tab complete without losing ability to manually indent
+(global-set-key (kbd "TAB") #'company-indent-or-complete-common)
+
+;; all-the-icons
+;; see https://github.com/domtronn/all-the-icons.el
+(use-package all-the-icons
+  :defer 10
+  :ensure t)
+
+;; nice icons for dired
+(use-package all-the-icons-dired
+  :hook (dired-mode . all-the-icons-dired-mode)
+  :commands (all-the-icons-dired-mode))
+
+;; neotree (file sidebar for navigation)
+;; see https://github.com/jaypei/emacs-neotree
+(use-package neotree
+  :commands (neotree)
+  :bind ("<f8>" . neotree-toggle)
+  :config
+  (setq neo-theme (if (display-graphic-p) 'icons 'arrow)))
+
+
+;; k8s interface
+;; https://github.com/chrisbarrett/kubernetes-el
+(use-package kubernetes
+  :commands (kubernetes-overview)
+  :config
+  (setq kubernetes-poll-frequency 3600
+        kubernetes-redraw-frequency 3600))
+
+
+;; perl 5
+
+(use-package cperl-mode
+  :ensure t
+  :bind
+  (:map cperl-mode-map
+        ("C-c d" . helm-perldoc))
+  :hook
+  ((cperl-mode . flycheck-mode)
+   (cperl-mode . auto-complete-mode)
+   (cperl-mode . turn-on-eldoc-mode)
+   (cperl-mode . perltidy-mode))
+  :mode ("\.pl$" . cperl-mode)
+  :init
+  (autoload 'perltidy "perltidy-mode" nil t)
+  (autoload 'perltidy-mode "perltidy-mode" nil t)
+  :config
+  ;; cperl-mode
+  (setq cperl-indent-level 4
+        cperl-continued-statement-offset 4
+        cperl-close-paren-offset -4
+        cperl-label-offset -4
+        cperl-comment-column 40
+        cperl-highlight-variables-indiscriminately t
+        cperl-indent-parens-as-block t
+        cperl-tab-always-indent nil
+        cperl-font-lock t
+        cperl-set-style "PerlStyle")
+  ;; auto-complete
+  (make-variable-buffer-local 'ac-sources)
+  (setq ac-sources '(ac-source-perl-completion))
+  (define-key ac-complete-mode-map "\C-n" 'ac-next)
+  (define-key ac-complete-mode-map "\C-p" 'ac-previous)
+  ;; helm-perldoc
+  (helm-mode 1)
+  (indent-guide-mode 1)
+  (helm-perldoc:setup))
+
+;; sly configuration
+(use-package sly
+  :ensure t
+  :mode "\\.lisp$"
+  :hook ((sly-mode . rainbow-delimiters-mode)
+         (sly-mode . enable-paredit-mode)
+         (sly-mode . company-mode)
+         (sly-mode . prettify-symbols-mode)
+         (lisp-mode . rainbow-delimiters-mode)
+         (lisp-mode . enable-paredit-mode)
+         (lisp-mode . company-mode)
+         (lisp-mode . sly-symbol-completion-mode)
+         ;; (sly-mode . (lambda () (unless (sly-connected-p)
+         ;;                     (save-excursion (sly)))))
+         )
+  :bind (:map sly-prefix-map
+              ("M-h" . sly-documentation-lookup))
+  :config
+  (setq inferior-lisp-program "sbcl"
+        sly-net-coding-system 'utf-8-unix
+        sly-complete-symbol-function 'sly-flex-completions)
+  (add-to-list 'auto-mode-alist '("\\.lisp\\'" . lisp-mode))
+  ;; Stop SLIME's REPL from grabbing DEL, which is annoying when backspacing over a '('
+  (add-to-list 'auto-mode-alist '("sly-mrepl" . sly-mrepl-mode))
+  (eval-after-load "sly"  `(define-key sly-prefix-map (kbd "M-h") 'sly-documentation-lookup)))
+
+(use-package sly-quicklisp
+  :after sly
+  :ensure t
+  :config
+  (require 'sly-quicklisp-autoloads))
+
+
+;; other language modes
+
+(use-package css-mode
+  :mode ("\\.css\\'" . css-mode)
+  :config
+  (custom-set-variables
+   '(css-indent-offset 2)))
+
+(use-package arduino-mode
+  :mode ("\\.ino\\'" . arduino-mode))
+
+(use-package yaml-mode
+  :mode ("\\.ya?ml$\\'" . yaml-mode)
+  :hook (yaml-mode . (lambda ()
+           (setq-local paragraph-separate ".*>-$\\|[   ]*$")
+           (setq-local paragraph-start paragraph-separate))))
+
+(use-package terraform-mode
+  :mode ("\\.tf\\'" . terraform-mode)
+  :config (setf terraform-indent-level 4))
 
 ;; multiple cursors - https://github.com/magnars/multiple-cursors.el
 (use-package multiple-cursors
@@ -1554,6 +2539,7 @@ folder, otherwise delete a word"
   :config (setf dabbrev-case-fold-search nil))
 
 (use-package markdown-mode
+  :straight t
   :mode ("\\.md$" "\\.markdown$" "vimperator-.+\\.tmp$")
   :commands (markdown-mode gfm-mode)
   :custom
@@ -1562,52 +2548,104 @@ folder, otherwise delete a word"
   (markdown-command "pandoc -f markdown -t html5 -s --self-contained --smart")
   :config
   (add-hook 'markdown-mode-hook
-      (lambda ()
-        (remove-hook 'fill-nobreak-predicate
-         'markdown-inside-link-p t)))
+            (lambda ()
+              (remove-hook 'fill-nobreak-predicate
+                           'markdown-inside-link-p t)))
   :init (setq markdown-command "multimarkdown"))
 
 ;; for html
 (use-package impatient-mode
+  :straight t
   :mode "\\.html\\'"
   :config
   (defun imp-markdown-filter (in)
     (let ((out (current-buffer)))
       (with-current-buffer in
-  (markdown out))))
+        (markdown out))))
   (push (cons 'markdown-mode #'imp-markdown-filter)
-  imp-default-user-filters)
+        imp-default-user-filters)
   (add-to-list 'imp-default-user-filters '(mhtml-mode . nil)))
 
+;; dired
+(use-package all-the-icons-dired)
 
 (use-package dired
   :ensure nil
+  :straight nil
+  :defer 1
   :commands (dired dired-jump)
+  :hook
+  ((dired-load . (lambda ()
+                   (interactive)
+                   (dired-collapse)))
+   (dired-mode . (lambda ()
+                   (interactive)
+                   (dired-omit-mode 1)
+                   (all-the-icons-dired-mode 1)
+                   (hl-line-mode 1))))
   :bind ("C-x C-j" . dired-jump)
   :custom
-  (dired-listing-switches "-alhG")
+  (dired-use-ls-dired t)
+  (dired-listing-switches "-agho --group-directories-first")
+  (dired-hide-details-hide-symlink-targets nil)
   (dired-dwim-target t)
   (dired-recursive-copies 'top)
-  (dired-listing-switches "-ahl")
   (dired-auto-revert-buffer t)
   :config
   (add-hook 'dired-mode-hook #'toggle-truncate-lines)
+  (setq dired-omit-files "^\\.[^.].*"
+        dired-omit-verbose nil
+        delete-by-moving-to-trash t
+        insert-directory-program "gls" ; on mac: 'brew install coreutils" first!
+        )
   (setf dired-guess-shell-alist-user
         '(("\\.pdf\\'" "evince")
           ("\\(\\.ods\\|\\.xlsx?\\|\\.docx?\\|\\.csv\\)\\'" "libreoffice")
           ("\\(\\.png\\|\\.jpe?g\\)\\'" "qiv")
           ("\\.gif\\'" "animate"))
-        dired-allow-to-change-permissions 'advanced))
+        dired-allow-to-change-permissions 'advanced)
+  (autoload 'dired-omit-mode "dired-x"))
 
-;; (use-package dired+
-;;   :ensure t
-;;   :config
-;;   (global-dired-hide-details-mode 1))
+(use-package dired-rainbow
+    :defer 2
+    :config
+    (dired-rainbow-define-chmod directory "#6cb2eb" "d.*")
+    (dired-rainbow-define html "#eb5286" ("css" "less" "sass" "scss" "htm" "html" "jhtm" "mht" "eml" "mustache" "xhtml"))
+    (dired-rainbow-define xml "#f2d024" ("xml" "xsd" "xsl" "xslt" "wsdl" "bib" "json" "msg" "pgn" "rss" "yaml" "yml" "rdata"))
+    (dired-rainbow-define document "#9561e2" ("docm" "doc" "docx" "odb" "odt" "pdb" "pdf" "ps" "rtf" "djvu" "epub" "odp" "ppt" "pptx"))
+    (dired-rainbow-define markdown "#ffed4a" ("org" "etx" "info" "markdown" "md" "mkd" "nfo" "pod" "rst" "tex" "textfile" "txt"))
+    (dired-rainbow-define database "#6574cd" ("xlsx" "xls" "csv" "accdb" "db" "mdb" "sqlite" "nc"))
+    (dired-rainbow-define media "#de751f" ("mp3" "mp4" "mkv" "MP3" "MP4" "avi" "mpeg" "mpg" "flv" "ogg" "mov" "mid" "midi" "wav" "aiff" "flac"))
+    (dired-rainbow-define image "#f66d9b" ("tiff" "tif" "cdr" "gif" "ico" "jpeg" "jpg" "png" "psd" "eps" "svg"))
+    (dired-rainbow-define log "#c17d11" ("log"))
+    (dired-rainbow-define shell "#f6993f" ("awk" "bash" "bat" "sed" "sh" "zsh" "vim"))
+    (dired-rainbow-define interpreted "#38c172" ("py" "ipynb" "rb" "pl" "t" "msql" "mysql" "pgsql" "sql" "r" "clj" "cljs" "scala" "js"))
+    (dired-rainbow-define compiled "#4dc0b5" ("asm" "cl" "lisp" "el" "c" "h" "c++" "h++" "hpp" "hxx" "m" "cc" "cs" "cp" "cpp" "go" "f" "for" "ftn" "f90" "f95" "f03" "f08" "s" "rs" "hi" "hs" "pyc" ".java"))
+    (dired-rainbow-define executable "#8cc4ff" ("exe" "msi"))
+    (dired-rainbow-define compressed "#51d88a" ("7z" "zip" "bz2" "tgz" "txz" "gz" "xz" "z" "Z" "jar" "war" "ear" "rar" "sar" "xpi" "apk" "xz" "tar"))
+    (dired-rainbow-define packaged "#faad63" ("deb" "rpm" "apk" "jad" "jar" "cab" "pak" "pk3" "vdf" "vpk" "bsp"))
+    (dired-rainbow-define encrypted "#ffed4a" ("gpg" "pgp" "asc" "bfe" "enc" "signature" "sig" "p12" "pem"))
+    (dired-rainbow-define fonts "#6cb2eb" ("afm" "fon" "fnt" "pfb" "pfm" "ttf" "otf"))
+    (dired-rainbow-define partition "#e3342f" ("dmg" "iso" "bin" "nrg" "qcow" "toast" "vcd" "vmdk" "bak"))
+    (dired-rainbow-define vc "#0074d9" ("git" "gitignore" "gitattributes" "gitmodules"))
+    (dired-rainbow-define-chmod executable-unix "#38c172" "-.*x.*"))
 
-(use-package dired-narrow
+;; (use-package dired-single
+;;   :after dired
+;;   :defer t)
+
+(use-package dired-ranger
   :after dired
-  :config
-  (define-key dired-mode-map (kbd "C-x /") 'dired-narrow))
+  :defer t)
+
+(use-package dired-collapse
+  :after dired
+  :defer t)
+
+;; (use-package dired-narrow
+;;   :after dired
+;;   :config
+;;   (define-key dired-mode-map (kbd "C-x /") 'dired-narrow))
 
 
 (use-package time
@@ -1651,6 +2689,14 @@ folder, otherwise delete a word"
          ("M-g c" . avy-goto-char-2)
          ("M-g w" . avy-goto-word-0)))
 
+
+;; zap to char using avy
+(use-package avy-zap
+  :bind
+  (("M-z" . avy-zap-to-char-dwim)
+   ("M-Z" . avy-zap-up-to-char-dwim)))
+
+
 ;; Dim everything except for the thing-at-point.
 (use-package focus
   :bind (("C-c f" . focus-mode)
@@ -1673,8 +2719,69 @@ folder, otherwise delete a word"
   (pdf-loader-install)
   (pdf-tools-install))
 
+;; Window History with winner-mode
 (use-package winner
-  :init (winner-mode))
+  :config
+  (winner-mode))
+
+;; Set Margins for Modes
+(defun dw/org-mode-visual-fill ()
+  (setq visual-fill-column-width 110
+        visual-fill-column-center-text t)
+  (visual-fill-column-mode 1))
+
+(use-package visual-fill-column
+  :defer t
+  :hook (org-mode . dw/org-mode-visual-fill))
+
+;; Control Buffer Placement
+;; (setq display-buffer-base-action
+;;       '(display-buffer-reuse-mode-window
+;;         display-buffer-reuse-window
+;;         display-buffer-same-window))
+
+;; If a popup does happen, don't resize windows to be equal-sized
+(setq even-window-sizes nil)
+
+
+;; Taming Popups with Popper.el
+
+(defun dw/popper-window-height (window)
+  (let (buffer-mode (with-current-buffer (window-buffer window)
+                      major-mode))
+    (pcase buffer-mode
+      ('exwm-mode 40)
+      (_ 15))))
+
+(use-package popper
+  :straight (popper :host github
+                    :repo "karthink/popper"
+                    :build (:not autoloads))
+  :bind (("C-M-'" . popper-toggle-latest)
+         ("M-'" . popper-cycle)
+         ("C-M-\"" . popper-toggle-type))
+  :custom
+  (popper-window-height 12)
+  ;; (popper-window-height
+  ;; (lambda (window)
+  ;;   (let ((buffer-mode (with-current-buffer (window-buffer window)
+  ;;                        major-mode)))
+  ;;     (message "BUFFER MODE: %s" buffer-mode)
+  ;;     (pcase buffer-mode
+  ;;       ('exwm-mode 40)
+  ;;       ('helpful-mode 20)
+  ;;       ('eshell-mode (progn (message "eshell!") 10))
+  ;;       (_ 15)))))
+  (popper-reference-buffers
+   '("^\\*eshell\\*"
+     "^vterm"
+     help-mode
+     helpful-mode
+     compilation-mode))
+  :init
+  (require 'popper) ;; Needed because I disabled autoloads
+  (popper-mode 1))
+
 
 ;; what keybindings were active in the current buffer for the current mode?
 (use-package discover-my-major
@@ -1717,6 +2824,7 @@ folder, otherwise delete a word"
 (use-package tex-site
   :defer 10
   :ensure auctex
+  :straight nil
   :hook ((LaTeX-mode . flyspell-mode)
          (LaTeX-mode . LaTeX-math-mode)
          (LaTeX-mode . auto-fill-mode)
