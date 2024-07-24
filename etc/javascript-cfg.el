@@ -27,7 +27,7 @@
   :ensure t
   :mode (("\\.js$'" . js2-mode)
          ("\\.jsx$" . js2-jsx-mode))
-  :hook ((js2-mode . (lambda () (setq mode-name "js2")))
+  :hook ((js2-mode . (lambda () (setq mode-name "JavaScript")))
          (js2-mode . lsp-deferred)
          (js2-mode . #'js2-imenu-extras-mode) ;;; better imenu
          (js2-mode . (lambda ()
@@ -39,7 +39,6 @@
                            (my-tide-setup-hook)
                            (company-mode))))
   :custom
-  (js2- )
   (js2-include-node-externs t)
   (js2-global-externs '("customElements"))
   (js2--level 3) ;;; Try to highlight most ECMA built-ins
@@ -65,10 +64,6 @@
                 :after-until
                 (lambda (c) (eq c ?#)))))
 
-(use-package ac-js2
-  :ensure t
-  :hook
-  (js2-mode . 'ac-js2-mode))
 
 (use-package xref-js2
   :ensure t
