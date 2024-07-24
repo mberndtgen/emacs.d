@@ -1964,9 +1964,7 @@
 
 
 ;; Sharing Files with 0x0
-(use-package 0x0
-  :straight '(0x0 :host gitlab
-                  :repo "willvaughn/emacs-0x0"))
+(use-package 0x0)
 
 ;; regexp builder
 (defvar reb-re-syntax)
