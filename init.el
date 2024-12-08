@@ -1887,8 +1887,8 @@
   :custom
   (eglot-autoshutdown t))
 
-(use-package consult-eglot
-  :bind (:map eglot-mode-map ("s-t" . #'consult-eglot-symbols)))
+;;(use-package consult-eglot
+;;  :bind (:map eglot-mode-map ("s-t" . #'consult-eglot-symbols)))
 
 ;; ace-flyspell (https://github.com/cute-jumper/ace-flyspell)
 (use-package ace-flyspell
@@ -2028,7 +2028,7 @@
          :map company-mode-map ("<backtab>" . company-ysnippet))
   :hook (after-init . global-company-mode)
   :config
-  (global-company-mode t)
+  (global-company-mode 0)
   ;; (setq-default
   ;;  company-minimum-prefix-length 0
   ;;  ;; get only preview
