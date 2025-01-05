@@ -2028,7 +2028,6 @@
          :map company-mode-map ("<backtab>" . company-ysnippet))
   :hook (after-init . global-company-mode)
   :config
-  (global-company-mode 0)
   ;; (setq-default
   ;;  company-minimum-prefix-length 0
   ;;  ;; get only preview
@@ -2036,7 +2035,8 @@
   ;;  ;; also get a drop down
   ;;  company-frontends '(company-pseudo-tooltip-frontend company-preview-frontend))
   :init
-  (setq company-tooltip-align-annotations t
+  (setq global-company-mode 0
+        company-tooltip-align-annotations t
         company-tooltip-limit 12
         company-idle-delay 0
         company-echo-delay (if (display-graphic-p) nil 0)
@@ -2046,8 +2046,8 @@
         company-dabbrev-ignore-case nil
         company-dabbrev-downcase nil
         company-selection-wrap-around t
-        company-global-modes '(not erc-mode message-mode help-mode
-                                   gud-mode eshell-mode shell-mode)
+        ;; company-global-modes '(not erc-mode message-mode help-mode
+        ;;                            gud-mode eshell-mode shell-mode)
         company-backends '((company-capf :with company-yasnippet)
                            (company-dabbrev-code company-keywords company-files)
                            company-dabbrev)))
