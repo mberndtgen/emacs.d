@@ -106,16 +106,6 @@
 (unless (package-installed-p 'use-package)
   (package-install 'use-package))
 
-;; keep config folders clean, see https://github.com/emacscollective/no-littering
-;; For moving everything out of ~/.emacs.d reliably, set 'user-emacs-directory' before
-;; loading no-littering!
-
-(use-package no-littering)
-
-;; no-littering doesn't set this by default so we must place aut-save files in the
-;; same path as it uses for sessions
-(setq auto-save-file-name-transforms `((".*" ,(no-littering-expand-var-file-name "auto-save/") t)))
-
 (require 'use-package)
 (setq use-package-always-ensure t
       use-package-verbose t
@@ -258,7 +248,7 @@
           mac-pass-command-to-system nil
           mac-command-modifier 'meta    ; make opt key do Super
           mac-control-modifier 'ctrl    ; make Control key do Control
-          mac-option-modifier 'super
+          mac-right-option-modifier 'super
           ns-function-modifier 'hyper))
 (if (eq system-type 'gnu/linux)
     nil)
@@ -271,10 +261,6 @@
 
 ;; shift <cursor> now just select text, super <cursor> moves between windows
 (windmove-default-keybindings 'super)
-
-;; I hate hitting this by accident
-;; (global-set-key (kbd "C-<up>") #'previous-line)
-;; (global-set-key (kbd "C-<down>") #'next-line)
 
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 (global-set-key (kbd "C-j") #'join-line)
@@ -705,8 +691,23 @@
                   (org-level-6 . 1.1)
                   (org-level-7 . 1.1)
                   (org-level-8 . 1.1)))
-    (set-face-attribute (car face) nil :font "Cantarell" :weight 'regular :height (cdr face)))
+    (set-face-attribute (car face) nil :font "Menlo" :weight 'regular :height (cdr face)))
 
+  (custom-theme-set-faces
+   'user
+   '(org-block ((t (:inherit fixed-pitch))))
+   '(org-code ((t (:inherit (shadow fixed-pitch)))))
+   '(org-document-info ((t (:foreground "dark orange"))))
+   '(org-document-info-keyword ((t (:inherit (shadow fixed-pitch)))))
+   '(org-indent ((t (:inherit (org-hide fixed-pitch)))))
+   '(org-link ((t (:foreground "royal blue" :underline t))))
+   '(org-meta-line ((t (:inherit (font-lock-comment-face fixed-pitch)))))
+   '(org-property-value ((t (:inherit fixed-pitch))) t)
+   '(org-special-keyword ((t (:inherit (font-lock-comment-face fixed-pitch)))))
+   '(org-table ((t (:inherit fixed-pitch :foreground "#83a598"))))
+   '(org-tag ((t (:inherit (shadow fixed-pitch) :weight bold :height 0.8))))
+   '(org-verbatim ((t (:inherit (shadow fixed-pitch))))))
+  
   ;; Ensure that anything that should be fixed-pitch in Org files appears that way
   (set-face-attribute 'org-block nil    :foreground nil :inherit 'fixed-pitch)
   (set-face-attribute 'org-table nil    :inherit 'fixed-pitch)
@@ -722,7 +723,7 @@
 
 (defun efs/org-mode-setup ()
   (org-indent-mode)
-  (variable-pitch-mode 1)
+  (variable-pitch-mode nil)
   (auto-fill-mode 0)
   (visual-line-mode 1)
   (diminish org-indent-mode))
@@ -786,59 +787,11 @@
   (org-directory "~/Dropbox/orgfiles")
   ;; Compact the block agenda view
   (org-agenda-compact-blocks t)
-  (org-agenda-custom-commands '(("d" "Dashboard"
-                                 ((agenda "" ((org-deadline-warning-days 7)))
-                                  (todo "NEXT"
-                                        ((org-agenda-overriding-header "Next Tasks")))
-                                  (tags-todo "agenda/ACTIVE" ((org-agenda-overriding-header "Active Projects")))))
-
-                                ("n" "Next Tasks"
-                                 ((todo "NEXT"
-                                        ((org-agenda-overriding-header "Next Tasks")))))
-
-                                ("W" "Work Tasks" tags-todo "+work-email")
-
-                                ;; Low-effort next actions
-                                ("e" tags-todo "+TODO=\"NEXT\"+Effort<15&+Effort>0"
-                                 ((org-agenda-overriding-header "Low Effort Tasks")
-                                  (org-agenda-max-todos 20)
-                                  (org-agenda-files org-agenda-files)))
-
-                                ("w" "Workflow Status"
-                                 ((todo "WAIT"
-                                        ((org-agenda-overriding-header "Waiting on External")
-                                         (org-agenda-files org-agenda-files)))
-                                  (todo "REVIEW"
-                                        ((org-agenda-overriding-header "In Review")
-                                         (org-agenda-files org-agenda-files)))
-                                  (todo "PLAN"
-                                        ((org-agenda-overriding-header "In Planning")
-                                         (org-agenda-todo-list-sublevels nil)
-                                         (org-agenda-files org-agenda-files)))
-                                  (todo "BACKLOG"
-                                        ((org-agenda-overriding-header "Project Backlog")
-                                         (org-agenda-todo-list-sublevels nil)
-                                         (org-agenda-files org-agenda-files)))
-                                  (todo "READY"
-                                        ((org-agenda-overriding-header "Ready for Work")
-                                         (org-agenda-files org-agenda-files)))
-                                  (todo "ACTIVE"
-                                        ((org-agenda-overriding-header "Active Projects")
-                                         (org-agenda-files org-agenda-files)))
-                                  (todo "COMPLETED"
-                                        ((org-agenda-overriding-header "Completed Projects")
-                                         (org-agenda-files org-agenda-files)))
-                                  (todo "CANC"
-                                        ((org-agenda-overriding-header "Cancelled Projects")
-                                         (org-agenda-files org-agenda-files)))))))
   (org-agenda-files (mapcar (lambda (path) (concat org-directory path))
-                            '("/work.org"
-                              "/home.org")))
+                            '("/work-2025.org")))
   (org-agenda-persistent-filter t)
   (org-ascii-links-to-notes nil)
   (org-ascii-headline-spacing (quote (1 . 1)))
-  ;; (org-blank-before-new-entry '((heading)
-  ;;                               (plain-list-item . auto)))
   (org-capture-templates '(("t" "todo" entry (file org-default-notes-file)
                             "* TODO %?\n%U\n%a\n" :clock-in t :clock-resume t)
                            ("r" "respond" entry (file org-default-notes-file)
@@ -850,7 +803,7 @@
                            ("w" "org-protocol" entry (file org-default-notes-file)
                             "* TODO Review %c\n%U\n" :immediate-finish t)
                            ("m" "Meeting" entry (file org-default-notes-file)
-                            "* MEETING with %? :MEETING:\n%U" :clock-in t :clock-resume t)
+                            "* MEETING on %? :MEETING:\n%U" :clock-in t :clock-resume t)
                            ("p" "Phone call" entry (file org-default-notes-file)
                             "* PHONE %? :PHONE:\n%U" :clock-in t :clock-resume t)
                            ("h" "Habit" entry (file org-default-notes-file)
@@ -1027,9 +980,9 @@
    org-agenda-start-on-weekday 1
    org-agenda-start-with-log-mode t
    ;; Enable display of the time grid so we can see the marker for the current time
-   org-agenda-time-grid '((daily today remove-match)
-                          #("----------------" 0 16 (org-heading t))
-                          (0900 1100 1300 1500 1700))
+   ;; org-agenda-time-grid '((daily today remove-match)
+   ;;                        #("----------------" 0 16 (org-heading t))
+   ;;                        (0900 1100 1300 1500 1700))
    ;; Display tags farther right
    org-agenda-tags-column -102
    ;; Agenda sorting functions
@@ -1039,57 +992,57 @@
    ;; position the habit graph on the agenda to the right of the default
    org-habit-graph-column 60
    ;; speed commands
-   org-use-speed-commands t
-   org-speed-commands-user '(("0" . ignore)
-                             ("1" . ignore)
-                             ("2" . ignore)
-                             ("3" . ignore)
-                             ("4" . ignore)
-                             ("5" . ignore)
-                             ("6" . ignore)
-                             ("7" . ignore)
-                             ("8" . ignore)
-                             ("9" . ignore)
+   ;; org-use-speed-commands t
+   ;; org-speed-commands-user '(("0" . ignore)
+   ;;                           ("1" . ignore)
+   ;;                           ("2" . ignore)
+   ;;                           ("3" . ignore)
+   ;;                           ("4" . ignore)
+   ;;                           ("5" . ignore)
+   ;;                           ("6" . ignore)
+   ;;                           ("7" . ignore)
+   ;;                           ("8" . ignore)
+   ;;                           ("9" . ignore)
 
-                             ("a" . ignore)
-                             ("d" . ignore)
-                             ;;("h" . bh/hide-other)
-                             ("i" progn
-                              (forward-char 1)
-                              (call-interactively 'org-insert-heading-respect-content))
-                             ("k" . org-kill-note-or-show-branches)
-                             ("l" . ignore)
-                             ("m" . ignore)
-                             ;;("q" . bh/show-org-agenda)
-                             ("r" . ignore)
-                             ("s" . org-save-all-org-buffers)
-                             ("w" . org-refile)
-                             ("x" . ignore)
-                             ("y" . ignore)
-                             ("z" . org-add-note)
+   ;;                           ("a" . ignore)
+   ;;                           ("d" . ignore)
+   ;;                           ;;("h" . bh/hide-other)
+   ;;                           ("i" progn
+   ;;                            (forward-char 1)
+   ;;                            (call-interactively 'org-insert-heading-respect-content))
+   ;;                           ("k" . org-kill-note-or-show-branches)
+   ;;                           ("l" . ignore)
+   ;;                           ("m" . ignore)
+   ;;                           ;;("q" . bh/show-org-agenda)
+   ;;                           ("r" . ignore)
+   ;;                           ("s" . org-save-all-org-buffers)
+   ;;                           ("w" . org-refile)
+   ;;                           ("x" . ignore)
+   ;;                           ("y" . ignore)
+   ;;                           ("z" . org-add-note)
 
-                             ("A" . ignore)
-                             ("B" . ignore)
-                             ("E" . ignore)
-                             ;;("F" . bh/restrict-to-file-or-follow)
-                             ("G" . ignore)
-                             ("H" . ignore)
-                             ("J" . org-clock-goto)
-                             ("K" . ignore)
-                             ("L" . ignore)
-                             ("M" . ignore)
-                             ;;("N" . bh/narrow-to-org-subtree)
-                             ;;("P" . bh/narrow-to-org-project)
-                             ("Q" . ignore)
-                             ("R" . ignore)
-                             ("S" . ignore)
-                             ;;("T" . bh/org-todo)
-                             ;;("U" . bh/narrow-up-one-org-level)
-                             ("V" . ignore)
-                             ;;("W" . bh/widen)
-                             ("X" . ignore)
-                             ("Y" . ignore)
-                             ("Z" . ignore))
+   ;;                           ("A" . ignore)
+   ;;                           ("B" . ignore)
+   ;;                           ("E" . ignore)
+   ;;                           ;;("F" . bh/restrict-to-file-or-follow)
+   ;;                           ("G" . ignore)
+   ;;                           ("H" . ignore)
+   ;;                           ("J" . org-clock-goto)
+   ;;                           ("K" . ignore)
+   ;;                           ("L" . ignore)
+   ;;                           ("M" . ignore)
+   ;;                           ;;("N" . bh/narrow-to-org-subtree)
+   ;;                           ;;("P" . bh/narrow-to-org-project)
+   ;;                           ("Q" . ignore)
+   ;;                           ("R" . ignore)
+   ;;                           ("S" . ignore)
+   ;;                           ;;("T" . bh/org-todo)
+   ;;                           ;;("U" . bh/narrow-up-one-org-level)
+   ;;                           ("V" . ignore)
+   ;;                           ;;("W" . bh/widen)
+   ;;                           ("X" . ignore)
+   ;;                           ("Y" . ignore)
+   ;;                           ("Z" . ignore))
    org-remove-highlights-with-change t
    org-read-date-prefer-future 'time
    ;; automatically change list bullets
@@ -1179,8 +1132,6 @@
 (add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'efs/org-babel-tangle-config)))
 
 (with-eval-after-load 'org
-  ;; reveal support
-  (require 'emacs-reveal)
   ;; manual see https://github.com/yjwen/org-reveal
   ;; reveal.js home: https://github.com/hakimel/reveal.js/
   (use-package helm-org
@@ -1261,61 +1212,14 @@
   :init
   (vertico-mode))
 
-;; Completions in Regions with Corfu
-;; (use-package corfu
-;;   :straight t
-;;   :ensure t
-;;   :bind (:map corfu-map
-;;               ("C-j" . corfu-next)
-;;               ("C-k" . corfu-previous)
-;;               ("C-f" . corfu-insert))
-;;   ;; Optional customizations
-;;   :custom
-;;   (corfu-cycle t) ;; Enable cycling for `corfu-next/previous'
-;;   (corfu-auto t)                 ;; Enable auto completion
-;;   (corfu-separator ?\s)          ;; Orderless field separator
-;;   (corfu-quit-at-boundary nil)   ;; Never quit at completion boundary
-;;   (corfu-quit-no-match nil)      ;; Never quit, even if there is no match
-;;   (corfu-preview-current nil)    ;; Disable current candidate preview
-;;   (corfu-preselect 'prompt)      ;; Preselect the prompt
-;;   (corfu-on-exact-match nil)     ;; Configure handling of exact matches
-;;   (corfu-scroll-margin 5)        ;; Use scroll margin
-
-;;   ;; Enable Corfu only for certain modes.
-;;   :hook ((prog-mode . corfu-mode)
-;;          (shell-mode . corfu-mode)
-;;          (eshell-mode . corfu-mode))
-
-;;   ;; Recommended: Enable Corfu globally.
-;;   ;; This is recommended since Dabbrev can be used globally (M-/).
-;;   ;; See also `corfu-exclude-modes'.
-;;   :init
-;;   (global-corfu-mode))
-
 
 ;; A few more useful configurations...
 (use-package emacs
   :init
-  ;; Add prompt indicator to `completing-read-multiple'.
-  ;; We display [CRM<separator>], e.g., [CRM,] if the separator is a comma.
-  ;; (defun crm-indicator (args)
-  ;;   (cons (format "[CRM%s] %s"
-  ;;                 (replace-regexp-in-string
-  ;;                  "\\`\\[.*?]\\*\\|\\[.*?]\\*\\'" ""
-  ;;                  crm-separator)
-  ;;                 (car args))
-  ;;         (cdr args)))
-  ;; (advice-add #'completing-read-multiple :filter-args #'crm-indicator)
-
   ;; Do not allow the cursor in the minibuffer prompt
   (setq minibuffer-prompt-properties
         '(read-only t cursor-intangible t face minibuffer-prompt))
   (add-hook 'minibuffer-setup-hook #'cursor-intangible-mode)
-
-  ;; Emacs 28: Hide commands in M-x which do not work in the current mode.
-  ;; Vertico commands are hidden in normal buffers.
-  ;; (setq read-extended-command-predicate
-  ;;       #'command-completion-default-include-p)
 
   ;; Enable recursive minibuffers
   (setq enable-recursive-minibuffers t)
@@ -1323,20 +1227,9 @@
   ;; TAB cycle if there are only few candidates
   (setq completion-cycle-threshold 3)
 
-  ;; Emacs 28: Hide commands in M-x which do not apply to the current mode.
-  ;; Corfu commands are hidden, since they are not supposed to be used via M-x.
-  ;; (setq read-extended-command-predicate
-  ;;       #'command-completion-default-include-p)
-
   ;; Enable indentation+completion using the TAB key.
   ;; `completion-at-point' is often bound to M-TAB.
-  (setq tab-always-indent 'complete)
-
-  ;; Emacs 28 and newer: Hide commands in M-x which do not apply to the current
-  ;; mode.  Corfu commands are hidden, since they are not used via M-x. This
-  ;; setting is useful beyond Corfu.
-  ;;(read-extended-command-predicate #'command-completion-default-include-p)
-  )
+  (setq tab-always-indent 'complete))
 
 ;; tab widths
 (setq-default tab-width 2) ; Default to an indentation size of 2 spaces
@@ -1350,9 +1243,6 @@
   (completion-styles '(orderless basic))
   (completion-category-overrides '((file (styles partial-completion))))
   :init
-  ;; Configure a custom style dispatcher (see the Consult wiki)
-  ;; (setq orderless-style-dispatchers '(+orderless-consult-dispatch orderless-affix-dispatch)
-  ;;       orderless-component-separator #'orderless-escapable-split-on-space)
   (setq completion-category-defaults nil))
 
 
@@ -1417,32 +1307,6 @@
   ;; package.
   (marginalia-mode))
 
-;; Completion Actions with Embark
-;; see https://github.com/oantolin/embark
-;; (use-package embark
-;;   :ensure t
-;;   :bind
-;;   (("C-." . embark-act)         ;; pick some comfortable binding
-;;    ("C-;" . embark-dwim)        ;; good alternative: M-.
-;;    ("C-h B" . embark-bindings)) ;; alternative for `describe-bindings'
-;;   :init
-;;   ;; Optionally replace the key help with a completing-read interface
-;;   (setq prefix-help-command #'embark-prefix-help-command)
-;;   ;; Show the Embark target at point via Eldoc.  You may adjust the Eldoc
-;;   ;; strategy, if you want to see the documentation from multiple providers.
-;;   (add-hook 'eldoc-documentation-functions #'embark-eldoc-first-target)
-;;   ;; (setq eldoc-documentation-strategy #'eldoc-documentation-compose-eagerly)
-;;   :config
-;;   ;; Hide the mode line of the Embark live/completions buffers
-;;   (add-to-list 'display-buffer-alist
-;;                '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
-;;                  nil
-;;                  (window-parameters (mode-line-format . none)))))
-
-;; Consult users will also want the embark-consult package.
-;; (use-package embark-consult
-;;   :after embark)
-
 ;; https://github.com/waymondo/use-package-ensure-system-package
 (use-package use-package-ensure-system-package)
 
@@ -1466,7 +1330,6 @@
 (use-package delight
   :commands delight)
 
-
 ;; beacon: highlight cursor
 ;; https://github.com/Malabarba/beacon
 (use-package beacon
@@ -1474,9 +1337,6 @@
   :custom
   (beacon-push-mark 35)
   (beacon-color "#666600"))
-
-;; (With-eval-after-load "beacon"
-;;                       (beacon-mode 1))
 
 ;; goto-line-preview
 ;; https://github.com/jcs-elpa/goto-line-preview
@@ -1500,8 +1360,6 @@
 ;; For view-only buffers rendering content, it is useful to have them auto-revert in case of changes.
 (add-hook 'doc-view-mode-hook 'auto-revert-mode)
 (add-hook 'image-mode 'auto-revert-mode)
-
-
 
 ;; auto-revert buffer
 ;; Source: http://www.emacswiki.org/emacs-en/download/misc-cmds.el
@@ -1642,35 +1500,6 @@
   :init
   (purpose-mode))
 
-;; see https://github.com/bbatsov/crux
-;; (use-package crux
-;;   :bind (("C-c o" . crux-open-with)
-;;          ("M-o" . crux-smart-open-line)
-;;          ("C-c n" . crux-cleanup-buffer-or-region)
-;;          ("C-c f" . crux-recentf-find-file)
-;;          ("C-M-z" . crux-indent-defun)
-;;          ("C-c u" . crux-view-url)
-;;          ("C-c e" . crux-eval-and-replace)
-;;          ("C-c w" . crux-swap-windows)
-;;          ("C-c D" . crux-delete-file-and-buffer)
-;;          ("C-c r" . crux-rename-buffer-and-file)
-;;          ("C-c t" . crux-visit-term-buffer)
-;;          ("C-c k" . crux-kill-other-buffers)
-;;          ("C-c TAB" . crux-indent-rigidly-and-copy-to-clipboard)
-;;          ("C-c I" . crux-find-user-init-file)
-;;          ("C-c S" . crux-find-shell-init-file)
-;;          ("s-r" . crux-recentf-find-file)
-;;          ("s-j" . crux-top-join-line)
-;;          ("C-^" . crux-top-join-line)
-;;          ("s-k" . crux-kill-whole-line)
-;;          ("C-<backspace>" . crux-kill-line-backwards)
-;;          ;;("s-o" . crux-smart-open-line-above)
-;;          ([remap move-beginning-of-line] . crux-move-beginning-of-line)
-;;          ([(shift return)] . crux-smart-open-line)
-;;          ([(control shift return)] . crux-smart-open-line-above)
-;;          ([remap kill-whole-line] . crux-kill-whole-line)
-;;          ("C-c s" . crux-ispell-word-then-abbrev)))
-
 
 (use-package move-text
   :bind
@@ -1788,18 +1617,6 @@
 
 ;;(load-library "~/.emacs.d/secrets/your-secrets.el.gpg")
 
-(use-package org-ai
-  :after org
-  :hook (org-mode . org-ai-mode) ; enable org-ai in org-mode
-  :commands (org-ai-mode
-             org-ai-global-mode)
-  :init
-  (org-ai-global-mode) ; installs global keybindings on C-c M-a
-  :config
-  (setq org-ai-default-chat-model "gpt-3.5-turbo")
-  (org-ai-install-yasnippets) ; if you are using yasnippet and want `ai` snippets
-  )
-
 ;; Set up before-save hooks to format buffer and add/delete imports.
 ;; Make sure you don't have other gofmt/goimports hooks enabled.
 ;; (defun lsp-go-install-save-hooks ()
@@ -1839,22 +1656,6 @@
   (define-key lsp-ui-mode-map [remap xref-find-definitions] #'lsp-ui-peek-find-definitions)
   (define-key lsp-ui-mode-map [remap xref-find-references] #'lsp-ui-peek-find-reference))
 
-
-;; if you are helm user
-;; (use-package helm-lsp
-;;   :after helm
-;;   :bind
-;;   (:map lsp-mode-map
-;;         ([remap xref-find-apropos] . helm-lsp-workspace-symbol)))
-
-;; if you are ivy user
-;; (use-package lsp-ivy :commands lsp-ivy-workspace-symbol)
-
-;; (use-package lsp-treemacs
-;;   :commands (lsp-treemacs-errors-list helm-lsp-global-workspace-symbol helm-lsp-code-actions helm-lsp-switch-project)
-;;   :config
-;;   (lsp-treemacs-sync-mode 1)
-;;   (define-key lsp-mode-map [remap xref-find-apropos] #'helm-lsp-workspace-symbol))
 
 ;; xref
 (use-package xref
@@ -2026,7 +1827,7 @@
   :defer 0.1
   :bind (("C-M-i" . company-complete)
          :map company-mode-map ("<backtab>" . company-ysnippet))
-  :hook (after-init . global-company-mode)
+  ;; :hook (after-init . global-company-mode)
   :config
   ;; (setq-default
   ;;  company-minimum-prefix-length 0
@@ -2035,7 +1836,7 @@
   ;;  ;; also get a drop down
   ;;  company-frontends '(company-pseudo-tooltip-frontend company-preview-frontend))
   :init
-  (setq global-company-mode 0
+  (setq global-company-mode nil
         company-tooltip-align-annotations t
         company-tooltip-limit 12
         company-idle-delay 0
@@ -2083,8 +1884,6 @@
             (lambda ()
               (setq-local mode-name (my-derived-lang-name))))
   (add-to-list 'company-backends 'company-capf))
-
-
 
 
 ;; Optional - provides snippet support.
@@ -2321,11 +2120,6 @@
   :config
   (setf reb-re-syntax 'read))
 
-;; enable aggressive-indenting for some modes
-;; see https://github.com/Malabarba/aggressive-indent-mode
-;; (use-package aggressive-indent
-;;   :ensure t
-;;   :hook (prog-mode . aggressive-indent-mode))
 
 ;; visually display kill ring
 ;; see https://github.com/browse-kill-ring/browse-kill-ring
@@ -2375,8 +2169,8 @@
                           `([,(cdr char-regexp) 0 font-shape-gstring]))))
 ;;; Fira code
 ;; This works when using emacs --daemon + emacsclient
-;;(add-hook 'after-make-frame-functions
-;;          (lambda (frame) (set-fontset-font t '(#Xe100 . #Xe16f) "Fira Code Symbol")))
+(add-hook 'after-make-frame-functions
+         (lambda (frame) (set-fontset-font t '(#Xe100 . #Xe16f) "Fira Code Symbol")))
 ;; This works when using emacs without server/client
 ;;(set-fontset-font t '(#Xe100 . #Xe16f) "Fira Code Symbol")
 ;; I haven't found one statement that makes both of the above situations work, so I use both for now
@@ -2444,14 +2238,6 @@
   :config
   (setq neo-theme (if (display-graphic-p) 'icons 'arrow)))
 
-
-;; k8s interface
-;; https://github.com/chrisbarrett/kubernetes-el
-(use-package kubernetes
-  :commands (kubernetes-overview)
-  :config
-  (setq kubernetes-poll-frequency 3600
-        kubernetes-redraw-frequency 3600))
 
 ;; ensure that Emacs has access to the PATH associated with the current environment.
 (use-package exec-path-from-shell
@@ -2650,14 +2436,12 @@
   (custom-set-variables
    '(css-indent-offset 2)))
 
-(use-package arduino-mode
-  :mode ("\\.ino\\'" . arduino-mode))
 
-(use-package yaml-mode
+(use-package yaml-mode 
   :mode ("\\.ya?ml$\\'" . yaml-mode)
   :hook (yaml-mode . (lambda ()
-           (setq-local paragraph-separate ".*>-$\\|[   ]*$")
-           (setq-local paragraph-start paragraph-separate))))
+                       (setq-local paragraph-separate ".*>-$\\|[   ]*$")
+                       (setq-local paragraph-start paragraph-separate))))
 
 (use-package terraform-mode
   :mode ("\\.tf\\'" . terraform-mode)
@@ -2826,9 +2610,6 @@
     (dired-rainbow-define vc "#0074d9" ("git" "gitignore" "gitattributes" "gitmodules"))
     (dired-rainbow-define-chmod executable-unix "#38c172" "-.*x.*"))
 
-;; (use-package dired-single
-;;   :after dired
-;;   :defer t)
 
 (use-package dired-ranger
   :after dired
@@ -2837,11 +2618,6 @@
 (use-package dired-collapse
   :after dired
   :defer t)
-
-;; (use-package dired-narrow
-;;   :after dired
-;;   :config
-;;   (define-key dired-mode-map (kbd "C-x /") 'dired-narrow))
 
 
 (use-package time
@@ -3017,40 +2793,6 @@
        (find-file-other-window f)))
    (mapcar #'expand-file-name (eshell-flatten-list (reverse args)))))
 
-(use-package tex-site
-  :defer 10
-  :ensure auctex
-  :straight nil
-  :hook ((LaTeX-mode . flyspell-mode)
-         (LaTeX-mode . LaTeX-math-mode)
-         (LaTeX-mode . auto-fill-mode)
-         (LaTeX-mode . orgtbl-mode))
-  :config
-  (setq TeX-auto-untabify t
-        TeX-auto-save t
-        TeX-save-query nil
-        TeX-parse-self t
-        TeX-output-view-style
-        (if (eq system-type 'windows-nt)
-            (quote
-             (("^pdf$" "." "SumatraPDF.exe -reuse-instance %o")
-              ("^html?$" "." "start %o")))
-          (quote
-           (("^pdf$" "." "evince -f %o")
-            ("^html?$" "." "start %o"))))
-        TeX-command-extra-options "-shell-escape"
-        TeX-PDF-mode 1
-        TeX-engine 'xetex)
-  (setq-default TeX-master nil)
-  (setq org-latex-listings t)
-  ;; (with-eval-after-load 'org
-  ;;   (add-to-list 'org-latex-packages-alist '("" "tikzposter" t))
-  ;;   (add-to-list 'org-latex-packages-alist '("" "tikz-cd" t))
-  ;;   (add-to-list 'org-latex-packages-alist '("" "minted" t)))
-  (setq org-latex-create-formula-image-program 'imagemagick)
-  (eval-after-load "preview"
-    '(add-to-list 'preview-default-preamble "\\PreviewEnvironment{tikzpicture}" t))
-  (add-hook 'doc-view-mode-hook 'auto-revert-mode))
 
 (add-hook 'LaTeX-mode-hook 'turn-on-reftex)
 
@@ -3183,9 +2925,6 @@
 (setq gc-cons-threshold (* 2 1000 1000)) ; 32 MB
 (setq gc-cons-percentage 0.6)
 
-
-                                        ;(global-linum-mode 1)
-
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -3198,13 +2937,8 @@
  '(custom-safe-themes
    '("5ee12d8250b0952deefc88814cf0672327d7ee70b16344372db9460e9a0e3ffc" "52588047a0fe3727e3cd8a90e76d7f078c9bd62c0b246324e557dfa5112e0d0c" "cf08ae4c26cacce2eebff39d129ea0a21c9d7bf70ea9b945588c1c66392578d1" "1157a4055504672be1df1232bed784ba575c60ab44d8e6c7b3800ae76b42f8bd" "9e54a6ac0051987b4296e9276eecc5dfb67fdcd620191ee553f40a9b6d943e78" "1e7e097ec8cb1f8c3a912d7e1e0331caeed49fef6cff220be63bd2a6ba4cc365" "fc5fcb6f1f1c1bc01305694c59a1a861b008c534cae8d0e48e4d5e81ad718bc6" default))
  '(fci-rule-color "#2a2a2a")
- '(package-selected-packages
-   '(no-littering zoom yascroll yaml-mode xref-js2 writegood-mode whitespace-cleanup-mode which-key visual-regexp-steroids visual-fill-column use-package-hydra use-package-ensure-system-package unicode-fonts undo-tree typescript-mode transwin terraform-mode tern-auto-complete sunrise-commander smooth-scrolling smar-tabs-mode sly-quicklisp ripgrep rg reveal-in-osx-finder rainbow-mode rainbow-delimiters quelpa-use-package pug-mode prog-fill pretty-mode pov-mode pfuture pdf-tools paxedit paradox ox-reveal origami org-ref org-bullets org-ai npm notmuch neotree nasm-mode move-text lsp-ui linum-relative kurecolor kubernetes json-mode js2-refactor javadoc-lookup indent-guide impatient-mode highlight-symbol highlight-parentheses helpful helm-projectile helm-org helm-lsp graphviz-dot-mode goto-line-preview go-guru gnuplot-mode general forge font-lock-profiler focus flymake-eslint flymake-diagnostic-at-point flycheck find-file-in-project filladapt expand-region exec-path-from-shell evil-nerd-commenter eval-in-repl eslintd-fix elfeed eglot doom-themes doom-modeline discover-my-major dired-rainbow dired-narrow dired-filter dired-collapse diminish delight dap-mode crux counsel-projectile company-tabnine company-quickhelp company-box command-log-mode clojure-mode-extra-font-locking chatgpt-shell cfrs centaur-tabs buffer-move browse-kill-ring beacon avy-zap auctex arduino-mode anakondo all-the-icons-dired aggressive-indent ace-link ace-isearch ace-flyspell ac-js2 ac-cider))
  '(scroll-preserve-screen-position 'always)
  '(which-key-mode t))
-
-
-
 
 (provide 'init)
 ;;; init.el ends here
