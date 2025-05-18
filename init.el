@@ -31,13 +31,13 @@
     ;; adds check-parens to local-write-file-hooks only for the current buffer
     ;;(nil t ensures it’s a buffer-local hook).
     (when (buffer-file-name) ;; only for files
-      (add-hook 'local-write-file-hooks 'check-parens nil t))))
+      (add-hook 'write-file-functions 'check-parens))))
 
 ;; directories
 
 (make-directory (locate-user-emacs-file "local") :no-error)
 (let ((default-directory  "~/.emacs.d/"))
-  (normal-top-level-add-to-load-path '("lisp" "etc" "elpa/emacs-reveal" "codeium.el")))
+  (normal-top-level-add-to-load-path '("lisp" "etc" "elpa/emacs-reveal")))
 
 ;; PATH and exec-path
 (setenv "PATH"
@@ -99,8 +99,6 @@
 (defvar use-package-compute-statistics)
 (defvar use-package-minimum-reported-time)
 (defvar use-package-always-ensure)
-
-
 
 ;; initialise use-packages on non-Linux platforms
 (unless (package-installed-p 'use-package)
@@ -427,9 +425,9 @@
             :override #'ignore)
 
 ;; mode line style
-(set-face-attribute 'mode-line nil :box nil)
-(set-face-attribute 'mode-line-inactive nil :box nil)
-(set-face-attribute 'mode-line-highlight nil :box nil)
+;;(set-face-attribute 'mode-line nil :box nil)
+;;(set-face-attribute 'mode-line-inactive nil :box nil)
+;;(set-face-attribute 'mode-line-highlight nil :box nil)
 
 ;; quick switch to scratch buffer
 (defun switch-to-scratch-buffer ()
@@ -444,7 +442,6 @@
 
 (use-package s)
 (use-package dash)
-
 (use-package logview)
 
 (use-package command-log-mode
@@ -460,11 +457,12 @@
   (doom-themes-visual-bell-config) ; Enable flashing mode-line on errors
   (doom-themes-neotree-config)     ; Enable custom neotree theme (all-the-icons must be installed!)
   :init
-  (load-theme 'doom-one t)
+  (load-theme 'doom-wilmersdorf t)
   ;; for treemacs users (setq doom-themes-treemacs-theme "doom-colors") ; use the colorful treemacs theme
   (doom-themes-treemacs-config)
   ;; Corrects (and improves) org-mode's native fontification.
-  (doom-themes-org-config))
+  (doom-themes-org-config)
+  )
 
 ;; NOTE: 1st time you load config on a new machine,
 ;; remember to run 'M-x all-the-icons-install-fonts' first!
@@ -474,7 +472,6 @@
   :hook (doom-modeline-mode . minions-mode))
 
 (use-package doom-modeline
-  :after eshell     ;; Make sure it gets hooked after eshell
   :hook (after-init . doom-modeline-init)
   :custom-face
   (mode-line ((t (:height 0.85))))
@@ -483,7 +480,7 @@
   :custom
   (doom-modeline-height 10)
   (doom-modeline-bar-width 6)
-                                        ;(doom-modeline-lsp t)
+;;(doom-modeline-lsp t)
   (doom-modeline-github nil)
   (doom-modeline-mu4e nil)
   (doom-modeline-irc t)
@@ -672,7 +669,6 @@
 
 (add-hook 'prog-mode-hook
           (lambda() (add-hook 'completion-at-point-functions
-                         #'codeium-completion-at-point
                          nil 'local)))
 ;; org mode
 
@@ -847,6 +843,9 @@
   (org-return-follows-link t)
   ;; notes at the top
   (org-reverse-note-order nil)
+  ;; selecting text with S-<cursor>
+  (org-support-shift-select t)
+  (org-replace-disputed-keys t)
   ;; searching and showing results
   (org-show-following-heading t)
   (org-show-hierarchy-above t)
@@ -1061,7 +1060,7 @@
 
    ;; remove indentation on agenda tags view
    org-tags-match-list-sublevels t
-   org-table-use-standard-references 'from
+;;   org-table-use-standard-references 'from
    ;; Overwrite the current window with the agenda
    org-agenda-window-setup 'current-window
    org-clone-delete-id t
@@ -1139,12 +1138,13 @@
     (add-to-list 'helm-completing-read-handlers-alist '(org-capture . helm-org-completing-read-tags))
     (add-to-list 'helm-completing-read-handlers-alist '(org-set-tags . helm-org-completing-read-tags)))
   ;; The following custom-set-faces create the highlights
-  (custom-set-faces
+  ;;(custom-set-faces
    ;; custom-set-faces was added by Custom.
    ;; If you edit it by hand, you could mess it up, so be careful.
    ;; Your init file should contain only one such instance.
    ;; If there is more than one, they won't work right.
-   '(org-mode-line-clock ((t (:background "grey75" :foreground "red" :box (:line-width -1 :style released-button)))) t)))
+  ;;'(org-mode-line-clock ((t (:background "grey75" :foreground "red" :box (:line-width 1 :style released-button)))) t))
+  )
 
 (if (eq system-type 'gnu/linux)
     (setq org-reveal-root "file:///home/mberndtgen/Documents/src/emacs/reveal.js/"))
@@ -1176,7 +1176,15 @@
                  ("\\subsection{%s}" . "\\subsection*{%s}")
                  ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
                  ("\\paragraph{%s}" . "\\paragraph*{%s}")
-                 ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))))
+                 ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
+  (setq org-latex-packages-alist '())
+  (add-to-list 'org-latex-packages-alist '("" "color" t))
+  (add-to-list 'org-latex-packages-alist '("" "tabularx" t))
+  (add-to-list 'org-latex-packages-alist '("" "longtable" t))
+  (add-to-list 'org-latex-packages-alist '("" "array" t))
+  (add-to-list 'org-latex-packages-alist '("" "tabu" t))
+  (add-to-list 'org-latex-packages-alist '("" "fontenc" t))
+  (add-to-list 'org-latex-packages-alist '("" "multirow" t)))
 
 
 (defun dw/minibuffer-backward-kill (arg)
@@ -1308,7 +1316,7 @@
   (marginalia-mode))
 
 ;; https://github.com/waymondo/use-package-ensure-system-package
-(use-package use-package-ensure-system-package)
+;;(use-package use-package-ensure-system-package)
 
 ;; add github stars in package listing, autoremove packs, install packs parallel
 (use-package paradox
@@ -1351,11 +1359,12 @@
   :hook (after-init . highlight-parentheses-mode))
 
 ;; ensure proper lisping
-(add-hook 'after-save-hook  'check-parens nil t)
+;;(add-hook 'after-save-hook  'check-parens nil t)
+;;(remove-hook 'after-save-hook 'check-parens t)
 
 ;; checks (on saving) whether the file you edit contains a shebang, and if yes, makes it executable.
 (add-hook 'after-save-hook
-    'executable-make-buffer-file-executable-if-script-p)
+          'executable-make-buffer-file-executable-if-script-p)
 
 ;; For view-only buffers rendering content, it is useful to have them auto-revert in case of changes.
 (add-hook 'doc-view-mode-hook 'auto-revert-mode)
@@ -1507,69 +1516,6 @@
    ("M-<down>" . move-text-down))
   :config (move-text-default-bindings))
 
-
-;; codeium setup
-(straight-use-package '(codeium :type git :host github :repo "Exafunction/codeium.el"))
-(use-package codeium
-  ;; if you use straight
-  ;; :straight '(:type git :host github :repo "Exafunction/codeium.el")
-  ;; otherwise, make sure that the codeium.el file is on load-path
-
-  :init
-  ;; use globally
-  (add-to-list 'completion-at-point-functions #'codeium-completion-at-point)
-  ;; or on a hook
-  ;; (add-hook 'python-mode-hook
-  ;;     (lambda ()
-  ;;         (setq-local completion-at-point-functions '(codeium-completion-at-point))))
-
-  ;; if you want multiple completion backends, use cape (https://github.com/minad/cape):
-  ;; (add-hook 'python-mode-hook
-  ;;     (lambda ()
-  ;;         (setq-local completion-at-point-functions
-  ;;             (list (cape-super-capf #'codeium-completion-at-point #'lsp-completion-at-point)))))
-  ;; an async company-backend is coming soon!
-
-  ;; codeium-completion-at-point is autoloaded, but you can
-  ;; optionally set a timer, which might speed up things as the
-  ;; codeium local language server takes ~0.2s to start up
-  ;; (add-hook 'emacs-startup-hook
-  ;;  (lambda () (run-with-timer 0.1 nil #'codeium-init)))
-
-  :defer t ;; lazy loading, if you want
-  :config
-  (setq use-dialog-box nil) ;; do not use popup boxes
-
-  ;; if you don't want to use customize to save the api-key
-  ;; (setq codeium/metadata/api_key "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")
-
-  ;; get codeium status in the modeline
-  (setq codeium-mode-line-enable
-        (lambda (api) (not (memq api '(CancelRequest Heartbeat AcceptCompletion)))))
-  (add-to-list 'mode-line-format '(:eval (car-safe codeium-mode-line)) t)
-  ;; alternatively for a more extensive mode-line
-  ;; (add-to-list 'mode-line-format '(-50 "" codeium-mode-line) t)
-
-  ;; use M-x codeium-diagnose to see apis/fields that would be sent to the local language server
-  (setq codeium-api-enabled
-        (lambda (api)
-          (memq api '(GetCompletions Heartbeat CancelRequest GetAuthToken RegisterUser auth-redirect AcceptCompletion))))
-  ;; you can also set a config for a single buffer like this:
-  ;; (add-hook 'python-mode-hook
-  ;;     (lambda ()
-  ;;         (setq-local codeium/editor_options/tab_size 4)))
-
-  ;; You can overwrite all the codeium configs!
-  ;; for example, we recommend limiting the string sent to codeium for better performance
-  (defun my-codeium/document/text ()
-    (buffer-substring-no-properties (max (- (point) 3000) (point-min)) (min (+ (point) 1000) (point-max))))
-  ;; if you change the text, you should also change the cursor_offset
-  ;; warning: this is measured by UTF-8 encoded bytes
-  (defun my-codeium/document/cursor_offset ()
-    (codeium-utf8-byte-length
-     (buffer-substring-no-properties (max (- (point) 3000) (point-min)) (point))))
-  (setq codeium/document/text 'my-codeium/document/text)
-  (setq codeium/document/cursor_offset 'my-codeium/document/cursor_offset))
 
 
 ;; (defvar lsp-headerline-breadcrumb-segments)
@@ -1772,25 +1718,25 @@
 (setq reb-re-syntax 'string)
 
 ;; DAP
-(use-package dap-mode
-  :bind
-  (:map dap-mode-map
-        ("C-c b b" . dap-breakpoint-toggle)
-        ("C-c b r" . dap-debug-restart)
-        ("C-c b l" . dap-debug-last)
-        ("C-c b d" . dap-debug))
-  :init
-  (require 'dap-go)
-  ;; NB: dap-go-setup appears to be broken, so you have to download the extension from GH, rename its file extension
-  ;; unzip it, and copy it into the config so that the following path lines up
-  ;;(setq dap-go-debug-program '("node" "/Users/patrickt/.config/emacs/.extension/vscode/golang.go/extension/dist/debugAdapter.js"))
-  (defun pt/turn-on-debugger ()
-    (interactive)
-    (dap-mode)
-    (dap-auto-configure-mode)
-    (dap-ui-mode)
-    (dap-ui-controls-mode))
-  )
+;; (use-package dap-mode
+;;   :bind
+;;   (:map dap-mode-map
+;;         ("C-c b b" . dap-breakpoint-toggle)
+;;         ("C-c b r" . dap-debug-restart)
+;;         ("C-c b l" . dap-debug-last)
+;;         ("C-c b d" . dap-debug))
+;;   :init
+;;   (require 'dap-go)
+;;   ;; NB: dap-go-setup appears to be broken, so you have to download the extension from GH, rename its file extension
+;;   ;; unzip it, and copy it into the config so that the following path lines up
+;;   ;;(setq dap-go-debug-program '("node" "/Users/patrickt/.config/emacs/.extension/vscode/golang.go/extension/dist/debugAdapter.js"))
+;;   (defun pt/turn-on-debugger ()
+;;     (interactive)
+;;     (dap-mode)
+;;     (dap-auto-configure-mode)
+;;     (dap-ui-mode)
+;;     (dap-ui-controls-mode))
+;;   )
 
 ;; (use-package dap-mode
 ;;   :defer t
@@ -2048,7 +1994,9 @@
 
 (use-package flycheck
   :defer 10
-  :init (global-flycheck-mode)
+  :init
+  (setq flycheck-global-modes '(not org-mode)) ;; prevents unmatched brackets error when saving
+  (global-flycheck-mode 1) 
   :custom
   (flycheck-display-errors-delay .3)
   :config
@@ -2214,6 +2162,7 @@
 (add-hook 'haskell-mode-hook 'my-add-pretty-lambda)
 (add-hook 'shen-mode-hook 'my-add-pretty-lambda)
 (add-hook 'tex-mode-hook 'my-add-pretty-lambda)
+(add-hook 'org-mode-hook 'my-add-pretty-lambda)
 (global-prettify-symbols-mode 1) ; display “lambda” as “λ”
 
 ;; make tab complete without losing ability to manually indent
@@ -2425,7 +2374,7 @@
   :after sly
   :ensure t
   :config
-  (require 'sly-quicklisp-autoloads))
+  (require 'sly-quicklisp))
 
 
 ;; other language modes
