@@ -1094,8 +1094,8 @@
 
 (with-eval-after-load 'org
   (require 'ob-js)
-  (require 'org-re-reveal-ref)
-  (require 'oer-reveal-publish)
+;;  (require 'org-re-reveal-ref)
+;;  (require 'oer-reveal-publish)
   (org-babel-do-load-languages
    'org-babel-load-languages
    '((emacs-lisp . t)
@@ -1137,13 +1137,6 @@
     :config
     (add-to-list 'helm-completing-read-handlers-alist '(org-capture . helm-org-completing-read-tags))
     (add-to-list 'helm-completing-read-handlers-alist '(org-set-tags . helm-org-completing-read-tags)))
-  ;; The following custom-set-faces create the highlights
-  ;;(custom-set-faces
-   ;; custom-set-faces was added by Custom.
-   ;; If you edit it by hand, you could mess it up, so be careful.
-   ;; Your init file should contain only one such instance.
-   ;; If there is more than one, they won't work right.
-  ;;'(org-mode-line-clock ((t (:background "grey75" :foreground "red" :box (:line-width 1 :style released-button)))) t))
   )
 
 (if (eq system-type 'gnu/linux)
@@ -1200,9 +1193,6 @@
 ;; Enable vertico
 ;; see https://github.com/minad/vertico
 (use-package vertico
-  ;; :straight '(vertico :host github
-  ;;                     :repo "minad/vertico"
-  ;;                     :branch "main")
   :ensure t
   :bind (:map vertico-map
               ("C-j" . vertico-next)
@@ -1315,9 +1305,6 @@
   ;; package.
   (marginalia-mode))
 
-;; https://github.com/waymondo/use-package-ensure-system-package
-;;(use-package use-package-ensure-system-package)
-
 ;; add github stars in package listing, autoremove packs, install packs parallel
 (use-package paradox
   :delight " ፨"
@@ -1357,10 +1344,6 @@
 ;; https://github.com/tsdh/highlight-parentheses.el
 (use-package highlight-parentheses
   :hook (after-init . highlight-parentheses-mode))
-
-;; ensure proper lisping
-;;(add-hook 'after-save-hook  'check-parens nil t)
-;;(remove-hook 'after-save-hook 'check-parens t)
 
 ;; checks (on saving) whether the file you edit contains a shebang, and if yes, makes it executable.
 (add-hook 'after-save-hook
