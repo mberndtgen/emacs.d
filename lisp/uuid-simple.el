@@ -14,7 +14,7 @@ in your path. Useful for reading non-regular files like
 
 (defun make-uuid ()
   "Return a newly generated UUID from system entropy."
-  (let ((s (md5 (format "%s%s%s%s%s%s%s%s%s%s%s%s"
+  (let* ((s (md5 (format "%s%s%s%s%s%s%s%s%s%s%s%s"
                         (user-uid)
                         (emacs-pid)
                         (system-name)
@@ -28,11 +28,16 @@ in your path. Useful for reading non-regular files like
                         (recent-keys)
                         (when (file-exists-p "/dev/urandom")
                           (uuid-get-file-bytes "/dev/urandom" 16))))))
-    (format "%s-%s-3%s-%s-%s"
+         (variant (format "%x"
+                          (logior #x8
+                                  (logand (string-to-number (string (aref s 16)) 16)
+                                          #x3))))
+    (format "%s-%s-3%s-%s%s-%s"
             (substring s 0 8)
             (substring s 8 12)
             (substring s 13 16)
-            (substring s 16 20)
+            variant
+            (substring s 17 20)
             (substring s 20 32))))
 
 (defun uuid-insert ()
