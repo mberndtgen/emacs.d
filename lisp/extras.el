@@ -117,11 +117,13 @@
 (global-set-key (kbd "<pause>") #'toggle-current-window-dedication)
 
 (defun what-face (pos)
-  "Show the name of face under point."
+  "Show the name of face at POS."
   (interactive "d")
-  (let ((face (or (get-char-property (point) 'read-face-name)
-                  (get-char-property (point) 'face))))
-    (if face (message "Face: %s" face) (message "No face at %d" pos))))
+  (let ((face (or (get-char-property pos 'read-face-name)
+                  (get-char-property pos 'face))))
+    (if face
+        (message "Face: %s" face)
+      (message "No face at %d" pos))))
 
 (defun eshell-as (name)
   "Start or find an eshell buffer named NAME and pop to it."
