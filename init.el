@@ -213,6 +213,11 @@
 
 (electric-indent-mode +1) ;; indent after entering RET
 (electric-pair-mode +1) ;; automatically add a closing paren
+
+(setq desktop-restore-frames nil   ; don't restore frame layout
+      desktop-restore-frameset nil ; don't restore detailed window sizes
+      desktop-load-locked-desktop t) ; avoid prompts
+
 (desktop-save-mode 1) ;; save sessions
 
 ;;
@@ -472,7 +477,6 @@
   :hook (doom-modeline-mode . minions-mode))
 
 (use-package doom-modeline
-  :hook (after-init . doom-modeline-init)
   :custom-face
   (mode-line ((t (:height 0.85))))
   (mode-line-inactive ((t (:height 0.85))))
