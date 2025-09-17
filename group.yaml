@@ -8,4 +8,6 @@ spec:
   profile:
     displayName: The emacs admin group
     email: mberndtgen@mabuse.de
+  parent: ops
+  children: [backstage, other]
   members: [mberndtgen]
