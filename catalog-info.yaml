@@ -2,9 +2,23 @@ apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
   name: emacs.d
+  description: mberndtgen's Emacs configuration
   annotations:
+    backstage.io/techdocs-ref: dir:.
     github.com/project-slug: mberndtgen/emacs.d
+  tags:
+    - elisp
 spec:
-  type: other
-  lifecycle: unknown
-  owner: mberndtgen
+  type: software
+  lifecycle: production
+  owner: emacsadmins
+  system: emacsconfig
+---
+apiVersion: backstage.io/v1alpha1
+kind: System
+metadata:
+    name: emacsconfig
+    description: Emacs configuration (emacs 29+)
+spec:
+    owner: emacs-owners
+    domain: emacs
