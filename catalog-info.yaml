@@ -1,0 +1,10 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: emacs.d
+  annotations:
+    github.com/project-slug: mberndtgen/emacs.d
+spec:
+  type: other
+  lifecycle: unknown
+  owner: mberndtgen
