@@ -8,6 +8,11 @@ metadata:
     github.com/project-slug: mberndtgen/emacs.d
   tags:
     - elisp
+  links:
+    - url: https://emacs.org
+      title: Emacs HP
+      icon: mode
+      type: mode
 spec:
   type: software
   lifecycle: production
