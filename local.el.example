@@ -1,0 +1,12 @@
+# -*- mode: text; -*-
+# Machine-specific Emacs settings. Copy to local.el and customize.
+
+;; Org paths (override defaults in lisp/10-org.el)
+(setq org-directory "~/Dropbox/orgfiles")
+(setq org-reveal-root "file:///Users/v236177/Dropbox/orgfiles/reveal.js/")
+
+;; Common Lisp
+(setq inferior-lisp-program "sbcl")
+
+;; Opt-in dev modules from lisp/dev/ — e.g. '("go" "lsp")
+(setq my/dev-modules nil)

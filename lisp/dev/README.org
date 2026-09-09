@@ -1,0 +1,23 @@
+#+TITLE: Opt-in development modules
+
+* How to enable
+
+1. Copy =local.el.example= to =local.el= if you have not already.
+2. Add module names to =my/dev-modules= in =local.el=:
+
+#+begin_src emacs-lisp
+(setq my/dev-modules '("lsp"))
+#+end_src
+
+3. Restart Emacs, or evaluate the =setq= and run =M-x load-file RET ~/.emacs.d/lisp/dev/lsp.el RET=.
+
+Available modules (files in this directory):
+
+- =lsp.el= — LSP / Eglot / DAP (archived from old init.el)
+- =go.el= — Go mode
+- =haskell.el= — Haskell mode + lsp-haskell
+- =projectile.el= — Project management + helm-projectile
+
+* Adding a new language
+
+Copy =_template.el= to =my-lang.el=, implement with =:defer t=, add ="my-lang"= to =my/dev-modules=.
